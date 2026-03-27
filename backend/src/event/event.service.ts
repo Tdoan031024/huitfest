@@ -166,7 +166,7 @@ export class EventService {
     // DB Items are the Source of Truth
     const finalTimeline = {
       ...(pageConfig.timeline || {}),
-      items: timelineItems.map((item) => ({
+      items: timelineItems.map((item: any) => ({
         id: item.id,
         time: item.timeLabel,
         title: item.title,
@@ -176,7 +176,7 @@ export class EventService {
 
     const finalJourney = {
       ...(pageConfig.journey || {}),
-      items: journeyItems.map((item) => ({
+      items: journeyItems.map((item: any) => ({
         id: item.id,
         title: item.title,
         description: item.description,

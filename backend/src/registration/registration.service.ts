@@ -43,6 +43,7 @@ export class RegistrationService {
         role: payload.role?.trim(),
         major: payload.major?.trim(),
         campus: payload.campus?.trim(),
+        updatedAt: new Date(),
       },
     });
   }
