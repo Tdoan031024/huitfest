@@ -17,6 +17,12 @@ npm run admin:create -- <username> <password>
 ```
 
 ```bash
+npm run prisma:migrate
+```
+
+`prisma:migrate` now also applies data from `prisma/migrations/huitfest.sql` via `prisma:apply-huitfest`.
+
+```bash
 npx ts-node scripts/dev/check-slugs.ts
 npx ts-node scripts/dev/view-config-v4.ts
 npx ts-node scripts/dev/test-rules-save.ts
