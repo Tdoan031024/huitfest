@@ -1,0 +1,5 @@
+RewriteEngine On
+
+# On cPanel/LiteSpeed, Node app is mounted under /nodeapi by Passenger.
+# Keep frontend code using /api/* while internally routing to /nodeapi/api/*.
+RewriteRule ^api/(.*)$ /nodeapi/api/$1 [L,QSA]

@@ -3,7 +3,7 @@ RewriteEngine On
 # If user opens /admin or /admin/index.html without the admin session cookie,
 # redirect to backend login page.
 RewriteCond %{HTTP:Cookie} !(^|;\s*)huit_admin_session= [NC]
-RewriteRule ^$ /api/admin/auth/login-page [R=302,L]
+RewriteRule ^$ /nodeapi/api/admin/auth/login-page [R=302,L]
 
 RewriteCond %{HTTP:Cookie} !(^|;\s*)huit_admin_session= [NC]
-RewriteRule ^index\.html$ /api/admin/auth/login-page [R=302,L]
+RewriteRule ^index\.html$ /nodeapi/api/admin/auth/login-page [R=302,L]
