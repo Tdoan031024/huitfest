@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Logo/Sponsor Image</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .form-group {
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+    select, input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    select:focus, input[type="file"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .preview {
+      margin-top: 15px;
+      text-align: center;
+    }
+    .preview img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 25px;
+      padding: 20px;
+      border-radius: 8px;
+      display: none;
+    }
+    .result.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    .result.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    .url-box {
+      margin-top: 10px;
+      padding: 12px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: monospace;
+      word-break: break-all;
+      cursor: pointer;
+    }
+    .url-box:hover {
+      background: #f8f9fa;
+    }
+    .copy-hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    @media (max-width: 767px) {
+      body {
+        padding: 12px;
+        align-items: flex-start;
+      }
+
+      .container {
+        margin-top: 12px;
+        margin-bottom: 12px;
+        padding: 20px;
+        border-radius: 14px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .subtitle {
+        margin-bottom: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 18px;
+      }
+
+      select,
+      input[type="file"],
+      button {
+        min-height: 44px;
+      }
+
+      .result {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📤 Upload Logo/Sponsor</h1>
+    <p class="subtitle">Upload hình ảnh logo đối tác hoặc sponsor cho HUIT Fest</p>
+    
+    <form id="uploadForm">
+      <div class="form-group">
+        <label for="folder">Thư mục lưu trữ:</label>
+        <select id="folder" name="folder">
+          <option value="assets/images/logo">Logo (assets/images/logo)</option>
+          <option value="assets/images/sponsors" selected>Sponsors (assets/images/sponsors)</option>
+          <option value="uploads">Uploads chung (uploads)</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="file">Chọn file ảnh:</label>
+        <input type="file" id="file" name="file" accept="image/*" required>
+        <div class="preview" id="preview"></div>
+      </div>
+      
+      <button type="submit" id="submitBtn">
+        🚀 Upload ngay
+      </button>
+    </form>
+    
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('file');
+    const preview = document.getElementById('preview');
+    const result = document.getElementById('result');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Preview image
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.innerHTML = '';
+      }
+    });
+
+    // Handle upload
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Vui lòng chọn file!');
+        return;
+      }
+
+      const folder = document.getElementById('folder').value;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', folder);
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Đang upload...';
+      result.style.display = 'none';
+
+      try {
+        const response = await fetch('http://localhost:3000/api/upload/image', {
+          method: 'POST',
+          body: formData,
+          // Nếu có auth token, thêm vào đây:
+          // headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          result.className = 'result success';
+          result.innerHTML = `
+            <strong>✅ Upload thành công!</strong><br><br>
+            <strong>URL của ảnh:</strong>
+            <div class="url-box" onclick="copyToClipboard('${data.url}')">
+              ${data.url}
+            </div>
+            <p class="copy-hint">👆 Click để copy URL</p>
+            <br>
+            <strong>Thông tin file:</strong><br>
+            - Tên gốc: ${data.originalName}<br>
+            - Kích thước: ${(data.size / 1024).toFixed(2)} KB<br>
+            - Định dạng: ${data.mimeType}
+          `;
+          result.style.display = 'block';
+          
+          // Reset form
+          form.reset();
+          preview.innerHTML = '';
+        } else {
+          throw new Error(data.message || 'Upload failed');
+        }
+      } catch (error) {
+        result.className = 'result error';
+        result.innerHTML = `
+          <strong>❌ Upload thất bại!</strong><br><br>
+          Lỗi: ${error.message}<br><br>
+          <small>Kiểm tra:</small><br>
+          - Backend server có đang chạy không?<br>
+          - Bạn có quyền admin không?<br>
+          - File có phải là ảnh không?
+        `;
+        result.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🚀 Upload ngay';
+      }
+    });
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Đã copy URL vào clipboard!');
+      }).catch(() => {
+        alert('❌ Không thể copy. Vui lòng copy thủ công.');
+      });
+    }
+  </script>
+</body>
+</html>

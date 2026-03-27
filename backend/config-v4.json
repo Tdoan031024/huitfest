@@ -1,0 +1,178 @@
+{
+  "about": {
+    "heading": "VỀ HUIT FEST ",
+    "logoImage": "/assets/images/banner/1774531078093-626250970.webp",
+    "description": "HUIT Fest là sự kiện âm nhạc - công nghệ dành cho học sinh, sinh viên yêu thích trải nghiệm mới.\nKhông gian lễ hội được thiết kế với sân khấu hiện đại, nghệ sĩ trẻ nổi bật và chuỗi hoạt động tương tác xuyên suốt chương trình."
+  },
+  "rules": {
+    "content": "Vé và check-in: Ban Tổ chức (BTC) sẽ kiểm duyệt thông tin đăng ký vé hợp lệ và gửi vé qua email cho bạn trong vòng 48h sau khi đăng ký.",
+    "sectionTitle": "QUY ĐỊNH CHUNG"
+  },
+  "video": {
+    "videoUrl": "https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F813022351807590%2F&show_text=false&width=560&t=0",
+    "sectionTitle": "VIDEO SỰ KIỆN"
+  },
+  "footer": {
+    "logos": [
+      {
+        "id": "l1",
+        "name": "HUIT MEDIA",
+        "image": "/assets/images/logo/logomedia.jpg"
+      },
+      {
+        "id": "l2",
+        "name": "Đối tác",
+        "image": "/assets/images/logo/avt.jpg"
+      }
+    ],
+    "title": "ĐƠN VỊ BẢO TRỢ TRUYỀN THÔNG"
+  },
+  "ticket": {
+    "note": "Sau khi hoàn thành đầy đủ các bước, bạn sẽ nhận được vé điện tử từ Ban Tổ Chức qua email.\nVé tham gia hoàn toàn miễn phí.\n3.000 khán giả check-in sớm nhất sẽ nhận được lightstick miễn phí.",
+    "steps": [
+      {
+        "id": "s1",
+        "icon": "🔗",
+        "title": "Bước 1",
+        "description": "Chia sẻ bài viết trên Facebook cá nhân ở chế độ công khai (Public)."
+      },
+      {
+        "id": "s2",
+        "icon": "💬",
+        "title": "Bước 2",
+        "description": "Tag 03 người bạn tại phần bình luận của bài viết."
+      },
+      {
+        "id": "s3",
+        "icon": "📝",
+        "title": "Bước 3",
+        "description": "Điền form đăng ký bên dưới để nhận vé."
+      },
+      {
+        "id": "mn7s9y4i",
+        "icon": "📌",
+        "title": "Bước mới",
+        "description": ""
+      }
+    ],
+    "sectionTitle": "CÁCH THỨC NHẬN VÉ"
+  },
+  "artists": {
+    "artists": [
+      {
+        "id": "a3",
+        "name": "LyHan ",
+        "hints": [
+          {
+            "id": "h1",
+            "text": "Gợi ý 1",
+            "image": ""
+          }
+        ],
+        "image": "/uploads/1774549174876-431689847.webp",
+        "status": "revealed",
+        "description": "LyHan (tên thật Trần Thảo Linh, sinh năm 1999 tại Thanh Hóa) là một ca sĩ trẻ, nhạc sĩ và hot TikToker nổi tiếng với hơn 1,7 triệu người theo dõi. Cô gây ấn tượng với hình ảnh \"dark-gothic\" cá tính, vũ đạo sắc bén và chất giọng nhẹ nhàng qua các ca khúc Pop/Rock/Sadcore. LyHan được biết đến rộng rãi sau khi trở thành Á quân chương trình Em xinh say hi 2025."
+      }
+    ],
+    "sectionTitle": "Sự Xuất Hiện Của Các Ngôi Sao"
+  },
+  "banners": [
+    {
+      "id": "b1",
+      "image": "/assets/images/banner/1774530317175-215805027.webp",
+      "title": "HUIT FEST 2026",
+      "subtitle": "CITY HEART",
+      "buttonLink": "#register",
+      "buttonText": "Đăng ký ngay"
+    }
+  ],
+  "journey": {
+    "cards": [
+      {
+        "id": 62,
+        "image": "",
+        "title": "KHÔNG GIAN ÂM NHẠC HOÀNH TRÁNG",
+        "description": "Không gian âm nhạc ngoài trời với sức nóng mùa hè"
+      },
+      {
+        "id": 63,
+        "image": "",
+        "title": "GẶP GỠ LOẠT IDOLS ĐÌNH ĐÁM",
+        "description": "Cháy hết mình cùng dàn line-up xịn sò"
+      },
+      {
+        "id": 64,
+        "image": "",
+        "title": "BẬT MOOD CÙNG ÂM NHẠC ĐIỆN TỬ",
+        "description": "Set DJ cực chất khép lại đêm nhạc"
+      },
+      {
+        "id": 65,
+        "image": "",
+        "title": "Hành trình mới",
+        "description": "dkijopidsejfoiejw[oifja['psdj'fkjsda;lkjf;lksdajf;lkjasd;ljfl'kjasd"
+      }
+    ],
+    "items": [
+      {
+        "id": 62,
+        "image": "",
+        "title": "KHÔNG GIAN ÂM NHẠC HOÀNH TRÁNG",
+        "description": "Không gian âm nhạc ngoài trời với sức nóng mùa hè"
+      },
+      {
+        "id": 63,
+        "image": "",
+        "title": "GẶP GỠ LOẠT IDOLS ĐÌNH ĐÁM",
+        "description": "Cháy hết mình cùng dàn line-up xịn sò"
+      },
+      {
+        "id": 64,
+        "image": "",
+        "title": "BẬT MOOD CÙNG ÂM NHẠC ĐIỆN TỬ",
+        "description": "Set DJ cực chất khép lại đêm nhạc"
+      },
+      {
+        "id": 65,
+        "image": "",
+        "title": "Hành trình mới",
+        "description": ""
+      },
+      {
+        "id": 66,
+        "image": "",
+        "title": "Hành trình mới",
+        "description": ""
+      }
+    ],
+    "sectionTitle": "Hành Trình HUIT FEST"
+  },
+  "timeline": {
+    "items": [
+      {
+        "id": 92,
+        "time": "15:30 - 17:00",
+        "title": "Đón khách và check-in",
+        "description": "Cổng check-in sẽ đóng vào lúc 17:30"
+      },
+      {
+        "id": "mn7t5yzq",
+        "time": "00:00",
+        "title": "Sự kiện mới",
+        "description": ""
+      },
+      {
+        "id": "mn7t5yzr",
+        "time": "00:00",
+        "title": "Sự kiện mới",
+        "description": ""
+      }
+    ],
+    "sideImage": "",
+    "sectionTitle": "Time-line chương trình"
+  },
+  "countdown": {
+    "targetDate": "2026-04-11T14:00",
+    "sectionTitle": "SỰ KIỆN BẮT ĐẦU SAU"
+  }
+}
