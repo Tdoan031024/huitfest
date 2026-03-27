@@ -19,7 +19,7 @@ export class EventController {
   }
 
   @Put(':slug/config')
-  // @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard)
   updateConfig(@Param('slug') slug: string, @Body() config: any) {
     return this.eventService.updateEventConfig(slug, config);
   }

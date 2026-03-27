@@ -13,6 +13,7 @@ async function main() {
       startAt: new Date('2026-03-22T08:30:00.000Z'),
       endAt: new Date('2026-03-22T15:00:00.000Z'),
       registrationOpen: false,
+      updatedAt: new Date(),
     },
     create: {
       slug: 'huitu-fest-2026',
@@ -25,11 +26,12 @@ async function main() {
       startAt: new Date('2026-03-22T08:30:00.000Z'),
       endAt: new Date('2026-03-22T15:00:00.000Z'),
       registrationOpen: false,
+      updatedAt: new Date(),
     },
   });
 
   await prisma.artist.deleteMany({ where: { eventId: event.id } });
-  await prisma.agendaItem.deleteMany({ where: { eventId: event.id } });
+  await prisma.agendaitem.deleteMany({ where: { eventId: event.id } });
 
   await prisma.artist.createMany({
     data: [
@@ -40,7 +42,7 @@ async function main() {
     ],
   });
 
-  await prisma.agendaItem.createMany({
+  await prisma.agendaitem.createMany({
     data: [
       {
         eventId: event.id,
