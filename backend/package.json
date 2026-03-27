@@ -10,7 +10,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "admin:create": "ts-node src/create-admin.ts"
+    "admin:create": "ts-node scripts/dev/create-admin.ts"
   },
   "keywords": [],
   "author": "",

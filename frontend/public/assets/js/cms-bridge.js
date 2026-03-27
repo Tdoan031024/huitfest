@@ -1,8 +1,14 @@
 (function() {
-  const STORAGE_KEY = 'landingPageData';
+  const STORAGE_KEY = 'landingPageData.public.v2';
 
-  const API_URL = '/api/events/huitu-fest-2026/config';
+  const EVENT_SLUG_CANDIDATES = ['huit-fest-2026', 'fptu-fest-2026', 'huitu-fest-2026'];
+  let resolvedApiUrl = null;
   let countdownTimer = null;
+  let activeLoadSeq = 0;
+  let hasInitialized = false;
+  let lastValidArtists = [];
+  let lastRenderedArtistSlots = [];
+  let lastRenderedArtistsBySlot = Object.create(null);
 
   function clearCountdownTimer() {
     if (countdownTimer) {
@@ -179,30 +185,33 @@
   }
 
   function pickFreshestData(localData, apiData) {
-    if (!localData) return apiData || null;
-    if (!apiData) return localData;
-
-    const localTimelineCount = getTimelineItemCount(localData);
-    const apiTimelineCount = getTimelineItemCount(apiData);
-    if (localTimelineCount > apiTimelineCount) {
-      return localData;
-    }
-    return apiData;
+    if (apiData) return apiData;
+    return localData || null;
   }
 
   async function fetchApiData(timeoutMs = 7000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    const urlCandidates = resolvedApiUrl
+      ? [resolvedApiUrl]
+      : EVENT_SLUG_CANDIDATES.map((slug) => `/api/events/${slug}/config`);
+
     try {
-      const res = await fetch(`${API_URL}?_ts=${Date.now()}`, {
-        signal: controller.signal,
-        cache: 'no-store'
-      });
-      if (!res.ok) {
-        return null;
+      for (let i = 0; i < urlCandidates.length; i += 1) {
+        const baseUrl = urlCandidates[i];
+        const res = await fetch(`${baseUrl}?_ts=${Date.now()}`, {
+          signal: controller.signal,
+          cache: 'no-store'
+        });
+        if (!res.ok) {
+          continue;
+        }
+
+        resolvedApiUrl = baseUrl;
+        return await res.json();
       }
-      return await res.json();
+      return null;
     } catch (e) {
       return null;
     } finally {
@@ -211,21 +220,22 @@
   }
 
   async function loadData() {
+    const loadSeq = ++activeLoadSeq;
+
     // Hide default countdown until CMS data explicitly enables it.
     toggleCountdownByData(null);
 
     const localData = readLocalData();
 
-    // STEP 1: If we have local storage data, USE IT NOW for instant display!
-    if (localData) {
-      applyData(localData);
-      document.body.classList.add('cms-ready');
-    }
-
-    // STEP 2: Fetch fresh data in the background
+    // STEP 1: Always fetch fresh data first to avoid replaying stale local cache.
     const apiData = await fetchApiData(7000);
+
+    // Ignore stale completion from earlier load attempts.
+    if (loadSeq !== activeLoadSeq) {
+      return;
+    }
     
-    // STEP 3: If API is fresher or local data was missing, apply and update cache
+    // STEP 2: Apply API data when available. Local cache is fallback only.
     const finalData = pickFreshestData(localData, apiData);
 
     if (finalData) {
@@ -235,15 +245,13 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(finalData));
       } catch (e) {}
     } else if (!localData) {
-      // Step 4: Fallback to show at least whatever LadiPage has if everything else fails
+      // Step 3: Fallback to show at least whatever LadiPage has if everything else fails
       console.warn('HUIT FEST CMS: no local data and API unavailable.');
       document.body.classList.add('cms-ready');
     }
   }
 
   function applyData(data) {
-    console.log('HUIT FEST CMS: Applying data...', data);
-
     // 1. Banner
     if (data.banners && data.banners.length > 0) {
       const firstBanner = data.banners[0];
@@ -274,18 +282,205 @@
     // 3. Artists
     const artistStrip = document.querySelector('[data-guest-strip]');
     if (artistStrip && data.artists && data.artists.artists) {
-      // Keep existing layout nodes, but ensure visible cards match CMS artist count.
       const cards = artistStrip.querySelectorAll('.music-guest-card');
-      const artists = Array.isArray(data.artists.artists) ? data.artists.artists : [];
+      const normalizedArtists = Array.isArray(data.artists.artists)
+        ? data.artists.artists.filter((artist) => artist && (artist.id || artist.name || artist.image))
+        : [];
+
+      const artists = normalizedArtists.length >= 1
+        ? normalizedArtists
+        : (lastValidArtists.length >= 1 ? lastValidArtists : normalizedArtists);
+
+      if (normalizedArtists.length >= 1) {
+        lastValidArtists = normalizedArtists;
+      }
+
+      const usedArtistIndexes = new Set();
+      const nextRenderedSlots = new Array(cards.length);
+      const nextRenderedBySlot = Object.create(null);
+
+      const toSlotId = (value, fallbackIndex) => {
+        const fallback = `guest-${String(fallbackIndex + 1).padStart(2, '0')}`;
+        if (value === null || value === undefined) {
+          return fallback;
+        }
+        const raw = String(value).trim();
+        if (!raw) {
+          return fallback;
+        }
+        const match = raw.match(/^guest-(\d{1,2})$/i);
+        if (match) {
+          return `guest-${match[1].padStart(2, '0')}`;
+        }
+        if (/^\d+$/.test(raw)) {
+          return `guest-${raw.padStart(2, '0')}`;
+        }
+        return raw;
+      };
+
+      const getCandidateSlotId = (artist) => {
+        if (!artist) {
+          return '';
+        }
+        const rawSlot = artist.slotId || artist.slot || artist.guestId || artist.guest_id || artist.position;
+        if (rawSlot === null || rawSlot === undefined || rawSlot === '') {
+          return '';
+        }
+        return toSlotId(rawSlot, -1);
+      };
+
+      const getArtistIdentity = (artist) => {
+        if (!artist) {
+          return '';
+        }
+        const id = artist.id ? String(artist.id).trim() : '';
+        const name = artist.name ? String(artist.name).trim().toLowerCase() : '';
+        if (id) {
+          return `id:${id}`;
+        }
+        if (name) {
+          return `name:${name}`;
+        }
+        return '';
+      };
+
+      const takeArtistBySlotId = (targetSlotId) => {
+        if (!targetSlotId) {
+          return null;
+        }
+        for (let idx = 0; idx < artists.length; idx += 1) {
+          if (usedArtistIndexes.has(idx)) {
+            continue;
+          }
+          const candidate = artists[idx];
+          const candidateSlotId = getCandidateSlotId(candidate);
+          if (candidateSlotId && candidateSlotId === targetSlotId) {
+            usedArtistIndexes.add(idx);
+            return candidate;
+          }
+        }
+        return null;
+      };
+
+      const takeArtistById = (targetId) => {
+        if (!targetId) {
+          return null;
+        }
+        for (let idx = 0; idx < artists.length; idx += 1) {
+          if (usedArtistIndexes.has(idx)) {
+            continue;
+          }
+          const candidate = artists[idx];
+          const candidateId = candidate && candidate.id ? String(candidate.id).trim() : '';
+          if (candidateId && candidateId === targetId) {
+            usedArtistIndexes.add(idx);
+            return candidate;
+          }
+        }
+        return null;
+      };
+
+      const takeArtistByIdentity = (targetIdentity) => {
+        if (!targetIdentity) {
+          return null;
+        }
+        for (let idx = 0; idx < artists.length; idx += 1) {
+          if (usedArtistIndexes.has(idx)) {
+            continue;
+          }
+          const candidate = artists[idx];
+          if (getArtistIdentity(candidate) === targetIdentity) {
+            usedArtistIndexes.add(idx);
+            return candidate;
+          }
+        }
+        return null;
+      };
+
+      const takeArtistByIndex = (targetIndex, expectedSlotId) => {
+        if (targetIndex < 0 || targetIndex >= artists.length || usedArtistIndexes.has(targetIndex)) {
+          return null;
+        }
+        const candidate = artists[targetIndex];
+        const candidateSlotId = getCandidateSlotId(candidate);
+        // If the artist at this index explicitly wants a different slot, don't grab them as a fallback for this slot.
+        // This prevents 'jumping' slots when we have a partial or shuffled payload.
+        if (candidateSlotId && expectedSlotId && candidateSlotId !== expectedSlotId) {
+          return null;
+        }
+        usedArtistIndexes.add(targetIndex);
+        return candidate;
+      };
+
+      const takeNextUnusedArtist = () => {
+        for (let idx = 0; idx < artists.length; idx += 1) {
+          if (usedArtistIndexes.has(idx)) {
+            continue;
+          }
+          usedArtistIndexes.add(idx);
+          return artists[idx];
+        }
+        return null;
+      };
 
       cards.forEach((card, i) => {
-        const artist = artists[i];
+        const slotId = toSlotId(card.getAttribute('data-guest-id'), i);
+        const previousArtistForSlot = lastRenderedArtistsBySlot[slotId] || lastRenderedArtistSlots[i] || null;
+
+        let artist = takeArtistBySlotId(slotId);
 
         if (!artist) {
-          card.style.display = 'none';
+          artist = takeArtistById(slotId);
+        }
+
+        if (!artist && previousArtistForSlot) {
+          const prevBySlotIdentity = getArtistIdentity(previousArtistForSlot);
+          artist = takeArtistByIdentity(prevBySlotIdentity);
+        }
+
+        if (!artist && previousArtistForSlot) {
+          // Preserve slot to prevent card jumping/disappearing when incoming payload is partial.
+          artist = previousArtistForSlot;
+        }
+
+        if (!artist) {
+          artist = takeArtistByIndex(i, slotId);
+        }
+
+        if (!artist) {
+          // Final fallback: next available unused artist who DOES NOT belong to any specific slot
+          for (let idx = 0; idx < artists.length; idx += 1) {
+            if (usedArtistIndexes.has(idx)) continue;
+            const candidate = artists[idx];
+            if (!getCandidateSlotId(candidate)) {
+              usedArtistIndexes.add(idx);
+              artist = candidate;
+              break;
+            }
+          }
+        }
+
+        if (!artist) {
+          const preservedArtist = previousArtistForSlot;
+
+          if (!preservedArtist) {
+            // Hide truly empty slots so only configured artists are shown.
+            card.style.display = 'none';
+            card.classList.remove('is-active');
+            nextRenderedSlots[i] = null;
+            return;
+          }
+
+          card.style.display = '';
+          nextRenderedSlots[i] = preservedArtist;
+          if (preservedArtist) {
+            nextRenderedBySlot[slotId] = preservedArtist;
+          }
           return;
         }
 
+        nextRenderedSlots[i] = artist;
+        nextRenderedBySlot[slotId] = artist;
         card.style.display = '';
         card.classList.remove('is-revealed', 'is-hidden');
         card.classList.add(artist.status === 'revealed' ? 'is-revealed' : 'is-hidden');
@@ -311,13 +506,29 @@
           }))
           .filter((hint) => hint.content || hint.src);
 
-        card.setAttribute('data-guest-id', artist.id || `guest-${i + 1}`);
+        // Keep guest-id stable per slot so click/detail behavior doesn't drift between cards.
+        card.setAttribute('data-guest-id', slotId);
         card.setAttribute('data-guest-description', artist.description || 'Thông tin khách mời đang được cập nhật.');
         card.setAttribute('data-guest-hints', JSON.stringify(artist.status === 'revealed' ? [] : cleanedHints));
       });
 
+      Object.keys(nextRenderedBySlot).forEach((slotId) => {
+        if (nextRenderedBySlot[slotId]) {
+          lastRenderedArtistsBySlot[slotId] = nextRenderedBySlot[slotId];
+        }
+      });
+
+      if (nextRenderedSlots.filter(Boolean).length >= 1) {
+        lastRenderedArtistSlots = nextRenderedSlots;
+      }
+
       const secTitle = document.querySelector('.music-hint-head h3');
       if (secTitle) secTitle.textContent = data.artists.sectionTitle;
+
+      // Re-trigger detail refresh if a card is currently active to ensure UI/Detail sync
+      if (typeof window.refreshActiveGuestDetail === 'function') {
+        window.refreshActiveGuestDetail();
+      }
     }
 
     // 4. Countdown (CMS-driven only)
@@ -390,61 +601,128 @@
         const first = ticketSteps[0];
         const second = ticketSteps[1];
         const template = ticketSteps[2];
+        const firstFrame = first.querySelector('.ladi-box.ladi-transition') || first.querySelector('.ladi-box');
+        const secondFrame = second.querySelector('.ladi-box.ladi-transition') || second.querySelector('.ladi-box');
+        const templateFrame = template.querySelector('.ladi-box.ladi-transition') || template.querySelector('.ladi-box');
 
-        const sameRowDesktop = Math.abs(second.offsetTop - first.offsetTop) < 30;
-        const columns = sameRowDesktop ? 3 : 1;
-        const topStart = first.offsetTop;
-        const leftStart = first.offsetLeft;
-        const rowGap = sameRowDesktop
-          ? (first.offsetHeight + 70)
-          : Math.max(20, second.offsetTop - first.offsetTop);
-        const colGap = sameRowDesktop
-          ? Math.max(20, second.offsetLeft - first.offsetLeft)
-          : 0;
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+        const columns = viewportWidth >= 992 ? 3 : 1;
+        const sectionRect = sectionContainer.getBoundingClientRect();
+        const firstRect = (firstFrame || first).getBoundingClientRect();
+        const secondRect = (secondFrame || second).getBoundingClientRect();
+        const templateRect = (templateFrame || template).getBoundingClientRect();
+        const topStart = firstRect.top - sectionRect.top;
+        const leftStart = firstRect.left - sectionRect.left;
+        const cardWidth = Math.round(templateRect.width || firstRect.width);
+        const cardHeight = Math.round(templateRect.height || firstRect.height);
+        const colGap = columns === 3 ? Math.max(Math.round(secondRect.left - firstRect.left - cardWidth), 0) : 0;
+        const rowGap = cardHeight + (columns === 3 ? 24 : 20);
+        const row2Top = topStart + rowGap;
+        const templateHeadline = template.querySelector('.ladi-headline');
+        const templateDesc = template.querySelector('.ladi-paragraph');
+        const templateImageBg = template.querySelector('.ladi-image-background');
+        const templateFrameStyle = templateFrame ? window.getComputedStyle(templateFrame) : null;
+        const templateHeadlineStyle = templateHeadline ? window.getComputedStyle(templateHeadline) : null;
+        const templateDescStyle = templateDesc ? window.getComputedStyle(templateDesc) : null;
+        const templateImageStyle = templateImageBg ? window.getComputedStyle(templateImageBg) : null;
+
+        const extraWrap = document.createElement('div');
+        extraWrap.className = 'cms-ticket-step-dynamic cms-ticket-extra-wrap';
+        extraWrap.style.position = 'absolute';
+        extraWrap.style.left = `${leftStart}px`;
+        extraWrap.style.top = `${row2Top}px`;
+        extraWrap.style.display = 'grid';
+        extraWrap.style.gridTemplateColumns = columns === 3 ? `repeat(3, ${cardWidth}px)` : `${cardWidth}px`;
+        extraWrap.style.columnGap = `${colGap}px`;
+        extraWrap.style.rowGap = '16px';
+        extraWrap.style.width = columns === 3
+          ? `${cardWidth * 3 + colGap * 2}px`
+          : `${cardWidth}px`;
+        extraWrap.style.zIndex = '3';
 
         for (let i = 3; i < steps.length; i += 1) {
           const step = steps[i];
-          const clone = template.cloneNode(true);
-          clone.classList.add('cms-ticket-step-dynamic');
-          clone.classList.remove('ladi-animation');
-          clone.querySelectorAll('.ladi-animation').forEach((el) => el.classList.remove('ladi-animation'));
+          const card = document.createElement('article');
+          card.className = 'cms-ticket-extra-card';
+          card.style.position = 'relative';
+          card.style.width = `${cardWidth}px`;
+          card.style.height = `${cardHeight}px`;
+          card.style.border = templateFrameStyle ? templateFrameStyle.border : '1px solid rgba(183, 209, 255, 0.85)';
+          card.style.borderRadius = templateFrameStyle ? templateFrameStyle.borderRadius : '10px';
+          card.style.background = templateFrameStyle ? templateFrameStyle.background : 'rgba(16, 22, 66, 0.7)';
+          card.style.boxShadow = templateFrameStyle ? templateFrameStyle.boxShadow : '0 10px 24px rgba(5, 10, 45, 0.45)';
+          card.style.boxSizing = 'border-box';
+          card.style.padding = '20px 14px 14px 14px';
+          card.style.overflow = 'visible';
+          card.style.display = 'flex';
+          card.style.flexDirection = 'column';
+          card.style.justifyContent = 'flex-start';
 
-          const row = Math.floor(i / columns);
-          const col = columns === 1 ? 0 : (i % columns);
-
-          clone.style.display = '';
-          clone.style.position = 'absolute';
-          clone.style.top = `${topStart + (row * rowGap)}px`;
-          clone.style.left = `${leftStart + (col * colGap)}px`;
-          clone.style.opacity = '1';
-          clone.style.visibility = 'visible';
-          clone.style.transform = 'none';
-          const cloneRootGroup = clone.querySelector('.ladi-group');
-          if (cloneRootGroup) {
-            cloneRootGroup.style.opacity = '1';
-            cloneRootGroup.style.visibility = 'visible';
+          const iconEl = document.createElement('div');
+          iconEl.style.position = 'absolute';
+          iconEl.style.width = '46px';
+          iconEl.style.height = '46px';
+          iconEl.style.left = '10px';
+          iconEl.style.top = '-18px';
+          iconEl.style.zIndex = '2';
+          iconEl.style.backgroundRepeat = 'no-repeat';
+          iconEl.style.backgroundPosition = 'center';
+          iconEl.style.backgroundSize = 'contain';
+          iconEl.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.35))';
+          if (templateImageStyle && templateImageStyle.backgroundImage && templateImageStyle.backgroundImage !== 'none') {
+            iconEl.style.backgroundImage = templateImageStyle.backgroundImage;
           }
 
-          const titleEl = clone.querySelector('.ladi-headline');
-          if (titleEl) titleEl.textContent = step.title;
-          const descEl = clone.querySelector('.ladi-paragraph');
-          if (descEl) descEl.textContent = step.description;
+          const titleEl = document.createElement('h3');
+          titleEl.textContent = step.title || `Bước ${i + 1}`;
+          titleEl.style.margin = '22px 0 8px 0';
+          titleEl.style.fontSize = templateHeadlineStyle ? templateHeadlineStyle.fontSize : '30px';
+          titleEl.style.lineHeight = templateHeadlineStyle ? templateHeadlineStyle.lineHeight : '1.2';
+          titleEl.style.color = templateHeadlineStyle ? templateHeadlineStyle.color : '#ffffff';
+          titleEl.style.fontFamily = templateHeadlineStyle ? templateHeadlineStyle.fontFamily : "'Open Sans', sans-serif";
+          titleEl.style.fontWeight = templateHeadlineStyle ? templateHeadlineStyle.fontWeight : '700';
+          titleEl.style.letterSpacing = templateHeadlineStyle ? templateHeadlineStyle.letterSpacing : '0px';
 
-          sectionContainer.appendChild(clone);
+          const descEl = document.createElement('p');
+          descEl.textContent = (step.description && String(step.description).trim()) || ' '; 
+          descEl.style.margin = '0';
+          descEl.style.whiteSpace = 'pre-line';
+          descEl.style.fontSize = templateDescStyle ? templateDescStyle.fontSize : '15px';
+          descEl.style.lineHeight = templateDescStyle ? templateDescStyle.lineHeight : '1.5';
+          descEl.style.color = templateDescStyle ? templateDescStyle.color : '#ffffff';
+          descEl.style.fontFamily = templateDescStyle ? templateDescStyle.fontFamily : "'Open Sans', sans-serif";
+          descEl.style.fontWeight = templateDescStyle ? templateDescStyle.fontWeight : '400';
+          if (!step.description || !String(step.description).trim()) {
+            descEl.style.display = 'none';
+          }
+
+          card.appendChild(iconEl);
+
+          card.appendChild(titleEl);
+          card.appendChild(descEl);
+          extraWrap.appendChild(card);
         }
+
+        sectionContainer.appendChild(extraWrap);
       }
 
       if (noteGroup && sectionEl && ticketSteps[0] && ticketSteps[1]) {
         const baseNoteTop = Number(noteGroup.dataset.cmsBaseTop || noteGroup.offsetTop);
         const baseSectionHeight = Number(sectionEl.dataset.cmsBaseHeight || sectionEl.offsetHeight);
 
-        const sameRowDesktop = Math.abs(ticketSteps[1].offsetTop - ticketSteps[0].offsetTop) < 30;
-        const columns = sameRowDesktop ? 3 : 1;
-        const rowGap = sameRowDesktop
-          ? (ticketSteps[0].offsetHeight + 70)
-          : Math.max(20, ticketSteps[1].offsetTop - ticketSteps[0].offsetTop);
-        const rowsUsed = Math.max(1, Math.ceil(steps.length / columns));
-        const stepBottom = ticketSteps[0].offsetTop + ((rowsUsed - 1) * rowGap) + ticketSteps[0].offsetHeight;
+        const dynamicSteps = sectionContainer
+          ? Array.from(sectionContainer.querySelectorAll('.cms-ticket-step-dynamic'))
+          : [];
+
+        const allStepEls = [...ticketSteps.filter(Boolean), ...dynamicSteps]
+          .filter((el) => {
+            const style = window.getComputedStyle(el);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+          });
+
+        const stepBottom = allStepEls.reduce((maxBottom, el) => {
+          return Math.max(maxBottom, el.offsetTop + el.offsetHeight);
+        }, ticketSteps[0].offsetTop + ticketSteps[0].offsetHeight);
 
         const noteTop = steps.length > 3
           ? Math.max(baseNoteTop, stepBottom + 24)
@@ -861,26 +1139,19 @@
 
   // Initial apply with multiple stages to handle LadiPage initialization
   let isCleaningUp = false;
-  // Optimized initialization for maximum speed
+  // Initialize once to avoid race conditions that re-apply stale cache.
   function init() {
+    if (hasInitialized) {
+      return;
+    }
+    hasInitialized = true;
+
     const run = () => {
       if (isCleaningUp) return;
       loadData();
     };
 
-    // Run 1: Attempt to load from localStorage IMMEDIATELY for instant paint
     run();
-
-    // Run 2: Retry with small delays to handle LadiPage layout engine race conditions
-    if (document.readyState === 'complete') {
-      setTimeout(run, 300);
-      setTimeout(run, 1000); 
-    } else {
-      window.addEventListener('load', () => {
-        setTimeout(run, 300);
-        setTimeout(run, 1000);
-      });
-    }
   }
 
   init();
@@ -890,15 +1161,7 @@
     if (e.key !== STORAGE_KEY) {
       return;
     }
-
-    if (e.newValue) {
-      try {
-        const updated = JSON.parse(e.newValue);
-        applyData(updated);
-        return;
-      } catch (err) {}
-    }
-
+    // Always reload from API to avoid applying malformed/stale draft payloads from other tabs.
     loadData();
   });
 })();

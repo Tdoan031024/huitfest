@@ -4,13 +4,6 @@
     "node_modules",
     "dist",
     "**/*.spec.ts",
-    "prisma/**/*.ts",
-    "src/check-*.ts",
-    "src/debug-*.ts",
-    "src/list-*.ts",
-    "src/migrate-*.ts",
-    "src/test-*.ts",
-    "src/view-*.ts",
-    "src/create-admin.ts"
+    "prisma/**/*.ts"
   ]
 }

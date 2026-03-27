@@ -174,4 +174,24 @@
   } else {
     initGuestHintReveal();
   }
+
+  // Globally expose refresh to allow cms-bridge.js to trigger update on data change
+  window.refreshActiveGuestDetail = () => {
+    const section = document.getElementById('MUSIC_HINT_SECTION');
+    if (!section) return;
+
+    const activeCard = section.querySelector('.music-guest-card.is-active');
+    if (!activeCard) return;
+
+    const guestId = activeCard.getAttribute('data-guest-id');
+    const detailEl = section.querySelector('[data-guest-detail]');
+    const statusEl = section.querySelector('[data-guest-status]');
+    const titleEl = section.querySelector('[data-guest-title]');
+    const descEl = section.querySelector('[data-guest-desc]');
+    const hintsEl = section.querySelector('[data-guest-hints]');
+
+    if (!guestId || !detailEl || !statusEl || !titleEl || !descEl || !hintsEl) return;
+
+    renderGuestDetail(guestId, { detailEl, statusEl, titleEl, descEl, hintsEl }, activeCard);
+  };
 })();
