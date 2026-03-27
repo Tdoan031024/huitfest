@@ -13,6 +13,22 @@
   const patchUploadEndpoint = () => {
     if (!window.fetch || window.__huitUploadFetchPatched) return;
     const originalFetch = window.fetch.bind(window);
+    const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
+
+    const rewriteApiUrl = (url) => {
+      if (typeof url !== 'string' || !url) return url;
+
+      let nextUrl = url;
+      if (nextUrl.startsWith('http://localhost:3000/api/')) {
+        nextUrl = `${window.location.origin}${nextUrl.replace('http://localhost:3000', '')}`;
+      }
+
+      if (runningUnderNodeApi && nextUrl.startsWith('/api/')) {
+        nextUrl = `/nodeapi${nextUrl}`;
+      }
+
+      return nextUrl;
+    };
 
     const isArtistSectionActive = () => {
       const titleNode = document.querySelector('[data-slot="card-title"]');
@@ -33,10 +49,10 @@
     window.fetch = (input, init) => {
       let nextInput = input;
       if (typeof input === 'string') {
-        nextInput = input.replace('http://localhost:3000/api/upload/image', '/api/upload/image');
+        nextInput = rewriteApiUrl(input);
       } else if (input instanceof Request) {
-        const rewrittenUrl = input.url.replace('http://localhost:3000/api/upload/image', `${window.location.origin}/api/upload/image`);
-        if (rewrittenUrl !== input.url) {
+        const rewrittenUrl = rewriteApiUrl(input.url);
+        if (rewrittenUrl !== input.url && rewrittenUrl) {
           nextInput = new Request(rewrittenUrl, input);
         }
       }

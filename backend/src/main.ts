@@ -10,6 +10,17 @@ import { AdminAuthService } from './auth/admin-auth.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
 
+  // cPanel/Passenger may mount the app under /nodeapi. Strip this prefix so
+  // Nest routes continue to work with the same controller paths.
+  app.use((request: Request, _response: Response, next: NextFunction) => {
+    const mountPrefix = '/nodeapi';
+    if (request.url === mountPrefix || request.url.startsWith(`${mountPrefix}/`)) {
+      (request as any).__basePrefix = mountPrefix;
+      request.url = request.url.slice(mountPrefix.length) || '/';
+    }
+    next();
+  });
+
   app.setGlobalPrefix('api', {
     exclude: [{ path: '/', method: RequestMethod.GET }],
   });
@@ -35,7 +46,8 @@ async function bootstrap() {
 
     const acceptsHtml = (request.headers.accept || '').includes('text/html');
     if (acceptsHtml) {
-      response.redirect('/api/admin/auth/login-page');
+      const basePrefix = ((request as any).__basePrefix as string | undefined) || '';
+      response.redirect(`${basePrefix}/api/admin/auth/login-page`);
       return;
     }
 
