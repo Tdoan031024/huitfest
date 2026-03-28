@@ -27,26 +27,30 @@
       if (el.swiper) el.swiper.destroy(true, true);
 
       const swiper = new Swiper(el, {
-        slidesPerView: 2,
-        spaceBetween: 10,
+        slidesPerView: 2.2,
+        spaceBetween: 12,
         centeredSlides: false,
-        loop: true,
+        loop: false,
         grabCursor: true,
+        speed: 700,
+        freeMode: false,
+        touchRatio: 1.2,
+        resistanceRatio: 0.85,
+        slideToClickedSlide: true,
         preventClicks: false,
         autoplay: {
-          delay: 3500,
-          disableOnInteraction: false,
+          delay: 4000,
+          disableOnInteraction: true,
+          pauseOnMouseEnter: true,
         },
         breakpoints: {
           768: {
-            slidesPerView: 4,
-            spaceBetween: 20,
-            autoplay: false
+            slidesPerView: 3.5,
+            spaceBetween: 20
           },
           1024: {
             slidesPerView: 5,
-            spaceBetween: 25,
-            autoplay: false
+            spaceBetween: 25
           }
         },
         on: {
@@ -636,7 +640,6 @@
     // 3. Artists
     const artistStrip = document.querySelector('[data-guest-strip]');
     if (artistStrip && data.artists && data.artists.artists) {
-      const cards = artistStrip.querySelectorAll('.music-guest-card');
       const normalizedArtists = Array.isArray(data.artists.artists)
         ? data.artists.artists.filter((artist) => artist && (artist.id || artist.name || artist.image))
         : [];
@@ -648,6 +651,24 @@
       if (normalizedArtists.length >= 1) {
         lastValidArtists = normalizedArtists;
       }
+
+      // Ensure we have enough card slots in the DOM by cloning the first one if needed.
+      const wrapper = artistStrip.querySelector('.swiper-wrapper') || artistStrip;
+      let artistCards = Array.from(wrapper.querySelectorAll('.music-guest-card'));
+      if (artistCards.length > 0 && artists.length > artistCards.length) {
+        const template = artistCards[0];
+        while (artistCards.length < artists.length) {
+          const clone = template.cloneNode(true);
+          // Reset clone state
+          clone.classList.remove('is-active', 'is-revealed');
+          clone.classList.add('is-hidden');
+          clone.removeAttribute('data-guest-reveal-bound');
+          wrapper.appendChild(clone);
+          artistCards.push(clone);
+        }
+      }
+      
+      const cards = artistCards;
 
       const usedArtistIndexes = new Set();
       const nextRenderedSlots = new Array(cards.length);
@@ -1805,6 +1826,8 @@
           // Force height update for Rules Section to avoid collapsing
           const rulesSection = document.getElementById('SECTION27');
           const rulesGroup = document.getElementById('GROUP322');
+          const rulesContainer = rulesSection ? rulesSection.querySelector('.ladi-container') : null;
+          
           if (rulesSection && rulesGroup) {
              rulesGroup.style.height = 'auto';
              rulesBody.style.height = 'auto';
@@ -1815,7 +1838,32 @@
                 
                 const sHeight = rulesGroup.offsetTop + contentHeight + 80;
                 rulesSection.style.setProperty('height', `${Math.max(300, sHeight)}px`, 'important');
-             }, 350);
+                if (rulesContainer) {
+                   rulesContainer.style.setProperty('height', `${Math.max(300, sHeight)}px`, 'important');
+                }
+                
+                // Sync Background Image Box Size
+                const rulesBg = document.getElementById('IMAGE245');
+                if (rulesBg) {
+                   if (isMobile) {
+                      rulesBg.style.setProperty('width', 'calc(100% - 20px)', 'important');
+                      rulesBg.style.setProperty('left', '10px', 'important');
+                   }
+                   rulesBg.style.setProperty('height', `${sHeight - 40}px`, 'important');
+                   const bgInner = rulesBg.querySelector('.ladi-image-background');
+                   if (bgInner) {
+                      bgInner.style.setProperty('height', `${sHeight - 40}px`, 'important');
+                      bgInner.style.setProperty('width', '100%', 'important');
+                   }
+                }
+                
+                // Final safeguard: ensure the main wrapper grows
+                const wrapper = document.querySelector('.ladi-wraper');
+                if (wrapper && window.innerWidth < 992) {
+                   wrapper.style.setProperty('height', 'auto', 'important');
+                   wrapper.style.setProperty('min-height', '100vh', 'important');
+                }
+             }, 400);
           }
        }
     }
@@ -1897,7 +1945,11 @@
         // Keep section compact because logos are now always one horizontal row.
         const targetHeight = Math.ceil(marqueeTop + 98 + 52);
         const baseHeight = Number(footerSec.dataset.cmsBaseHeight || footerSec.offsetHeight);
-        footerSec.style.setProperty('height', `${Math.max(baseHeight, targetHeight)}px`, 'important');
+        const fHeight = Math.max(baseHeight, targetHeight);
+        footerSec.style.setProperty('height', `${fHeight}px`, 'important');
+        if (footerContainer) {
+           footerContainer.style.setProperty('height', `${fHeight}px`, 'important');
+        }
       }
     }
   }
