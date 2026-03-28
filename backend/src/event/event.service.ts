@@ -7,6 +7,40 @@ import { PrismaService } from '../prisma.service';
 export class EventService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private normalizeArtistItems(config: any): Array<{ name: string; imageUrl: string; status: string; description: string; hints: any[] }> {
+    const section = config && config.artists && typeof config.artists === 'object' ? config.artists : null;
+    const rawItems = section && Array.isArray(section.artists) ? section.artists : [];
+
+    if (rawItems.length === 0) return [];
+
+    return rawItems
+      .filter((item: any) => item && typeof item === 'object')
+      .map((item: any) => ({
+        name: String(item.name ?? ''),
+        imageUrl: String(item.image ?? item.imageUrl ?? ''),
+        status: String(item.status ?? 'revealed'),
+        description: String(item.description ?? ''),
+        hints: Array.isArray(item.hints) ? item.hints : [],
+      }));
+  }
+
+  private normalizeArtistsExtraItems(config: any): Array<{ name: string; imageUrl: string; status: string; description: string; hints: any[] }> {
+    const section = config && config.artistsExtra && typeof config.artistsExtra === 'object' ? config.artistsExtra : null;
+    const rawItems = section && Array.isArray(section.artists) ? section.artists : [];
+
+    if (rawItems.length === 0) return [];
+
+    return rawItems
+      .filter((item: any) => item && typeof item === 'object')
+      .map((item: any) => ({
+        name: String(item.name ?? ''),
+        imageUrl: String(item.image ?? item.imageUrl ?? ''),
+        status: String(item.status ?? 'revealed'),
+        description: String(item.description ?? ''),
+        hints: Array.isArray(item.hints) ? item.hints : [],
+      }));
+  }
+
   private normalizeTimelineItems(config: any): Array<{ time: string; title: string; description: string }> {
     if (!config || !config.timeline || !Array.isArray(config.timeline.items)) {
       return [];
@@ -159,9 +193,77 @@ export class EventService {
       ]
     });
 
+    const artistItems = await this.prisma.artist.findMany({
+      where: { eventId: event.id },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    let artistExtraItems: any[] = [];
+    const prismaAny = this.prisma as any;
+    if (prismaAny.artistextraitem && typeof prismaAny.artistextraitem.findMany === 'function') {
+      artistExtraItems = await prismaAny.artistextraitem.findMany({
+        where: { eventId: event.id },
+        orderBy: [
+          { sortOrder: 'asc' },
+          { id: 'asc' }
+        ]
+      });
+    } else {
+      // Fallback when Prisma Client has not been regenerated yet.
+      artistExtraItems = await this.prisma.$queryRawUnsafe(
+        'SELECT id, eventId, name, imageUrl, description, status, sortOrder FROM `artistextraitem` WHERE eventId = ? ORDER BY sortOrder ASC, id ASC',
+        event.id,
+      ) as any[];
+    }
+
     const pageConfig = event.pageConfig && typeof event.pageConfig === 'object'
       ? (event.pageConfig as Record<string, any>)
       : {};
+
+    const pageArtists = Array.isArray(pageConfig?.artists?.artists)
+      ? pageConfig.artists.artists
+      : [];
+
+    const finalArtists = {
+      ...(pageConfig.artists || {}),
+      artists: artistItems.length > 0
+        ? artistItems.map((item: any, idx: number) => {
+            const fallback = pageArtists[idx] || {};
+            return {
+              id: String(fallback.id ?? `a-${item.id}`),
+              name: item.name,
+              image: item.imageUrl || String(fallback.image ?? fallback.imageUrl ?? ''),
+              status: String(fallback.status ?? 'revealed'),
+              description: String(fallback.description ?? ''),
+              hints: Array.isArray(fallback.hints) ? fallback.hints : [],
+            };
+          })
+        : pageArtists,
+    };
+
+    const pageArtistsExtra = Array.isArray(pageConfig?.artistsExtra?.artists)
+      ? pageConfig.artistsExtra.artists
+      : [];
+
+    const finalArtistsExtra = {
+      ...(pageConfig.artistsExtra || {}),
+      artists: artistExtraItems.length > 0
+        ? artistExtraItems.map((item: any, idx: number) => {
+            const fallback = pageArtistsExtra[idx] || {};
+            return {
+              id: String(fallback.id ?? `ax2-${item.id}`),
+              name: item.name,
+              image: item.imageUrl || String(fallback.image ?? fallback.imageUrl ?? ''),
+              status: String(item.status ?? fallback.status ?? 'revealed'),
+              description: String(item.description ?? fallback.description ?? ''),
+              hints: Array.isArray(fallback.hints) ? fallback.hints : [],
+            };
+          })
+        : pageArtistsExtra,
+    };
 
     // DB Items are the Source of Truth
     const finalTimeline = {
@@ -220,6 +322,8 @@ export class EventService {
 
     return {
       ...pageConfig,
+      artists: finalArtists,
+      artistsExtra: finalArtistsExtra,
       timeline: finalTimeline,
       journey: finalJourney,
       footer: finalFooter,
@@ -247,8 +351,10 @@ export class EventService {
     const journeyItems = this.normalizeJourneyItems(config);
     const sponsorItems = this.normalizeSponsorItems(config);
     const ruleItems = this.normalizeRuleItems(config);
+    const artistItems = this.normalizeArtistItems(config);
+    const artistExtraItems = this.normalizeArtistsExtraItems(config);
 
-    console.log(`HUIT FEST: Normalized ${timelineItems.length} timeline, ${journeyItems.length} journey, ${sponsorItems.length} sponsors, ${ruleItems.length} rules`);
+    console.log(`HUIT FEST: Normalized ${artistItems.length} artists, ${artistExtraItems.length} artistsExtra, ${timelineItems.length} timeline, ${journeyItems.length} journey, ${sponsorItems.length} sponsors, ${ruleItems.length} rules`);
 
     return this.prisma.$transaction(async (tx) => {
       const now = new Date();
@@ -327,6 +433,63 @@ export class EventService {
             updatedAt: now,
           })),
         });
+      }
+
+      // 6. Sync with Artist table (section artists)
+      await tx.artist.deleteMany({
+        where: { eventId: target.id }
+      });
+
+      if (artistItems.length > 0) {
+        await tx.artist.createMany({
+          data: artistItems.map((item, idx) => ({
+            eventId: target.id,
+            name: item.name,
+            imageUrl: item.imageUrl,
+            sortOrder: idx + 1,
+          })),
+        });
+      }
+
+      // 7. Sync with ArtistExtraItem table (section artistsExtra)
+      const txAny = tx as any;
+      if (txAny.artistextraitem && typeof txAny.artistextraitem.deleteMany === 'function') {
+        await txAny.artistextraitem.deleteMany({
+          where: { eventId: target.id }
+        });
+
+        if (artistExtraItems.length > 0) {
+          await txAny.artistextraitem.createMany({
+            data: artistExtraItems.map((item, idx) => ({
+              eventId: target.id,
+              name: item.name,
+              imageUrl: item.imageUrl,
+              description: item.description,
+              status: item.status,
+              sortOrder: idx + 1,
+              updatedAt: now,
+            })),
+          });
+        }
+      } else {
+        // Fallback when Prisma Client has not been regenerated yet.
+        await tx.$executeRawUnsafe('DELETE FROM `artistextraitem` WHERE eventId = ?', target.id);
+        if (artistExtraItems.length > 0) {
+          for (let idx = 0; idx < artistExtraItems.length; idx += 1) {
+            const item = artistExtraItems[idx];
+            await tx.$executeRawUnsafe(
+              'INSERT INTO `artistextraitem` (`eventId`, `name`, `imageUrl`, `description`, `status`, `sortOrder`, `createdAt`, `updatedAt`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+              target.id,
+              item.name,
+              item.imageUrl,
+              item.description,
+              item.status,
+              idx + 1,
+              now,
+              now,
+            );
+          }
+        }
       }
 
       return updatedEvent;

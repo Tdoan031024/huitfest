@@ -9,6 +9,13 @@
   
   console.log('🚀 Admin Upload Injector loaded');
 
+  const normalizeLooseText = (value) => String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
   // Rewrite hard-coded upload endpoint in built admin bundle to current origin.
   const patchUploadEndpoint = () => {
     if (!window.fetch || window.__huitUploadFetchPatched) return;
@@ -32,7 +39,7 @@
 
     const isArtistSectionActive = () => {
       const titleNode = document.querySelector('[data-slot="card-title"]');
-      const text = ((titleNode && titleNode.textContent) || '').toLowerCase();
+      const text = normalizeLooseText((titleNode && titleNode.textContent) || '');
       return text.includes('nghe') && text.includes('si');
     };
 
@@ -285,6 +292,42 @@
           overflow-x: hidden;
         }
 
+        .huit-artist-tabs {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+          padding: 4px;
+          border: 1px solid rgba(147, 51, 234, 0.28);
+          border-radius: 12px;
+          background: rgba(88, 28, 135, 0.18);
+        }
+
+        .huit-artist-tab-btn {
+          border: 1px solid transparent;
+          border-radius: 10px;
+          background: transparent;
+          color: rgba(216, 180, 254, 0.78);
+          font-size: 12px;
+          font-weight: 700;
+          padding: 8px 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .huit-artist-tab-btn:hover {
+          color: #ffffff;
+          background: rgba(124, 58, 237, 0.2);
+          border-color: rgba(147, 51, 234, 0.35);
+        }
+
+        .huit-artist-tab-btn.active {
+          color: #ffffff;
+          background: linear-gradient(135deg, rgba(124, 58, 237, 0.92), rgba(6, 182, 212, 0.82));
+          border-color: rgba(103, 232, 249, 0.42);
+          box-shadow: 0 8px 20px rgba(76, 29, 149, 0.3);
+        }
+
         @media (max-width: 1024px) {
           header.sticky > div:last-child {
             display: flex;
@@ -345,6 +388,16 @@
           .text-lg {
             font-size: 1rem !important;
           }
+
+          .huit-artist-tabs {
+            flex-wrap: wrap;
+          }
+
+          .huit-artist-tab-btn {
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+          }
         }
       `;
 
@@ -356,6 +409,9 @@
     const simplifyHeaderActions = () => {
       const header = document.querySelector('header.sticky');
       if (!header) return;
+
+      const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
+      const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
 
       const actionWrap = header.querySelector('div:last-child');
       if (!actionWrap) return;
@@ -373,7 +429,7 @@
       if (!actionWrap.querySelector('[data-main-site-btn="1"]')) {
         const mainBtn = document.createElement('a');
         mainBtn.setAttribute('data-main-site-btn', '1');
-        mainBtn.href = '/';
+        mainBtn.href = `${basePrefix}/`;
         mainBtn.textContent = 'Về trang chính';
         mainBtn.style.cssText = [
           'display:inline-flex',
@@ -403,6 +459,11 @@
         });
 
         actionWrap.appendChild(mainBtn);
+      }
+
+      const legacyArtistsExtraBtn = actionWrap.querySelector('[data-artists-extra-btn="1"]');
+      if (legacyArtistsExtraBtn) {
+        legacyArtistsExtraBtn.remove();
       }
 
       // Add logout button
@@ -454,6 +515,483 @@
 
         actionWrap.appendChild(logoutBtn);
       }
+    };
+
+    const isSection3ArtistCard = (card) => {
+      if (!card) return false;
+      const titleNode = card.querySelector('[data-slot="card-title"]');
+      const titleText = normalizeLooseText(titleNode?.textContent || '');
+      return titleText.includes('section 3') && titleText.includes('nghe') && titleText.includes('si');
+    };
+
+    const ensureArtistSectionTabs = () => {
+      const artistCard = Array.from(document.querySelectorAll('[data-slot="card"]')).find(isSection3ArtistCard);
+      if (!artistCard) return;
+
+      const contentWrap = artistCard.querySelector('[data-slot="card-content"]');
+      if (!contentWrap) return;
+
+      const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
+      const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
+
+      const normalizeText = (value) => String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+      const tabState = window.__huitArtistTabsState || {
+        activeTab: 'list1',
+        list1Snapshot: null,
+        list1Original: null,
+        list2Snapshot: null,
+        list2Original: null,
+        configUrl: '',
+        resolvedSlug: '',
+        isSwitching: false,
+      };
+      window.__huitArtistTabsState = tabState;
+
+      const deepClone = (obj) => {
+        try {
+          return JSON.parse(JSON.stringify(obj));
+        } catch (error) {
+          return obj;
+        }
+      };
+
+      const wait = (ms) => new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+
+      const findControlByLabel = (rootEl, pattern, selector = 'input,textarea,select') => {
+        if (!rootEl) return null;
+        const labels = Array.from(rootEl.querySelectorAll('label'));
+        const target = labels.find((label) => pattern.test(normalizeText(label.textContent || '')));
+        if (!target) return null;
+
+        const parent = target.parentElement;
+        if (parent) {
+          const direct = parent.querySelector(selector);
+          if (direct) return direct;
+        }
+
+        let sibling = target.nextElementSibling;
+        while (sibling) {
+          if (sibling.matches(selector)) return sibling;
+          const nested = sibling.querySelector(selector);
+          if (nested) return nested;
+          sibling = sibling.nextElementSibling;
+        }
+        return null;
+      };
+
+      const getSectionTitleInput = () => {
+        return findControlByLabel(contentWrap, /tieu de section/, 'input');
+      };
+
+      const getAddArtistButton = () => {
+        return Array.from(contentWrap.querySelectorAll('button'))
+          .find((btn) => normalizeText(btn.textContent || '').includes('them nghe si')) || null;
+      };
+
+      const getArtistCardRoots = () => {
+        const pushUniqueRoot = (bucket, node) => {
+          if (!node || bucket.includes(node)) return;
+          bucket.push(node);
+        };
+
+        const rootsFromDeleteButtons = [];
+        const deleteButtons = Array.from(contentWrap.querySelectorAll('button'))
+          .filter((btn) => /text-red|red-/.test(btn.className || ''));
+
+        deleteButtons.forEach((btn) => {
+          let current = btn.parentElement;
+          while (current && current !== contentWrap) {
+            const text = normalizeText(current.textContent || '');
+            if (text.includes('ten nghe si') && text.includes('trang thai') && text.includes('mo ta')) {
+              pushUniqueRoot(rootsFromDeleteButtons, current);
+              break;
+            }
+            current = current.parentElement;
+          }
+        });
+
+        const rootsFromNameInputs = [];
+        const nameInputs = Array.from(contentWrap.querySelectorAll('input'))
+          .filter((input) => {
+            const fieldText = normalizeText(input.parentElement?.textContent || '');
+            return fieldText.includes('ten nghe si');
+          });
+
+        nameInputs.forEach((input) => {
+          let current = input.parentElement;
+          while (current && current !== contentWrap) {
+            const text = normalizeText(current.textContent || '');
+            if (text.includes('ten nghe si') && text.includes('trang thai')) {
+              pushUniqueRoot(rootsFromNameInputs, current);
+              break;
+            }
+            current = current.parentElement;
+          }
+        });
+
+        const roots = rootsFromDeleteButtons.length > 0
+          ? rootsFromDeleteButtons
+          : rootsFromNameInputs;
+
+        return roots.sort((a, b) => {
+          if (a === b) return 0;
+          const pos = a.compareDocumentPosition(b);
+          return (pos & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
+        });
+      };
+
+      const getDeleteButtonFromCard = (cardRoot) => {
+        if (!cardRoot) return null;
+        const buttons = Array.from(cardRoot.querySelectorAll('button'));
+        const redBtn = buttons.find((btn) => /text-red|red-/.test(btn.className || ''));
+        if (redBtn) return redBtn;
+        return buttons.find((btn) => normalizeText(btn.textContent || '') === '') || null;
+      };
+
+      const extractArtistFormState = () => {
+        const sectionTitleInput = getSectionTitleInput();
+        const cards = getArtistCardRoots();
+
+        const artists = cards.map((cardRoot, index) => {
+          const nameInput = findControlByLabel(cardRoot, /ten nghe si/, 'input');
+          const imageInput = findControlByLabel(cardRoot, /anh dai dien|anh nghe si|image/, 'input');
+          const statusSelect = findControlByLabel(cardRoot, /trang thai/, 'select');
+          const descInput = findControlByLabel(cardRoot, /mo ta|tieu su/, 'textarea');
+
+          return {
+            id: `ax-${index + 1}`,
+            name: nameInput ? String(nameInput.value || '') : '',
+            image: imageInput ? String(imageInput.value || '') : '',
+            status: statusSelect ? String(statusSelect.value || 'revealed') : 'revealed',
+            description: descInput ? String(descInput.value || '') : '',
+          };
+        });
+
+        return {
+          sectionTitle: sectionTitleInput ? String(sectionTitleInput.value || '') : '',
+          artists,
+        };
+      };
+
+      const syncArtistCardCount = async (targetCount) => {
+        const safeCount = Math.max(0, Number(targetCount || 0));
+        const addBtn = getAddArtistButton();
+
+        if (addBtn) {
+          let guard = 0;
+          while (getArtistCardRoots().length < safeCount && guard < 20) {
+            addBtn.click();
+            guard += 1;
+            await wait(50);
+          }
+        }
+
+        let removeGuard = 0;
+        while (getArtistCardRoots().length > safeCount && removeGuard < 40) {
+          const cards = getArtistCardRoots();
+          const lastCard = cards[cards.length - 1];
+          const deleteBtn = getDeleteButtonFromCard(lastCard);
+          if (!deleteBtn) break;
+          deleteBtn.click();
+          removeGuard += 1;
+          await wait(40);
+        }
+      };
+
+      const applyArtistFormState = async (state) => {
+        const nextState = state && typeof state === 'object'
+          ? state
+          : { sectionTitle: '', artists: [] };
+
+        const artists = Array.isArray(nextState.artists) ? nextState.artists : [];
+        await syncArtistCardCount(artists.length);
+
+        const sectionTitleInput = getSectionTitleInput();
+        if (sectionTitleInput) {
+          setInputValueAndDispatch(sectionTitleInput, String(nextState.sectionTitle || ''));
+        }
+
+        const cards = getArtistCardRoots();
+        cards.forEach((cardRoot, index) => {
+          const artist = artists[index] || {
+            name: '', image: '', description: '', status: 'revealed',
+          };
+
+          const nameInput = findControlByLabel(cardRoot, /ten nghe si/, 'input');
+          const imageInput = findControlByLabel(cardRoot, /anh dai dien|anh nghe si|image/, 'input');
+          const statusSelect = findControlByLabel(cardRoot, /trang thai/, 'select');
+          const descInput = findControlByLabel(cardRoot, /mo ta|tieu su/, 'textarea');
+
+          if (nameInput) {
+            setInputValueAndDispatch(nameInput, String(artist.name || ''));
+          }
+          if (imageInput) {
+            setInputValueAndDispatch(imageInput, String(artist.image || artist.imageUrl || ''));
+          }
+          if (statusSelect) {
+            setInputValueAndDispatch(statusSelect, String(artist.status || 'revealed'));
+          }
+          if (descInput) {
+            setInputValueAndDispatch(descInput, String(artist.description || ''));
+          }
+        });
+
+        await wait(20);
+      };
+
+      const normalizeArtistsExtra = (raw) => {
+        const source = raw && typeof raw === 'object' ? raw : {};
+        const items = Array.isArray(source.artists) ? source.artists : [];
+        return {
+          sectionTitle: String(source.sectionTitle || ''),
+          artists: items.map((artist, index) => ({
+            id: String(artist?.id || `ax2-${index + 1}`),
+            name: String(artist?.name || ''),
+            image: String(artist?.image || artist?.imageUrl || ''),
+            description: String(artist?.description || ''),
+            status: String(artist?.status || 'revealed'),
+          })),
+        };
+      };
+
+      const fetchArtistsExtraConfig = async () => {
+        const slugCandidates = ['huit-fest-2026', 'fptu-fest-2026', 'huitu-fest-2026'];
+        const candidates = tabState.resolvedSlug
+          ? [tabState.resolvedSlug, ...slugCandidates.filter((item) => item !== tabState.resolvedSlug)]
+          : slugCandidates;
+
+        for (let idx = 0; idx < candidates.length; idx += 1) {
+          const slug = candidates[idx];
+          const url = `${basePrefix}/api/events/${encodeURIComponent(slug)}/config`;
+
+          try {
+            const response = await fetch(`${url}?_ts=${Date.now()}`, {
+              method: 'GET',
+              credentials: 'include',
+              cache: 'no-store',
+            });
+            if (!response.ok) {
+              continue;
+            }
+
+            const json = await response.json();
+            tabState.configUrl = url;
+            tabState.resolvedSlug = slug;
+
+            const next = normalizeArtistsExtra(json?.artistsExtra);
+            tabState.list2Snapshot = deepClone(next);
+            tabState.list2Original = deepClone(next);
+            return true;
+          } catch (error) {
+            // Continue to next candidate slug.
+          }
+        }
+
+        return false;
+      };
+
+      const saveArtistsExtraFromForm = async () => {
+        if (!tabState.configUrl) {
+          const loaded = await fetchArtistsExtraConfig();
+          if (!loaded || !tabState.configUrl) {
+            showNotification('❌ Không tải được cấu hình artistsExtra để lưu.', 'error');
+            return false;
+          }
+        }
+
+        const latestResponse = await fetch(`${tabState.configUrl}?_ts=${Date.now()}`, {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        if (!latestResponse.ok) {
+          showNotification(`❌ Không đọc được config trước khi lưu (HTTP ${latestResponse.status}).`, 'error');
+          return false;
+        }
+
+        const latestConfig = await latestResponse.json();
+        const currentForm = extractArtistFormState();
+        const payload = {
+          ...latestConfig,
+          artistsExtra: {
+            sectionTitle: String(currentForm.sectionTitle || ''),
+            artists: currentForm.artists.map((artist, index) => ({
+              id: String(artist.id || `ax2-${index + 1}`),
+              name: String(artist.name || ''),
+              image: String(artist.image || ''),
+              description: String(artist.description || ''),
+              status: String(artist.status || 'revealed'),
+              hints: [],
+            })),
+          },
+        };
+
+        const putResponse = await fetch(tabState.configUrl, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!putResponse.ok) {
+          showNotification(`❌ Lưu artistsExtra thất bại (HTTP ${putResponse.status}).`, 'error');
+          return false;
+        }
+
+        tabState.list2Snapshot = deepClone(payload.artistsExtra);
+        tabState.list2Original = deepClone(payload.artistsExtra);
+        try {
+          localStorage.setItem('landingPageData.public.v2', JSON.stringify(payload));
+        } catch (error) {}
+
+        showNotification('✅ Đã lưu Danh sách nghệ sĩ 2.', 'success');
+        return true;
+      };
+
+      let tabsBar = contentWrap.querySelector('[data-artists-tabs-wrap="1"]');
+      if (!tabsBar) {
+        tabsBar = document.createElement('div');
+        tabsBar.className = 'huit-artist-tabs';
+        tabsBar.setAttribute('data-artists-tabs-wrap', '1');
+        tabsBar.innerHTML = `
+          <button type="button" class="huit-artist-tab-btn active" data-artist-tab="list1">Danh sách nghệ sĩ 1</button>
+          <button type="button" class="huit-artist-tab-btn" data-artist-tab="list2">Danh sách nghệ sĩ 2</button>
+        `;
+        contentWrap.insertBefore(tabsBar, contentWrap.firstChild);
+      }
+
+      const headerActions = artistCard.querySelector('[data-slot="card-header"] > div:last-child');
+      const actionButtons = headerActions ? Array.from(headerActions.querySelectorAll('button')) : [];
+      const resetBtn = actionButtons.find((btn) => normalizeText(btn.textContent || '').includes('reset'));
+      const saveBtn = actionButtons.find((btn) => normalizeText(btn.textContent || '').includes('save'));
+
+      if (saveBtn && saveBtn.dataset.huitTab2SaveBound !== '1') {
+        saveBtn.dataset.huitTab2SaveBound = '1';
+        saveBtn.addEventListener('click', async (event) => {
+          if (tabState.activeTab !== 'list2') {
+            return;
+          }
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          saveBtn.disabled = true;
+          try {
+            await saveArtistsExtraFromForm();
+          } finally {
+            saveBtn.disabled = false;
+          }
+        }, true);
+      }
+
+      if (resetBtn && resetBtn.dataset.huitTab2ResetBound !== '1') {
+        resetBtn.dataset.huitTab2ResetBound = '1';
+        resetBtn.addEventListener('click', async (event) => {
+          if (tabState.activeTab !== 'list2') {
+            return;
+          }
+          event.preventDefault();
+          event.stopImmediatePropagation();
+
+          const source = tabState.list2Original || { sectionTitle: '', artists: [] };
+          tabState.list2Snapshot = deepClone(source);
+          await applyArtistFormStateWithRetry(source);
+          showNotification('✅ Đã reset Danh sách nghệ sĩ 2.', 'success');
+        }, true);
+      }
+
+      const updateTabButtonState = (activeTab) => {
+        tabsBar.querySelectorAll('[data-artist-tab]').forEach((btn) => {
+          const isActive = btn.getAttribute('data-artist-tab') === activeTab;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+      };
+
+      const applyArtistFormStateWithRetry = async (state) => {
+        await applyArtistFormState(state);
+        // Some React-controlled inputs render late after section switch; apply again to prevent mixed tab data.
+        await wait(120);
+        await applyArtistFormState(state);
+      };
+
+      const setArtistTabState = async (activeTab) => {
+        const nextTab = activeTab === 'list2' ? 'list2' : 'list1';
+        const isInitialized = contentWrap.dataset.artistTabInitialized === '1';
+
+        if (!tabState.list1Snapshot) {
+          // Tab 1 binds to current section-3 form state (artists).
+          const currentArtists = extractArtistFormState();
+          tabState.list1Snapshot = deepClone(currentArtists);
+          tabState.list1Original = deepClone(currentArtists);
+        }
+
+        if (tabState.isSwitching) {
+          return;
+        }
+
+        const previousTab = tabState.activeTab || 'list1';
+        if (isInitialized && previousTab === nextTab) {
+          updateTabButtonState(nextTab);
+          contentWrap.dataset.artistActiveTab = nextTab;
+          return;
+        }
+
+        tabState.isSwitching = true;
+        try {
+          contentWrap.dataset.artistActiveTab = nextTab;
+
+          if (isInitialized) {
+            if (previousTab === 'list1') {
+              tabState.list1Snapshot = extractArtistFormState();
+            }
+            if (previousTab === 'list2') {
+              tabState.list2Snapshot = extractArtistFormState();
+            }
+          }
+
+          tabState.activeTab = nextTab;
+
+          if (nextTab === 'list2') {
+            if (!tabState.list2Snapshot) {
+              const loaded = await fetchArtistsExtraConfig();
+              if (!loaded) {
+                tabState.list2Snapshot = { sectionTitle: '', artists: [] };
+                tabState.list2Original = deepClone(tabState.list2Snapshot);
+              }
+            }
+            await applyArtistFormStateWithRetry(tabState.list2Snapshot || { sectionTitle: '', artists: [] });
+          } else {
+            await applyArtistFormStateWithRetry(tabState.list1Snapshot || { sectionTitle: '', artists: [] });
+          }
+
+          contentWrap.dataset.artistTabInitialized = '1';
+          updateTabButtonState(nextTab);
+        } finally {
+          tabState.isSwitching = false;
+        }
+      };
+
+      tabsBar.querySelectorAll('[data-artist-tab]').forEach((btn) => {
+        if (btn.dataset.boundClick === '1') return;
+        btn.dataset.boundClick = '1';
+        btn.addEventListener('click', async () => {
+          const tab = btn.getAttribute('data-artist-tab') || 'list1';
+          await setArtistTabState(tab);
+        });
+      });
+
+      const activeTab = tabState.activeTab || contentWrap.dataset.artistActiveTab || 'list1';
+      setArtistTabState(activeTab);
     };
 
     const setInputValueAndDispatch = (inputEl, nextValue) => {
@@ -658,28 +1196,48 @@
       document.head.appendChild(style);
     }
     
-    // Run injection
-    injectUploadButtons();
-    simplifyHeaderActions();
-    bindLivePreview();
-    normalizeExistingPreviewUrls();
-    syncJourneyPreview();
-    enforceSingleSectionPreview();
-    
-    // Re-inject khi có thay đổi DOM (cho dynamic content)
-    const observer = new MutationObserver(() => {
+    const runEnhancements = () => {
       injectUploadButtons();
       simplifyHeaderActions();
+      ensureArtistSectionTabs();
       bindLivePreview();
       normalizeExistingPreviewUrls();
       syncJourneyPreview();
       enforceSingleSectionPreview();
+    };
+
+    let refreshTimer = null;
+    const scheduleEnhancements = () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      // Debounce to wait for React/Next DOM updates before touching nodes.
+      refreshTimer = setTimeout(runEnhancements, 90);
+    };
+
+    // Run once after the current render cycle.
+    scheduleEnhancements();
+    
+    // Re-inject khi có thay đổi DOM (cho dynamic content)
+    const observer = new MutationObserver(() => {
+      scheduleEnhancements();
     });
     
     observer.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
+      attributes: true,
+      characterData: true
     });
+
+    // Re-run when user switches section via sidebar/header controls.
+    document.addEventListener('click', (event) => {
+      const target = event.target && event.target.closest
+        ? event.target.closest('nav button, header button, [data-slot="card"] button')
+        : null;
+      if (!target) return;
+      scheduleEnhancements();
+    }, true);
     
     console.log('✅ Upload buttons injected');
   }

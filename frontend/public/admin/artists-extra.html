@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Danh sách nghệ sĩ hàng ngang #2</title>
+  <style>
+    :root {
+      --bg: #0a0718;
+      --panel: #130c2f;
+      --panel-2: #1a1142;
+      --line: rgba(168, 85, 247, 0.35);
+      --text: #f3e8ff;
+      --muted: #c4b5fd;
+      --primary: #8b5cf6;
+      --primary-2: #22d3ee;
+      --danger: #ef4444;
+      --ok: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top right, #25135a 0%, var(--bg) 44%);
+      color: var(--text);
+    }
+
+    .wrap {
+      width: min(1180px, 100% - 28px);
+      margin: 18px auto 30px;
+    }
+
+    .manager-head {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .manager-head h2 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      background: linear-gradient(90deg, #c084fc, #67e8f9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .meta {
+      margin: 5px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .controls,
+    .section-box,
+    .list-box {
+      background: linear-gradient(180deg, rgba(19, 12, 47, 0.95), rgba(14, 9, 34, 0.96));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 220px;
+      flex: 1;
+    }
+
+    .field > label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(167, 139, 250, 0.38);
+      background: rgba(24, 15, 58, 0.78);
+      color: var(--text);
+      padding: 9px 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(103, 232, 249, 0.7);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      transition: transform .15s ease, opacity .2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn.secondary {
+      background: rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(167, 139, 250, 0.5);
+      color: #e9d5ff;
+    }
+
+    .btn.ghost {
+      background: rgba(59, 30, 95, 0.34);
+      border: 1px solid rgba(167, 139, 250, 0.34);
+      color: #ddd6fe;
+    }
+
+    .btn.danger {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.45);
+      color: #fecaca;
+    }
+
+    .btn.ok {
+      background: linear-gradient(135deg, #14b8a6, #22c55e);
+    }
+
+    .section-box {
+      margin-bottom: 12px;
+    }
+
+    .list-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .card {
+      border: 1px solid rgba(129, 140, 248, 0.35);
+      background: rgba(33, 20, 77, 0.58);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-index {
+      font-size: 12px;
+      color: #ddd6fe;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .input-upload {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .thumb {
+      width: 86px;
+      height: 106px;
+      border-radius: 10px;
+      border: 1px solid rgba(129, 140, 248, 0.5);
+      background: rgba(12, 8, 31, 0.7);
+      object-fit: cover;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toast {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 9999;
+      min-width: 260px;
+      max-width: 420px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.ok {
+      background: rgba(16, 185, 129, 0.92);
+      border: 1px solid rgba(110, 231, 183, 0.6);
+    }
+
+    .toast.err {
+      background: rgba(220, 38, 38, 0.92);
+      border: 1px solid rgba(252, 165, 165, 0.7);
+    }
+
+    @media (max-width: 900px) {
+      .input-upload {
+        grid-template-columns: 1fr;
+      }
+
+      .thumb {
+        width: 100%;
+        max-width: 210px;
+        height: 220px;
+      }
+    }
+
+    body.embed-mode {
+      background: transparent;
+    }
+
+    body.embed-mode .wrap {
+      width: 100%;
+      margin: 0;
+      padding: 6px 0 8px;
+    }
+
+    body.embed-mode .topbar {
+      display: none;
+    }
+
+    body.embed-mode .manager-head {
+      display: flex;
+    }
+
+    body.embed-mode .controls,
+    body.embed-mode .section-box,
+    body.embed-mode .list-box {
+      border-radius: 12px;
+    }
+
+    body.embed-mode .controls {
+      margin-bottom: 10px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      gap: 8px;
+    }
+
+    body.embed-mode .controls .row:first-child {
+      display: none;
+    }
+
+    body.embed-mode #statusText {
+      display: none;
+    }
+
+    body.embed-mode #loadBtn {
+      display: none;
+    }
+
+    body.embed-mode #saveBtn {
+      min-width: 130px;
+    }
+
+    body.embed-mode #resetBtn {
+      min-width: 98px;
+    }
+
+    body.embed-mode .section-box {
+      margin-bottom: 10px;
+    }
+
+    body.embed-mode .list-box {
+      margin-bottom: 8px;
+    }
+
+    body.embed-mode .footer {
+      margin-top: 6px;
+      justify-content: flex-end;
+    }
+
+    body.embed-mode #resolvedText,
+    body.embed-mode #saveBtnBottom {
+      display: none;
+    }
+
+    body.embed-mode .footer {
+      margin-top: 10px;
+      padding-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="manager-head" id="managerHead">
+      <h2>Section 3: Danh sách Nghệ sĩ 2</h2>
+    </div>
+
+    <div class="topbar">
+      <div>
+        <h1 class="title">Admin: Danh sách nghệ sĩ hàng ngang #2</h1>
+        <p class="meta">Quản lý dữ liệu mục artistsExtra để hiển thị thêm một dải nghệ sĩ trên landing page.</p>
+      </div>
+      <div class="row">
+        <a class="btn secondary" id="backAdminLink" href="/admin/">Quay lại admin chính</a>
+        <a class="btn secondary" id="publicSiteLink" href="/" target="_blank" rel="noopener">Xem trang public</a>
+      </div>
+    </div>
+
+    <section class="controls">
+      <div class="row">
+        <div class="field">
+          <label for="slugInput">Event slug</label>
+          <input id="slugInput" type="text" list="slugList" placeholder="huit-fest-2026" />
+          <datalist id="slugList">
+            <option value="huit-fest-2026"></option>
+            <option value="fptu-fest-2026"></option>
+            <option value="huitu-fest-2026"></option>
+          </datalist>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="loadBtn" type="button">Tải dữ liệu</button>
+        <button class="btn ok" id="saveBtn" type="button" disabled>Lưu artistsExtra</button>
+        <button class="btn ghost" id="resetBtn" type="button" disabled>Reset</button>
+        <span class="muted" id="statusText">Chưa tải dữ liệu.</span>
+      </div>
+    </section>
+
+    <section class="section-box">
+      <div class="field">
+        <label for="sectionTitleInput">Tiêu đề section</label>
+        <input id="sectionTitleInput" type="text" placeholder="Danh sách nghệ sĩ" disabled />
+      </div>
+    </section>
+
+    <section class="list-box">
+      <div class="row" style="justify-content: space-between;">
+        <strong>Danh sách nghệ sĩ</strong>
+        <button class="btn secondary" id="addArtistBtn" type="button" disabled>+ Thêm nghệ sĩ</button>
+      </div>
+      <div id="artistList"></div>
+      <p class="muted">Gợi ý: nên dùng ảnh tỉ lệ dọc (khoảng 4:5) để hiển thị đều với section hiện tại.</p>
+    </section>
+
+    <div class="footer">
+      <span class="muted" id="resolvedText">Chưa kết nối API.</span>
+      <button class="btn ok" id="saveBtnBottom" type="button" disabled>Lưu artistsExtra</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      const DEFAULT_SLUGS = ['huit-fest-2026', 'fptu-fest-2026', 'huitu-fest-2026'];
+      const STORAGE_KEY = 'landingPageData.public.v2';
+      const isEmbedMode = new URLSearchParams(window.location.search).get('embed') === '1';
+
+      const refs = {
+        slugInput: document.getElementById('slugInput'),
+        loadBtn: document.getElementById('loadBtn'),
+        saveBtn: document.getElementById('saveBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        saveBtnBottom: document.getElementById('saveBtnBottom'),
+        addArtistBtn: document.getElementById('addArtistBtn'),
+        sectionTitleInput: document.getElementById('sectionTitleInput'),
+        statusText: document.getElementById('statusText'),
+        resolvedText: document.getElementById('resolvedText'),
+        artistList: document.getElementById('artistList'),
+        toast: document.getElementById('toast'),
+      };
+
+      let activeSlug = '';
+      let configApiUrl = '';
+      let loadedConfig = null;
+      let artistsExtraState = { sectionTitle: '', artists: [] };
+      let originalArtistsExtraState = { sectionTitle: '', artists: [] };
+
+      function deepClone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+      }
+
+      function notifyEmbedHeight() {
+        if (!isEmbedMode || window.parent === window) {
+          return;
+        }
+
+        const height = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight,
+          document.documentElement.offsetHeight
+        );
+
+        window.parent.postMessage({
+          type: 'huit-artists2-height',
+          height,
+        }, '*');
+      }
+
+      function getApiPrefix() {
+        const path = window.location.pathname || '';
+        return path === '/nodeapi' || path.startsWith('/nodeapi/') ? '/nodeapi' : '';
+      }
+
+      function normalizeImageUrl(rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') {
+          return '';
+        }
+        const value = rawUrl.trim();
+        if (!value) return '';
+
+        if (value.startsWith('http://localhost:3000/')) {
+          return value.replace('http://localhost:3000', window.location.origin);
+        }
+
+        if (/^https?:\/\//i.test(value) || value.startsWith('data:')) {
+          return value;
+        }
+
+        if (value.startsWith('/')) {
+          return value;
+        }
+
+        return '/' + value.replace(/^\/+/, '');
+      }
+
+      function makeId() {
+        return 'ax-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      }
+
+      function showToast(message, type) {
+        refs.toast.textContent = message;
+        refs.toast.className = 'toast ' + (type === 'err' ? 'err' : 'ok') + ' show';
+        window.clearTimeout(showToast._timer);
+        showToast._timer = window.setTimeout(() => {
+          refs.toast.classList.remove('show');
+        }, 2800);
+      }
+
+      function setBusy(isBusy, text) {
+        refs.loadBtn.disabled = isBusy;
+        refs.saveBtn.disabled = isBusy || !loadedConfig;
+        refs.resetBtn.disabled = isBusy || !loadedConfig;
+        refs.saveBtnBottom.disabled = isBusy || !loadedConfig;
+        refs.addArtistBtn.disabled = isBusy || !loadedConfig;
+        refs.sectionTitleInput.disabled = isBusy || !loadedConfig;
+        if (text) {
+          refs.statusText.textContent = text;
+        }
+      }
+
+      function normalizeArtistsExtra(raw) {
+        const src = raw && typeof raw === 'object' ? raw : {};
+        const inputArtists = Array.isArray(src.artists) ? src.artists : [];
+
+        const artists = inputArtists
+          .filter((item) => item && typeof item === 'object')
+          .map((item, index) => ({
+            id: String(item.id || makeId() + '-' + String(index + 1)),
+            name: String(item.name || ''),
+            image: String(item.image || item.imageUrl || ''),
+            description: String(item.description || ''),
+            status: item.status === 'hidden' ? 'hidden' : 'revealed',
+          }));
+
+        return {
+          sectionTitle: String(src.sectionTitle || 'Danh sách nghệ sĩ'),
+          artists,
+        };
+      }
+
+      function buildSlugCandidates() {
+        const typed = (refs.slugInput.value || '').trim();
+        if (!typed) {
+          return DEFAULT_SLUGS.slice();
+        }
+        const next = [typed];
+        DEFAULT_SLUGS.forEach((slug) => {
+          if (slug !== typed) {
+            next.push(slug);
+          }
+        });
+        return next;
+      }
+
+      function buildConfigUrl(slug) {
+        return getApiPrefix() + '/api/events/' + encodeURIComponent(slug) + '/config';
+      }
+
+      async function loadConfig() {
+        setBusy(true, 'Đang tải dữ liệu...');
+        const candidates = buildSlugCandidates();
+        let lastError = '';
+
+        try {
+          for (let i = 0; i < candidates.length; i += 1) {
+            const slug = candidates[i];
+            const url = buildConfigUrl(slug);
+
+            try {
+              const res = await fetch(url + '?_ts=' + Date.now(), {
+                method: 'GET',
+                credentials: 'include',
+                cache: 'no-store',
+              });
+
+              if (!res.ok) {
+                lastError = 'HTTP ' + res.status + ' tại slug ' + slug;
+                continue;
+              }
+
+              const json = await res.json();
+              loadedConfig = json && typeof json === 'object' ? json : {};
+              activeSlug = slug;
+              configApiUrl = url;
+              artistsExtraState = normalizeArtistsExtra(loadedConfig.artistsExtra);
+              originalArtistsExtraState = deepClone(artistsExtraState);
+
+              refs.slugInput.value = slug;
+              refs.sectionTitleInput.value = artistsExtraState.sectionTitle;
+              refs.resolvedText.textContent = 'Đã kết nối: ' + configApiUrl;
+              refs.statusText.textContent = 'Đã tải config slug: ' + slug;
+              refs.saveBtn.disabled = false;
+              refs.resetBtn.disabled = false;
+              refs.saveBtnBottom.disabled = false;
+              refs.addArtistBtn.disabled = false;
+              refs.sectionTitleInput.disabled = false;
+              renderArtists();
+              showToast('Tải dữ liệu thành công.', 'ok');
+              return;
+            } catch (error) {
+              lastError = String(error && error.message ? error.message : error);
+            }
+          }
+
+          loadedConfig = null;
+          activeSlug = '';
+          configApiUrl = '';
+          refs.resolvedText.textContent = 'Không tìm thấy cấu hình với các slug đã thử.';
+          refs.statusText.textContent = 'Tải dữ liệu thất bại.';
+          refs.artistList.innerHTML = '';
+          showToast('Không tải được dữ liệu. ' + lastError, 'err');
+          notifyEmbedHeight();
+        } finally {
+          setBusy(false);
+          refs.saveBtn.disabled = !loadedConfig;
+          refs.resetBtn.disabled = !loadedConfig;
+          refs.saveBtnBottom.disabled = !loadedConfig;
+          refs.addArtistBtn.disabled = !loadedConfig;
+          refs.sectionTitleInput.disabled = !loadedConfig;
+        }
+      }
+
+      function createActionButton(text, cssClass, onClick) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn ' + cssClass;
+        btn.textContent = text;
+        btn.addEventListener('click', onClick);
+        return btn;
+      }
+
+      function moveArtist(index, direction) {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= artistsExtraState.artists.length) {
+          return;
+        }
+        const cloned = artistsExtraState.artists.slice();
+        const temp = cloned[index];
+        cloned[index] = cloned[targetIndex];
+        cloned[targetIndex] = temp;
+        artistsExtraState.artists = cloned;
+        renderArtists();
+      }
+
+      async function uploadArtistImage(index, file, uploadBtn) {
+        if (!file) {
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'assets/images/khachmoi');
+
+        const apiUrl = getApiPrefix() + '/api/upload/image';
+        const oldText = uploadBtn.textContent;
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Đang tải...';
+
+        try {
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+          });
+
+          if (!res.ok) {
+            throw new Error('Upload thất bại, HTTP ' + res.status);
+          }
+
+          const json = await res.json();
+          const nextUrl = String(json && json.url ? json.url : '').trim();
+          artistsExtraState.artists[index].image = nextUrl;
+          renderArtists();
+          showToast('Upload ảnh thành công.', 'ok');
+        } catch (error) {
+          showToast('Không upload được ảnh: ' + (error && error.message ? error.message : 'Lỗi không xác định'), 'err');
+        } finally {
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = oldText;
+        }
+      }
+
+      function renderArtists() {
+        refs.sectionTitleInput.value = artistsExtraState.sectionTitle;
+        refs.artistList.innerHTML = '';
+
+        if (artistsExtraState.artists.length === 0) {
+          const empty = document.createElement('p');
+          empty.className = 'muted';
+          empty.textContent = 'Chưa có nghệ sĩ. Bấm "Thêm nghệ sĩ" để tạo dòng mới.';
+          refs.artistList.appendChild(empty);
+          notifyEmbedHeight();
+          return;
+        }
+
+        artistsExtraState.artists.forEach((artist, index) => {
+          const card = document.createElement('article');
+          card.className = 'card';
+
+          const head = document.createElement('div');
+          head.className = 'card-head';
+
+          const idx = document.createElement('span');
+          idx.className = 'card-index';
+          idx.textContent = 'Nghệ sĩ #' + String(index + 1);
+
+          const actions = document.createElement('div');
+          actions.className = 'card-actions';
+          actions.appendChild(createActionButton('Len', 'secondary', () => moveArtist(index, -1)));
+          actions.appendChild(createActionButton('Xuong', 'secondary', () => moveArtist(index, 1)));
+          actions.appendChild(createActionButton('Xoa', 'danger', () => {
+            artistsExtraState.artists.splice(index, 1);
+            renderArtists();
+          }));
+
+          head.appendChild(idx);
+          head.appendChild(actions);
+          card.appendChild(head);
+
+          const nameField = document.createElement('div');
+          nameField.className = 'field';
+          const nameLabel = document.createElement('label');
+          nameLabel.textContent = 'Tên nghệ sĩ';
+          const nameInput = document.createElement('input');
+          nameInput.type = 'text';
+          nameInput.value = artist.name;
+          nameInput.placeholder = 'Ví dụ: MONO';
+          nameInput.addEventListener('input', () => {
+            artistsExtraState.artists[index].name = nameInput.value;
+          });
+          nameField.appendChild(nameLabel);
+          nameField.appendChild(nameInput);
+          card.appendChild(nameField);
+
+          const imageField = document.createElement('div');
+          imageField.className = 'field';
+          const imageLabel = document.createElement('label');
+          imageLabel.textContent = 'Ảnh nghệ sĩ';
+          const inputUpload = document.createElement('div');
+          inputUpload.className = 'input-upload';
+          const imageUrlInput = document.createElement('input');
+          imageUrlInput.type = 'text';
+          imageUrlInput.value = artist.image;
+          imageUrlInput.placeholder = '/assets/images/khachmoi/ten-anh.webp';
+          imageUrlInput.addEventListener('input', () => {
+            artistsExtraState.artists[index].image = imageUrlInput.value;
+            const normalized = normalizeImageUrl(imageUrlInput.value);
+            preview.src = normalized || '';
+            preview.style.display = normalized ? 'block' : 'none';
+          });
+
+          const uploadWrap = document.createElement('div');
+          uploadWrap.className = 'row';
+          const uploadBtn = createActionButton('Upload anh', 'secondary', () => fileInput.click());
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = 'image/*';
+          fileInput.style.display = 'none';
+          fileInput.addEventListener('change', async () => {
+            const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+            await uploadArtistImage(index, file, uploadBtn);
+            fileInput.value = '';
+          });
+
+          const preview = document.createElement('img');
+          preview.className = 'thumb';
+          preview.alt = 'preview-' + String(index + 1);
+          const previewUrl = normalizeImageUrl(artist.image);
+          if (previewUrl) {
+            preview.src = previewUrl;
+            preview.style.display = 'block';
+          } else {
+            preview.style.display = 'none';
+          }
+
+          uploadWrap.appendChild(uploadBtn);
+          uploadWrap.appendChild(fileInput);
+          uploadWrap.appendChild(preview);
+
+          inputUpload.appendChild(imageUrlInput);
+          inputUpload.appendChild(uploadWrap);
+
+          imageField.appendChild(imageLabel);
+          imageField.appendChild(inputUpload);
+          card.appendChild(imageField);
+
+          const descField = document.createElement('div');
+          descField.className = 'field';
+          const descLabel = document.createElement('label');
+          descLabel.textContent = 'Mô tả (tuỳ chọn)';
+          const descInput = document.createElement('textarea');
+          descInput.value = artist.description;
+          descInput.placeholder = 'Mô tả ngắn về nghệ sĩ';
+          descInput.addEventListener('input', () => {
+            artistsExtraState.artists[index].description = descInput.value;
+          });
+          descField.appendChild(descLabel);
+          descField.appendChild(descInput);
+          card.appendChild(descField);
+
+          const statusField = document.createElement('div');
+          statusField.className = 'field';
+          const statusLabel = document.createElement('label');
+          statusLabel.textContent = 'Trạng thái hiển thị';
+          const statusSelect = document.createElement('select');
+          const opt1 = document.createElement('option');
+          opt1.value = 'revealed';
+          opt1.textContent = 'Hien ten va anh';
+          const opt2 = document.createElement('option');
+          opt2.value = 'hidden';
+          opt2.textContent = 'Dang an (chua cong bo)';
+          statusSelect.appendChild(opt1);
+          statusSelect.appendChild(opt2);
+          statusSelect.value = artist.status === 'hidden' ? 'hidden' : 'revealed';
+          statusSelect.addEventListener('change', () => {
+            artistsExtraState.artists[index].status = statusSelect.value;
+          });
+          statusField.appendChild(statusLabel);
+          statusField.appendChild(statusSelect);
+          card.appendChild(statusField);
+
+          refs.artistList.appendChild(card);
+        });
+
+        notifyEmbedHeight();
+      }
+
+      function resetArtistsState() {
+        if (!loadedConfig) {
+          return;
+        }
+
+        artistsExtraState = deepClone(originalArtistsExtraState);
+        renderArtists();
+        refs.statusText.textContent = 'Đã reset về lần tải gần nhất.';
+        showToast('Đã reset danh sách nghệ sĩ 2.', 'ok');
+      }
+
+      function getArtistsPayload() {
+        return {
+          sectionTitle: String(artistsExtraState.sectionTitle || '').trim(),
+          artists: artistsExtraState.artists
+            .map((artist, index) => ({
+              id: String(artist.id || makeId() + '-' + String(index + 1)),
+              name: String(artist.name || '').trim(),
+              image: String(artist.image || '').trim(),
+              description: String(artist.description || '').trim(),
+              status: artist.status === 'hidden' ? 'hidden' : 'revealed',
+              hints: [],
+            }))
+            .filter((artist) => artist.name || artist.image || artist.description),
+        };
+      }
+
+      async function saveConfig() {
+        if (!loadedConfig || !configApiUrl) {
+          showToast('Bạn cần tải dữ liệu trước khi lưu.', 'err');
+          return;
+        }
+
+        setBusy(true, 'Đang lưu artistsExtra...');
+        artistsExtraState.sectionTitle = refs.sectionTitleInput.value;
+
+        const payload = {
+          ...loadedConfig,
+          artistsExtra: getArtistsPayload(),
+        };
+
+        try {
+          const res = await fetch(configApiUrl, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!res.ok) {
+            throw new Error('Lưu thất bại, HTTP ' + res.status);
+          }
+
+          const nextConfig = await res.json();
+          loadedConfig = nextConfig && typeof nextConfig === 'object' ? nextConfig : payload;
+          artistsExtraState = normalizeArtistsExtra(loadedConfig.artistsExtra || payload.artistsExtra);
+          originalArtistsExtraState = deepClone(artistsExtraState);
+          renderArtists();
+          refs.statusText.textContent = 'Đã lưu thành công cho slug: ' + activeSlug;
+
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(loadedConfig));
+          } catch (error) {
+            // Ignore localStorage failures.
+          }
+
+          showToast('Lưu artistsExtra thành công.', 'ok');
+        } catch (error) {
+          showToast('Không lưu được dữ liệu: ' + (error && error.message ? error.message : 'Lỗi không xác định'), 'err');
+          refs.statusText.textContent = 'Lưu thất bại.';
+        } finally {
+          setBusy(false);
+          refs.saveBtn.disabled = !loadedConfig;
+          refs.resetBtn.disabled = !loadedConfig;
+          refs.saveBtnBottom.disabled = !loadedConfig;
+          refs.addArtistBtn.disabled = !loadedConfig;
+          refs.sectionTitleInput.disabled = !loadedConfig;
+        }
+      }
+
+      refs.loadBtn.addEventListener('click', loadConfig);
+      refs.saveBtn.addEventListener('click', saveConfig);
+      refs.resetBtn.addEventListener('click', resetArtistsState);
+      refs.saveBtnBottom.addEventListener('click', saveConfig);
+
+      refs.addArtistBtn.addEventListener('click', () => {
+        artistsExtraState.artists.push({
+          id: makeId(),
+          name: '',
+          image: '',
+          description: '',
+          status: 'revealed',
+        });
+        renderArtists();
+      });
+
+      refs.sectionTitleInput.addEventListener('input', () => {
+        artistsExtraState.sectionTitle = refs.sectionTitleInput.value;
+      });
+
+      refs.slugInput.value = DEFAULT_SLUGS[0];
+      const basePrefix = getApiPrefix();
+      const adminBackLink = document.getElementById('backAdminLink');
+      const publicSiteLink = document.getElementById('publicSiteLink');
+      if (adminBackLink) {
+        adminBackLink.setAttribute('href', (basePrefix || '') + '/admin/');
+      }
+      if (publicSiteLink) {
+        publicSiteLink.setAttribute('href', (basePrefix || '') + '/');
+      }
+
+      if (isEmbedMode) {
+        document.body.classList.add('embed-mode');
+        refs.saveBtn.textContent = 'Save Changes';
+        refs.resetBtn.textContent = 'Reset';
+        refs.sectionTitleInput.placeholder = 'Tiêu đề Section';
+        window.addEventListener('resize', notifyEmbedHeight);
+        setTimeout(() => {
+          loadConfig();
+        }, 0);
+      }
+
+      refs.resolvedText.textContent = 'API prefix: ' + (getApiPrefix() || '(none)');
+      notifyEmbedHeight();
+    })();
+  </script>
+</body>
+</html>

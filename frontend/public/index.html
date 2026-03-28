@@ -81,6 +81,32 @@
     body.cms-ready {
       opacity: 1 !important;
     }
+
+    /* Section 5 title: keep on one horizontal line */
+    #HEADLINE222 {
+      width: 412px !important;
+    }
+
+    #HEADLINE222 > .ladi-headline {
+      white-space: nowrap;
+      font-size: 34px !important;
+    }
+
+    #HEADLINE239 {
+      display: none !important;
+    }
+
+    @media (max-width: 767px) {
+      #HEADLINE222 {
+        width: 417px !important;
+        left: 0 !important;
+      }
+
+      #HEADLINE222 > .ladi-headline {
+        font-size: 25px !important;
+        text-align: center !important;
+      }
+    }
   </style>
 </head>
 
@@ -136,28 +162,29 @@
           <h3>Sự Xuất Hiện Của Các Ngôi Sao</h3>
         </div>
 
-        <div class="music-guest-strip" data-guest-strip>
-          <button class="music-guest-card is-hidden" type="button" data-guest-id="guest-01">
-            <span class="music-guest-thumb"></span>
-            <span class="music-guest-name">Chưa công bố</span>
-          </button>
-          <button class="music-guest-card is-hidden" type="button" data-guest-id="guest-02">
-            <span class="music-guest-thumb"></span>
-            <span class="music-guest-name">Chưa công bố</span>
-          </button>
-          <button class="music-guest-card is-hidden" type="button" data-guest-id="guest-03">
-            <span class="music-guest-thumb"></span>
-            <span class="music-guest-name">Chưa công bố</span>
-          </button>
-          <button class="music-guest-card is-hidden" type="button" data-guest-id="guest-04">
-            <span class="music-guest-thumb"></span>
-            <span class="music-guest-name">Chưa công bố</span>
-          </button>
-          <button class="music-guest-card is-hidden" type="button" data-guest-id="guest-05">
-            <span class="music-guest-thumb"></span>
-            <span class="music-guest-name">Chưa công bố</span>
-          </button>
-
+        <div class="music-guest-strip swiper" data-guest-strip>
+          <div class="swiper-wrapper">
+            <button class="music-guest-card swiper-slide is-hidden" type="button" data-guest-id="guest-01">
+              <span class="music-guest-thumb"></span>
+              <span class="music-guest-name">Chưa công bố</span>
+            </button>
+            <button class="music-guest-card swiper-slide is-hidden" type="button" data-guest-id="guest-02">
+              <span class="music-guest-thumb"></span>
+              <span class="music-guest-name">Chưa công bố</span>
+            </button>
+            <button class="music-guest-card swiper-slide is-hidden" type="button" data-guest-id="guest-03">
+              <span class="music-guest-thumb"></span>
+              <span class="music-guest-name">Chưa công bố</span>
+            </button>
+            <button class="music-guest-card swiper-slide is-hidden" type="button" data-guest-id="guest-04">
+              <span class="music-guest-thumb"></span>
+              <span class="music-guest-name">Chưa công bố</span>
+            </button>
+            <button class="music-guest-card swiper-slide is-hidden" type="button" data-guest-id="guest-05">
+              <span class="music-guest-thumb"></span>
+              <span class="music-guest-name">Chưa công bố</span>
+            </button>
+          </div>
         </div>
 
         <section class="music-guest-detail is-hidden" data-guest-detail>
@@ -231,10 +258,7 @@
         <div id="GROUP347" class="ladi-element">
           <div class="ladi-group">
             <div id="HEADLINE222" class="ladi-element">
-              <h3 class="ladi-headline">CÁCH THỨC <br /></h3>
-            </div>
-            <div id="HEADLINE239" class="ladi-element">
-              <h3 class="ladi-headline">NHẬN VÉ</h3>
+              <h3 class="ladi-headline">CÁCH THỨC NHẬN VÉ</h3>
             </div>
           </div>
         </div>
@@ -997,18 +1021,54 @@
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sweetalert2@11" id="sweetalert2-js"></script>
   <script type="text/javascript" id="demo-lead-inline-js-after" src="./extracted/js/inline-script-09.js"></script>
   <script src="./extracted/js/inline-script-10.js"></script>
-  <script src="./extracted/js/guest-hints-reveal.js"></script>
+  <script src="./extracted/js/guest-hints-reveal.js?v=20260328-18"></script>
   <script src="./extracted/js/hero-3d.js"></script>
   <script type="text/javascript">
     (function () {
+      function toInt(value, fallback) {
+        var parsed = parseInt(value, 10);
+        return Number.isNaN(parsed) ? fallback : parsed;
+      }
+
+      function isLadiPoweredBadge(el) {
+        if (!el || el.nodeType !== 1) {
+          return false;
+        }
+
+        var text = (el.textContent || "").toLowerCase();
+        var cls = String(el.className || "").toLowerCase();
+        var style = window.getComputedStyle(el);
+        var bg = (style.backgroundImage || "").toLowerCase();
+
+        var left = toInt(style.left, 9999);
+        var bottom = toInt(style.bottom, 9999);
+        var width = toInt(style.width, 0);
+        var height = toInt(style.height, 0);
+        var zIndex = toInt(style.zIndex, 0);
+
+        var hasBrandMark =
+          bg.indexOf("ladipage.svg") !== -1 ||
+          bg.indexOf("/source/v3/by/") !== -1 ||
+          cls.indexOf("ladipage_powered_by") !== -1 ||
+          (text.indexOf("powered by") !== -1 && text.indexOf("ladipage") !== -1);
+
+        var matchesInjectedBadgeShape =
+          style.position === "fixed" &&
+          left <= 24 &&
+          bottom <= 16 &&
+          width >= 120 &&
+          width <= 180 &&
+          height >= 20 &&
+          height <= 48 &&
+          zIndex >= 1000000000;
+
+        return hasBrandMark || matchesInjectedBadgeShape;
+      }
+
       function removeLadiBadge() {
-        var candidates = document.querySelectorAll('a[href*="ladipage"], a[href*="ladi"]');
+        var candidates = document.querySelectorAll('a[href*="ladipage"], a[href*="ladi"], div, span');
         candidates.forEach(function (el) {
-          var text = (el.textContent || "").toLowerCase();
-          var style = window.getComputedStyle(el);
-          var isBadgeText = text.indexOf("powered by") !== -1 || text.indexOf("ladipage") !== -1;
-          var isFixedCorner = style.position === "fixed" && parseInt(style.left || "999", 10) <= 24 && parseInt(style.bottom || "999", 10) <= 24;
-          if (isBadgeText || isFixedCorner) {
+          if (isLadiPoweredBadge(el)) {
             var wrapper = el.parentElement;
             if (wrapper && wrapper !== document.body && wrapper.childElementCount === 1) {
               wrapper.remove();
@@ -1020,7 +1080,9 @@
       }
 
       removeLadiBadge();
+      window.addEventListener("DOMContentLoaded", removeLadiBadge);
       window.addEventListener("load", removeLadiBadge);
+      setInterval(removeLadiBadge, 1500);
 
       var observer = new MutationObserver(function () {
         removeLadiBadge();
@@ -1039,6 +1101,14 @@
       overflow-x: hidden;
     }
 
+    .music-guest-strip.swiper {
+      overflow: visible !important;
+    }
+
+    .music-guest-card.swiper-slide {
+      max-width: none !important;
+    }
+
     img,
     video,
     iframe {
@@ -1054,8 +1124,12 @@
     a[href*="ladipage"],
     a[href*="ladi.vn"],
     a[href*="ldp.to"],
+    .ladipage_powered_by,
+    [class*="ladipage_powered_by"],
     div[style*="2147483647"],
-    div[style*="1000000"] {
+    div[style*="1000000"],
+    div[style*="ladipage.svg"],
+    div[style*="source/v3/by/ladipage.svg"] {
       display: none !important;
       visibility: hidden !important;
       opacity: 0 !important;
@@ -1106,7 +1180,8 @@
       }
 
       .music-guest-strip {
-        grid-template-columns: 1fr !important;
+        display: block !important;
+        grid-template-columns: none !important;
       }
 
       .ladi-form-item input,
@@ -1138,18 +1213,193 @@
       }
 
       .music-guest-strip {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        display: block !important;
+        overflow: hidden;
+      }
+      
+      .music-guest-strip.swiper {
+        padding: 30px 10px 10px !important;
       }
 
       .music-guest-card {
-        width: 100% !important;
+        height: auto;
         min-width: 0 !important;
+        transition: transform 0.3s ease;
+      }
+
+      .music-guest-card:hover {
+        transform: translateY(-8px) scale(1.05);
+      }
+      
+      .music-guest-thumb {
+        height: 180px !important;
+      }
+      
+      .music-guest-name {
+        font-size: 13px !important;
+      }
+
+      /* Fix Journey Section Mobile Overlap */
+      #SECTION23 {
+        min-height: 400px;
+        position: relative !important;
+      }
+
+      #SECTION23 .ladi-container {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        height: auto !important;
+      }
+
+      /* Reset absolute positioning for journey slots on mobile */
+      #SECTION23 #GROUP274, #SECTION23 #GROUP276,
+      #SECTION23 #GROUP275, #SECTION23 #GROUP277,
+      #SECTION23 #GROUP279, #SECTION23 #GROUP280,
+      #SECTION23 #GROUP281, #SECTION23 #GROUP282,
+      #SECTION23 #GROUP283, #SECTION23 #GROUP284 {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        margin: 5px auto !important;
+        width: 100% !important;
+        max-width: 340px !important;
+        height: auto !important;
+        display: block !important;
+      }
+      
+      /* Artistic Order Sync */
+      #SECTION23 #GROUP274 { order: 10 !important; } /* Image 1 */
+      #SECTION23 #GROUP276 { order: 11 !important; margin-bottom: 30px !important; } /* Text 1 */
+      
+      #SECTION23 #GROUP275 { order: 20 !important; } /* Image 2 */
+      #SECTION23 #GROUP277 { order: 21 !important; margin-bottom: 30px !important; } /* Text 2 */
+      
+      #SECTION23 #GROUP279 { order: 30 !important; } /* Image 3 */
+      #SECTION23 #GROUP280 { order: 31 !important; margin-bottom: 30px !important; } /* Text 3 */
+      
+      #SECTION23 #GROUP281 { order: 40 !important; } /* Image 4 */
+      #SECTION23 #GROUP282 { order: 41 !important; margin-bottom: 30px !important; } /* Text 4 */
+      
+      #SECTION23 #GROUP283 { order: 50 !important; } /* Image 5 */
+      #SECTION23 #GROUP284 { order: 51 !important; margin-bottom: 10px !important; } /* Text 5 */
+
+      #SECTION23 .ladi-group {
+        display: flex !important;
+        flex-direction: column !important;
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+      }
+
+      /* Inside each text group, Title (Headline) comes first, then Description (Paragraph) */
+      #SECTION23 [id^="HEADLINE"] {
+        order: 1 !important;
+      }
+      
+      #SECTION23 [id^="PARAGRAPH"] {
+        order: 2 !important;
+      }
+
+      /* Adjust Image Containers */
+      #SECTION23 [id^="IMAGE"] {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 200px !important;
+        margin-bottom: 5px !important;
+      }
+
+      #SECTION23 .ladi-image-background {
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background-size: cover !important;
+        background-position: center !important;
+        border-radius: 12px;
+      }
+
+      /* Adjust Text Containers */
+      #SECTION23 [id^="HEADLINE"]:not(#HEADLINE_JOURNEY), #SECTION23 [id^="PARAGRAPH"] {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: 330px !important;
+        height: auto !important;
+        text-align: left !important;
+        padding: 5px 2px !important; /* Reduced padding for better alignment with image edges */
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+      }
+
+      #SECTION23 [id^="HEADLINE"]:not(#HEADLINE_JOURNEY) .ladi-headline, 
+      #SECTION23 [id^="PARAGRAPH"] .ladi-paragraph {
+        text-align: left !important;
+      }
+      
+      #HEADLINE_JOURNEY {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        margin-bottom: 50px !important;
+        text-align: center !important;
+        order: -1 !important; /* Ensure it's always at the top of the container */
+      }
+
+      #HEADLINE_JOURNEY .ladi-headline {
+        text-align: center !important;
+      }
+
+      /* Fix Event Video Section Mobile Spacing */
+      #EVENT_VIDEO_SECTION {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        height: auto !important;
+        margin-top: 0 !important;
+        padding-bottom: 20px !important;
+      }
+
+      #EVENT_VIDEO_SECTION .ladi-container {
+        position: relative !important;
+        height: auto !important;
+      }
+
+      /* Ensure boxes don't overlap */
+      #SECTION23 [id^="BOX"] {
+        display: none !important;
+      }
+
+      #HEADLINE_TIMELINE {
+        top: -8px !important;
+      }
+
+      #GROUP344 {
+        top: 48px !important;
+      }
+
+      /* Stack all sections below Journey correctly */
+      #SECTION19, #SECTION18, #SECTION27, #SECTION29 {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        display: block !important;
+        clear: both;
+      }
+
+      #SECTION19 .ladi-container, #SECTION18 .ladi-container, #SECTION27 .ladi-container, #SECTION29 .ladi-container {
+        position: relative !important;
+        height: auto !important;
+        width: 100% !important;
       }
     }
   </style>
-  <script src="/assets/js/cms-bridge.js?v=20260328-15"></script>
+  <script src="/assets/js/cms-bridge.js?v=20260329-03"></script>
 </body>
 
 </html>

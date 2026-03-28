@@ -9,6 +9,75 @@
   let lastValidArtists = [];
   let lastRenderedArtistSlots = [];
   let lastRenderedArtistsBySlot = Object.create(null);
+  let swipers = [];
+
+  function initArtistSwiper() {
+    // Wait for Swiper to be available
+    if (typeof Swiper === 'undefined') {
+      setTimeout(initArtistSwiper, 100);
+      return;
+    }
+
+    const selectors = ['[data-guest-strip]', '[data-guest-strip-extra]'];
+    selectors.forEach(selector => {
+      const el = document.querySelector(selector);
+      if (!el || !el.classList.contains('swiper')) return;
+
+      // Only init if visible or after a short delay
+      if (el.swiper) el.swiper.destroy(true, true);
+
+      const swiper = new Swiper(el, {
+        slidesPerView: 2,
+        spaceBetween: 10,
+        centeredSlides: false,
+        loop: true,
+        grabCursor: true,
+        preventClicks: false,
+        autoplay: {
+          delay: 3500,
+          disableOnInteraction: false,
+        },
+        breakpoints: {
+          768: {
+            slidesPerView: 4,
+            spaceBetween: 20,
+            autoplay: false
+          },
+          1024: {
+            slidesPerView: 5,
+            spaceBetween: 25,
+            autoplay: false
+          }
+        },
+        on: {
+          click: function(s, e) {
+            const card = e.target.closest('.music-guest-card');
+            if (!card) return;
+            
+            const guestId = card.getAttribute('data-guest-id');
+            const isDuplicate = card.closest('.swiper-slide-duplicate');
+            
+            if (isDuplicate && guestId) {
+              const masterCard = s.el.querySelector(`.music-guest-card[data-guest-id="${guestId}"]:not(.swiper-slide-duplicate)`);
+              if (masterCard) {
+                 masterCard.click();
+              }
+            }
+            
+            // Sync all visual states after any change
+            setTimeout(() => {
+              const masterCard = s.el.querySelector(`.music-guest-card[data-guest-id="${guestId}"]:not(.swiper-slide-duplicate)`);
+              if (!masterCard) return;
+              const isActive = masterCard.classList.contains('is-active');
+              s.el.querySelectorAll(`.music-guest-card[data-guest-id="${guestId}"]`).forEach(el => {
+                el.classList.toggle('is-active', isActive);
+              });
+            }, 50);
+          }
+        }
+      });
+    });
+  }
 
   function clearCountdownTimer() {
     if (countdownTimer) {
@@ -162,6 +231,291 @@
     copyComputedStylesDeep(templateEl, clone);
     removeIdsDeep(clone);
     return clone;
+  }
+
+  function ensureTimelineImageFxStyles() {
+    if (document.getElementById('timeline-image-fx-style')) {
+      return;
+    }
+
+    const style = document.createElement('style');
+    style.id = 'timeline-image-fx-style';
+    style.textContent = `
+      .timeline-side-image-frame {
+        position: absolute;
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid rgba(167, 214, 255, 0.48);
+        box-shadow: 0 20px 34px rgba(5, 14, 46, 0.5), 0 0 24px rgba(115, 146, 255, 0.26);
+        background: linear-gradient(145deg, rgba(18, 26, 71, 0.72), rgba(13, 18, 52, 0.88));
+        animation: timelineImageFloat 6.4s ease-in-out infinite;
+        transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+        z-index: 4;
+      }
+
+      .timeline-side-image-frame::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        background: linear-gradient(130deg, rgba(116, 222, 255, 0.22), rgba(202, 154, 255, 0.2) 45%, rgba(63, 125, 255, 0.24));
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .timeline-side-image-bg {
+        border-radius: inherit;
+        clip-path: inset(0 round 18px);
+        filter: saturate(1.05) contrast(1.02);
+        z-index: 2;
+      }
+
+      .timeline-side-image-frame:hover {
+        transform: translateY(-3px) scale(1.012);
+        border-color: rgba(180, 228, 255, 0.7);
+        box-shadow: 0 24px 38px rgba(5, 14, 46, 0.6), 0 0 36px rgba(146, 165, 255, 0.34);
+      }
+
+      @keyframes timelineImageFloat {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+        100% { transform: translateY(0); }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  function ensureFooterLogoMarqueeStyles() {
+    if (document.getElementById('cms-footer-logo-marquee-style')) {
+      return;
+    }
+
+    const style = document.createElement('style');
+    style.id = 'cms-footer-logo-marquee-style';
+    style.textContent = `
+      .cms-footer-logo-marquee {
+        position: absolute;
+        left: 0;
+        right: 0;
+        overflow: hidden;
+        z-index: 2;
+        padding: 0 34px;
+      }
+
+      .cms-footer-logo-track {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        width: max-content;
+        white-space: nowrap;
+        will-change: transform;
+        animation: cmsFooterLogoSlideRight var(--cms-footer-speed, 28s) linear infinite;
+      }
+
+      .cms-footer-logo-item {
+        width: 172px;
+        min-width: 172px;
+        height: 98px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .cms-footer-logo-item img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+      }
+
+      @keyframes cmsFooterLogoSlideRight {
+        from { transform: translateX(-50%); }
+        to { transform: translateX(0%); }
+      }
+
+      @media (max-width: 767px) {
+        .cms-footer-logo-marquee {
+          padding: 0 14px;
+        }
+
+        .cms-footer-logo-track {
+          gap: 18px;
+        }
+
+        .cms-footer-logo-item {
+          width: 124px;
+          min-width: 124px;
+          height: 72px;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  function sanitizeArtistList(rawArtists) {
+    if (!Array.isArray(rawArtists)) {
+      return [];
+    }
+
+    return rawArtists
+      .filter((artist) => artist && typeof artist === 'object')
+      .map((artist, index) => ({
+        id: artist.id || `artist-extra-${index + 1}`,
+        name: artist.name || '',
+        image: artist.image || artist.imageUrl || '',
+        description: artist.description || '',
+        status: artist.status === 'hidden' ? 'hidden' : 'revealed',
+      }))
+      .filter((artist) => artist.name || artist.image || artist.description);
+  }
+
+  function ensureSecondaryArtistSection() {
+    const existing = document.getElementById('MUSIC_HINT_SECTION_EXTRA');
+    if (existing) {
+      return existing;
+    }
+
+    const baseSection = document.getElementById('MUSIC_HINT_SECTION');
+    if (!baseSection || !baseSection.parentElement) {
+      return null;
+    }
+
+    const cloned = baseSection.cloneNode(true);
+    cloned.id = 'MUSIC_HINT_SECTION_EXTRA';
+    cloned.setAttribute('data-secondary-artist-section', '1');
+    // Cloned markup may carry init flags from section 1; clear them so section 2 can bind events.
+    cloned.removeAttribute('data-guest-reveal-bound');
+
+    const strip = cloned.querySelector('[data-guest-strip]');
+    if (strip) {
+      strip.removeAttribute('data-guest-strip');
+      strip.setAttribute('data-guest-strip-extra', '1');
+    }
+
+    cloned.querySelectorAll('.music-guest-card').forEach((card, idx) => {
+      const slotId = `guest-extra-${String(idx + 1).padStart(2, '0')}`;
+      card.classList.remove('is-active', 'is-revealed');
+      card.classList.add('is-hidden');
+      card.setAttribute('data-guest-id', slotId);
+      card.setAttribute('aria-disabled', 'true');
+      card.tabIndex = -1;
+      card.removeAttribute('data-guest-reveal-bound');
+    });
+
+    baseSection.insertAdjacentElement('afterend', cloned);
+    return cloned;
+  }
+
+  function ensureSecondaryArtistCardCount(strip, requiredCount) {
+    const wrapper = strip.querySelector('.swiper-wrapper') || strip;
+    const cards = Array.from(wrapper.querySelectorAll('.music-guest-card'));
+    if (cards.length === 0) {
+      return cards;
+    }
+
+    const template = cards[cards.length - 1];
+    while (cards.length < requiredCount) {
+      const clone = template.cloneNode(true);
+      const slotId = `guest-extra-${String(cards.length + 1).padStart(2, '0')}`;
+      clone.classList.remove('is-active', 'is-revealed');
+      clone.classList.add('is-hidden');
+      clone.setAttribute('data-guest-id', slotId);
+      clone.setAttribute('aria-disabled', 'true');
+      clone.tabIndex = -1;
+
+      const thumb = clone.querySelector('.music-guest-thumb');
+      if (thumb) {
+        thumb.style.backgroundImage = '';
+      }
+
+      const nameEl = clone.querySelector('.music-guest-name');
+      if (nameEl) {
+        nameEl.textContent = 'Chưa công bố';
+      }
+
+      wrapper.appendChild(clone);
+      cards.push(clone);
+    }
+
+    return cards;
+  }
+
+  function renderSecondaryArtistsSection(data) {
+    const sectionConfig = data && (data.artistsExtra || data.artistsSecondary || data.artistsSecond);
+    const existingSection = document.getElementById('MUSIC_HINT_SECTION_EXTRA');
+
+    if (!sectionConfig || typeof sectionConfig !== 'object') {
+      if (existingSection) {
+        existingSection.style.display = 'none';
+      }
+      return;
+    }
+
+    const section = existingSection || ensureSecondaryArtistSection();
+    if (!section) {
+      return;
+    }
+
+    const titleText = String(sectionConfig.sectionTitle || '').trim();
+    const artists = sanitizeArtistList(sectionConfig.artists);
+    if (!titleText && artists.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    const titleEl = section.querySelector('.music-hint-head h3');
+    if (titleEl) {
+      titleEl.textContent = titleText || 'Danh sách nghệ sĩ';
+    }
+
+    const strip = section.querySelector('[data-guest-strip-extra]');
+    if (!strip) {
+      section.style.display = 'none';
+      return;
+    }
+
+    const requiredCount = Math.max(artists.length, 5);
+    const cards = ensureSecondaryArtistCardCount(strip, requiredCount);
+    cards.forEach((card, index) => {
+      const artist = artists[index];
+
+      if (!artist) {
+        card.style.display = 'none';
+        card.classList.remove('is-active');
+        card.classList.remove('is-revealed');
+        card.classList.add('is-hidden');
+        card.setAttribute('aria-disabled', 'true');
+        card.tabIndex = -1;
+        return;
+      }
+
+      card.style.display = '';
+      card.classList.toggle('is-revealed', artist.status === 'revealed');
+      card.classList.toggle('is-hidden', artist.status !== 'revealed');
+      card.setAttribute('aria-disabled', 'false');
+      card.tabIndex = 0;
+      card.setAttribute('data-guest-description', artist.description || 'Thông tin nghệ sĩ đang được cập nhật.');
+      card.setAttribute('data-guest-hints', '[]');
+
+      const thumb = card.querySelector('.music-guest-thumb');
+      if (thumb) {
+        thumb.style.backgroundImage = artist.image ? `url("${artist.image}")` : '';
+      }
+
+      const nameEl = card.querySelector('.music-guest-name');
+      if (nameEl) {
+        nameEl.textContent = artist.name || 'Chưa công bố';
+      }
+    });
+
+    if (typeof window.initGuestHintRevealSection === 'function') {
+      window.initGuestHintRevealSection(section);
+    }
+
+    initArtistSwiper();
+    section.style.display = '';
   }
 
   function readLocalData() {
@@ -529,7 +883,15 @@
       if (typeof window.refreshActiveGuestDetail === 'function') {
         window.refreshActiveGuestDetail();
       }
+      
+      if (typeof window.initGuestHintRevealSection === 'function') {
+        window.initGuestHintRevealSection(artistStrip.closest('.ladi-section'));
+      }
+
+      initArtistSwiper();
     }
+
+    renderSecondaryArtistsSection(data);
 
     // 4. Countdown (CMS-driven only)
     if (toggleCountdownByData(data.countdown)) {
@@ -558,6 +920,62 @@
       const sectionEl = document.getElementById('SECTION19');
       const sectionContainer = sectionEl ? sectionEl.querySelector('.ladi-container') : null;
       const noteGroup = document.getElementById('GROUP325');
+      const countdownGroup = document.getElementById('GROUP245');
+      const ticketHeadingGroup = document.getElementById('GROUP347');
+      const ticketPrimaryGroups = [
+        ticketHeadingGroup,
+        document.getElementById('GROUP304'),
+        document.getElementById('GROUP305'),
+        document.getElementById('GROUP307')
+      ].filter(Boolean);
+
+      const ticketViewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+      const isTicketMobile = ticketViewportWidth < 768;
+
+      ticketPrimaryGroups.forEach((el) => {
+        if (!el.dataset.cmsBaseTop) {
+          el.dataset.cmsBaseTop = String(el.offsetTop);
+        }
+      });
+
+      if (isTicketMobile && ticketHeadingGroup) {
+        let headingBaseTop = Number(ticketHeadingGroup.dataset.cmsBaseTop || ticketHeadingGroup.offsetTop);
+        
+        // Push heading up if countdown is visible
+        if (countdownGroup) {
+          const countdownStyle = window.getComputedStyle(countdownGroup);
+          if (countdownStyle.display !== 'none' && countdownStyle.visibility !== 'hidden') {
+            const countdownBottom = countdownGroup.offsetTop + countdownGroup.offsetHeight;
+            const desiredGapFromCountdown = 40; // Closer to countdown
+            const shiftUp = Math.max(0, headingBaseTop - (countdownBottom + desiredGapFromCountdown));
+            headingBaseTop = Math.max(0, headingBaseTop - shiftUp);
+          }
+        }
+        
+        ticketHeadingGroup.style.top = `${Math.round(headingBaseTop)}px`;
+
+        const stepGroups = ticketPrimaryGroups.filter((el) => el && el !== ticketHeadingGroup);
+        if (stepGroups.length > 0) {
+          const headingBottom = headingBaseTop + ticketHeadingGroup.offsetHeight;
+          const targetHeadingToStepGap = -20; // Very close gap, negative to compensate for empty box height
+          const stepStartTop = headingBottom + targetHeadingToStepGap;
+          
+          const firstStepBase = Number(stepGroups[0].dataset.cmsBaseTop || stepGroups[0].offsetTop);
+          const totalShift = firstStepBase - stepStartTop;
+
+          // Pull all step groups up
+          stepGroups.forEach((el) => {
+            const baseTop = Number(el.dataset.cmsBaseTop || el.offsetTop);
+            el.style.top = `${Math.round(baseTop - totalShift)}px`;
+          });
+        }
+      } else {
+        // Desktop fallback
+        ticketPrimaryGroups.forEach((el) => {
+          const baseTop = Number(el.dataset.cmsBaseTop || el.offsetTop);
+          el.style.top = `${Math.round(baseTop)}px`;
+        });
+      }
 
       if (noteGroup && !noteGroup.dataset.cmsBaseTop) {
         noteGroup.dataset.cmsBaseTop = String(noteGroup.offsetTop);
@@ -614,6 +1032,8 @@
         const topStart = firstRect.top - sectionRect.top;
         const leftStart = firstRect.left - sectionRect.left;
         const cardWidth = Math.round(templateRect.width || firstRect.width);
+        const mobileAvailableCardWidth = Math.max(180, Math.round((sectionRect.width || viewportWidth) - leftStart - 8));
+        const resolvedCardWidth = columns === 1 ? Math.min(cardWidth, mobileAvailableCardWidth) : cardWidth;
         const cardHeight = Math.round(templateRect.height || firstRect.height);
         const colGap = columns === 3 ? Math.max(Math.round(secondRect.left - firstRect.left - cardWidth), 0) : 0;
         const rowGap = cardHeight + (columns === 3 ? 24 : 20);
@@ -632,12 +1052,12 @@
         extraWrap.style.left = `${leftStart}px`;
         extraWrap.style.top = `${row2Top}px`;
         extraWrap.style.display = 'grid';
-        extraWrap.style.gridTemplateColumns = columns === 3 ? `repeat(3, ${cardWidth}px)` : `${cardWidth}px`;
+        extraWrap.style.gridTemplateColumns = columns === 3 ? `repeat(3, ${resolvedCardWidth}px)` : `${resolvedCardWidth}px`;
         extraWrap.style.columnGap = `${colGap}px`;
         extraWrap.style.rowGap = '16px';
         extraWrap.style.width = columns === 3
-          ? `${cardWidth * 3 + colGap * 2}px`
-          : `${cardWidth}px`;
+          ? `${resolvedCardWidth * 3 + colGap * 2}px`
+          : `${resolvedCardWidth}px`;
         extraWrap.style.zIndex = '3';
 
         for (let i = 3; i < steps.length; i += 1) {
@@ -645,7 +1065,7 @@
           const card = document.createElement('article');
           card.className = 'cms-ticket-extra-card';
           card.style.position = 'relative';
-          card.style.width = `${cardWidth}px`;
+          card.style.width = `${resolvedCardWidth}px`;
           card.style.height = `${cardHeight}px`;
           card.style.border = templateFrameStyle ? templateFrameStyle.border : '1px solid rgba(183, 209, 255, 0.85)';
           card.style.borderRadius = templateFrameStyle ? templateFrameStyle.borderRadius : '10px';
@@ -724,14 +1144,20 @@
           return Math.max(maxBottom, el.offsetTop + el.offsetHeight);
         }, ticketSteps[0].offsetTop + ticketSteps[0].offsetHeight);
 
-        const noteTop = steps.length > 3
-          ? Math.max(baseNoteTop, stepBottom + 24)
-          : baseNoteTop;
+        const noteGap = isTicketMobile ? 12 : 24;
+        const noteTop = isTicketMobile
+          ? stepBottom + noteGap
+          : (steps.length > 3
+            ? Math.max(baseNoteTop, stepBottom + noteGap)
+            : baseNoteTop);
 
         noteGroup.style.top = `${noteTop}px`;
 
-        const minSectionHeight = noteTop + noteGroup.offsetHeight + 32;
-        sectionEl.style.height = `${Math.max(baseSectionHeight, minSectionHeight)}px`;
+        const minSectionHeight = noteTop + noteGroup.offsetHeight + (isTicketMobile ? 5 : 32);
+        const finalSectionHeight = isTicketMobile
+          ? minSectionHeight
+          : Math.max(baseSectionHeight, minSectionHeight);
+        sectionEl.style.height = `${finalSectionHeight}px`;
       }
       
       const noteEl = document.querySelector('#LIST_PARAGRAPH8 ul');
@@ -760,6 +1186,243 @@
         ? data.timeline.items.filter((item) => item && (item.time || item.timeLabel || item.title || item.description))
         : [];
 
+      const timelineViewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+      const timelineVerticalGap = timelineViewportWidth < 768 ? 12 : 16;
+      const isTimelineMobile = timelineViewportWidth < 768;
+      const minParagraphWidth = isTimelineMobile ? 170 : 320;
+      const maxParagraphWidth = isTimelineMobile ? 272 : 395;
+      const paragraphSidePadding = isTimelineMobile ? 18 : 40;
+      const targetTimeBoxWidth = isTimelineMobile ? 110 : 192;
+
+      const toNumber = (value, fallback = 0) => {
+        const next = Number.parseFloat(String(value ?? ''));
+        return Number.isFinite(next) ? next : fallback;
+      };
+
+      const fitTimelineGroupLayout = (groupEl) => {
+        if (!groupEl) return 0;
+
+        const paragraphText = groupEl.querySelector('.ladi-paragraph');
+        const paragraphEl = paragraphText ? paragraphText.parentElement : null;
+
+        if (!paragraphText || !paragraphEl) {
+          return groupEl.offsetHeight || toNumber(window.getComputedStyle(groupEl).height, 0);
+        }
+
+        const isMobile = isTimelineMobile;
+        const groupParent = groupEl.parentElement;
+        const parentWidth = (groupParent && (groupParent.clientWidth || groupParent.offsetWidth))
+          || (timelineContainer ? (timelineContainer.clientWidth || timelineContainer.offsetWidth) : 0);
+        const groupLeft = groupEl.offsetLeft || toNumber(window.getComputedStyle(groupEl).left, 0);
+        const viewportRightPadding = isMobile ? 16 : 10;
+        const maxGroupWidthByViewport = parentWidth > 0
+          ? Math.max(isMobile ? 220 : 300, parentWidth - groupLeft - viewportRightPadding)
+          : Number.POSITIVE_INFINITY;
+
+        paragraphText.style.whiteSpace = 'normal';
+        paragraphText.style.wordBreak = 'normal';
+        paragraphText.style.overflowWrap = 'break-word';
+        paragraphText.style.lineHeight = isMobile ? '1.42' : '1.45';
+        paragraphText.style.maxWidth = '100%';
+
+        const textContainers = Array.from(groupEl.querySelectorAll('.ladi-box'))
+          .map((box) => box.parentElement)
+          .filter((holder, idx, arr) => holder && arr.indexOf(holder) === idx)
+          .filter((holder) => {
+            if (!holder) return false;
+            const holderWidth = holder.offsetWidth || toNumber(window.getComputedStyle(holder).width, 0);
+            const holderLeft = holder.offsetLeft || toNumber(window.getComputedStyle(holder).left, 0);
+            return holderWidth > (isMobile ? 110 : 180) && holderLeft > (isMobile ? 90 : 150);
+          });
+
+        const timeContainer = paragraphEl.parentElement
+          ? Array.from(paragraphEl.parentElement.children).find((child) => {
+              const width = child.offsetWidth || toNumber(window.getComputedStyle(child).width, 0);
+              const left = child.offsetLeft || toNumber(window.getComputedStyle(child).left, 0);
+              return width > 80 && width < 190 && left < (isMobile ? 120 : 160);
+            })
+          : null;
+        const timeTextHolder = groupEl.querySelector('.ladi-headline')?.parentElement || null;
+        const timeText = groupEl.querySelector('.ladi-headline');
+
+        if (isMobile) {
+          const targetGroupWidth = Number.isFinite(maxGroupWidthByViewport)
+            ? Math.max(220, maxGroupWidthByViewport)
+            : Math.max(220, groupEl.offsetWidth || toNumber(window.getComputedStyle(groupEl).width, 220));
+
+          groupEl.style.setProperty('width', `${Math.round(targetGroupWidth)}px`, 'important');
+          if (Number.isFinite(maxGroupWidthByViewport)) {
+            groupEl.style.setProperty('max-width', `${Math.round(maxGroupWidthByViewport)}px`, 'important');
+          }
+
+          const mobileOuterPadding = 14;
+          const mobileInnerPadding = 12;
+          const mobileTopPadding = 2;
+          const mobileGap = 10;
+          const mobileCenterBiasLeft = -45; // Empirically determined nudge to better center the time box and paragraph under the timeline dot
+          const availableMobileWidth = Math.max(200, targetGroupWidth - (mobileOuterPadding * 2));
+          const mobileCardWidth = Math.max(190, Math.min(320, availableMobileWidth));
+          const mobileCardLeft = Math.max(
+            8,
+            Math.round((targetGroupWidth - mobileCardWidth) / 2) + mobileCenterBiasLeft
+          );
+          let timeBottom = mobileTopPadding;
+
+          if (timeContainer) {
+            const timeLabel = String(timeText?.textContent || '').trim();
+            const estimatedTimeWidth = (timeLabel.length * 9) + 30;
+            const effectiveTimeBoxWidth = Math.max(
+              104,
+              Math.min(148, estimatedTimeWidth, mobileCardWidth - 8)
+            );
+
+            timeContainer.style.setProperty('left', `${mobileCardLeft + 4}px`, 'important');
+            timeContainer.style.setProperty('top', `${mobileTopPadding}px`, 'important');
+            timeContainer.style.setProperty('width', `${Math.round(effectiveTimeBoxWidth)}px`, 'important');
+
+            if (timeTextHolder) {
+              timeTextHolder.style.setProperty('left', `${mobileCardLeft + 13}px`, 'important');
+              timeTextHolder.style.setProperty('top', `${mobileTopPadding + 6}px`, 'important');
+              timeTextHolder.style.setProperty('width', `${Math.round(Math.max(80, effectiveTimeBoxWidth - 18))}px`, 'important');
+            }
+
+            timeBottom = (timeContainer.offsetTop || mobileTopPadding) + (timeContainer.offsetHeight || 48);
+          } else if (timeTextHolder) {
+            timeTextHolder.style.setProperty('left', `${mobileCardLeft + 13}px`, 'important');
+            timeTextHolder.style.setProperty('top', `${mobileTopPadding + 6}px`, 'important');
+            timeBottom = (timeTextHolder.offsetTop || mobileTopPadding) + (timeTextHolder.offsetHeight || 36);
+          }
+
+          const paragraphLeft = mobileCardLeft;
+          const paragraphTop = Math.round(timeBottom + mobileGap + 8);
+          const paragraphWidth = mobileCardWidth;
+
+          paragraphEl.style.setProperty('left', `${paragraphLeft}px`, 'important');
+          paragraphEl.style.setProperty('top', `${paragraphTop}px`, 'important');
+          paragraphEl.style.setProperty('width', `${Math.round(paragraphWidth)}px`, 'important');
+          paragraphEl.style.setProperty('height', 'auto', 'important');
+          paragraphEl.style.setProperty('overflow', 'visible', 'important');
+          paragraphEl.style.setProperty('padding', `10px ${mobileInnerPadding}px`, 'important');
+          paragraphEl.style.setProperty('box-sizing', 'border-box', 'important');
+          paragraphEl.style.setProperty('border-radius', '14px', 'important');
+          paragraphEl.style.setProperty('border', '1px solid rgba(167, 214, 255, 0.55)', 'important');
+          paragraphEl.style.setProperty('background', 'rgba(27, 56, 97, 0.56)', 'important');
+
+          textContainers.forEach((holder) => {
+            holder.style.setProperty('display', 'none', 'important');
+          });
+
+          const textBoxBottom = 0;
+
+          const paragraphBottom = (paragraphEl.offsetTop || paragraphTop) + (paragraphEl.offsetHeight || 0);
+          const baseGroupHeight = groupEl.offsetHeight || toNumber(window.getComputedStyle(groupEl).height, 0);
+          const finalGroupHeight = Math.max(baseGroupHeight, timeBottom + 4, paragraphBottom + 10, textBoxBottom + 8);
+
+          groupEl.style.setProperty('height', `${Math.ceil(finalGroupHeight)}px`, 'important');
+          const inner = groupEl.querySelector('.ladi-group');
+          if (inner) {
+            inner.style.setProperty('height', `${Math.ceil(finalGroupHeight)}px`, 'important');
+          }
+
+          return Math.ceil(finalGroupHeight);
+        }
+
+        const paragraphTop = paragraphEl.offsetTop || toNumber(window.getComputedStyle(paragraphEl).top, isMobile ? 9 : 12);
+        const paragraphLeft = paragraphEl.offsetLeft || toNumber(window.getComputedStyle(paragraphEl).left, isMobile ? 138 : 214);
+        const lineChunks = String(paragraphText.textContent || '')
+          .split(/\n+/)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+        const longestLineLength = lineChunks.reduce((maxLen, line) => Math.max(maxLen, line.length), 0);
+        const estimatedParagraphWidth = (longestLineLength * (isMobile ? 6.9 : 7.3)) + (isMobile ? 30 : 34);
+        const maxParagraphWidthByViewport = Number.isFinite(maxGroupWidthByViewport)
+          ? Math.max(140, maxGroupWidthByViewport - paragraphLeft - (isMobile ? 24 : 20))
+          : maxParagraphWidth;
+        const effectiveMinParagraphWidth = Math.min(minParagraphWidth, maxParagraphWidthByViewport);
+        const adaptiveParagraphWidth = Math.max(
+          effectiveMinParagraphWidth,
+          Math.min(maxParagraphWidth, estimatedParagraphWidth, maxParagraphWidthByViewport)
+        );
+
+        paragraphEl.style.setProperty('width', `${Math.round(adaptiveParagraphWidth)}px`, 'important');
+        paragraphEl.style.setProperty('height', 'auto', 'important');
+        paragraphEl.style.setProperty('overflow', 'visible', 'important');
+
+        const textBoxLeft = Math.max(0, paragraphLeft - (isMobile ? 12 : 18));
+        const requestedTextBoxWidth = adaptiveParagraphWidth + paragraphSidePadding;
+        const currentGroupWidth = groupEl.offsetWidth || toNumber(window.getComputedStyle(groupEl).width, 0);
+        const maxExpandedGroupWidth = currentGroupWidth + (isMobile ? 48 : 88);
+        const requestedGroupWidth = textBoxLeft + requestedTextBoxWidth + 8;
+        let targetGroupWidth = Math.max(currentGroupWidth, Math.min(requestedGroupWidth, maxExpandedGroupWidth));
+        if (Number.isFinite(maxGroupWidthByViewport)) {
+          targetGroupWidth = Math.min(targetGroupWidth, maxGroupWidthByViewport);
+        }
+        if (isMobile && targetGroupWidth < 180) {
+          targetGroupWidth = Number.isFinite(maxGroupWidthByViewport)
+            ? Math.min(180, maxGroupWidthByViewport)
+            : 180;
+        }
+        groupEl.style.setProperty('width', `${Math.round(targetGroupWidth)}px`, 'important');
+        if (Number.isFinite(maxGroupWidthByViewport)) {
+          groupEl.style.setProperty('max-width', `${Math.round(maxGroupWidthByViewport)}px`, 'important');
+        }
+
+        const maxTextBoxWidth = Math.max(120, targetGroupWidth - textBoxLeft - (isMobile ? 6 : 8));
+        const targetTextBoxWidth = Math.max(120, Math.min(requestedTextBoxWidth, maxTextBoxWidth));
+        textContainers.forEach((holder) => {
+          holder.style.setProperty('left', `${Math.round(textBoxLeft)}px`, 'important');
+          holder.style.setProperty('width', `${Math.round(targetTextBoxWidth)}px`, 'important');
+          holder.style.setProperty('box-sizing', 'border-box', 'important');
+          holder.style.setProperty('overflow', 'hidden', 'important');
+        });
+
+        const baseTextBoxHeight = textContainers.reduce((maxHeight, holder) => {
+          const holderHeight = holder.offsetHeight || toNumber(window.getComputedStyle(holder).height, 0);
+          return Math.max(maxHeight, holderHeight);
+        }, 0);
+
+        if (timeContainer) {
+          const timeLeft = timeContainer.offsetLeft || toNumber(window.getComputedStyle(timeContainer).left, 0);
+          const effectiveTimeBoxWidth = isMobile
+            ? Math.max(92, Math.min(targetTimeBoxWidth, paragraphLeft - 12))
+            : targetTimeBoxWidth;
+          timeContainer.style.setProperty('width', `${Math.round(effectiveTimeBoxWidth)}px`, 'important');
+
+          if (timeTextHolder) {
+            timeTextHolder.style.setProperty('width', `${Math.round(effectiveTimeBoxWidth - (isMobile ? 18 : 24))}px`, 'important');
+            timeTextHolder.style.setProperty('left', `${Math.round(timeLeft + (isMobile ? 9 : 12))}px`, 'important');
+          }
+        }
+
+        const timeBottom = timeContainer
+          ? (timeContainer.offsetTop + timeContainer.offsetHeight)
+          : ((groupEl.querySelector('.ladi-headline')?.parentElement?.offsetTop || 0) + (groupEl.querySelector('.ladi-headline')?.parentElement?.offsetHeight || 0));
+
+        const baseGroupHeight = groupEl.offsetHeight || toNumber(window.getComputedStyle(groupEl).height, 0);
+        const finalGroupHeight = Math.max(baseGroupHeight, baseTextBoxHeight, timeBottom + (isMobile ? 4 : 6));
+        groupEl.style.setProperty('height', `${Math.ceil(finalGroupHeight)}px`, 'important');
+
+        const inner = groupEl.querySelector('.ladi-group');
+        if (inner) {
+          inner.style.setProperty('height', `${Math.ceil(finalGroupHeight)}px`, 'important');
+        }
+
+        return Math.ceil(finalGroupHeight);
+      };
+
+      const relayoutStaticTimelineItems = (visibleGroups) => {
+        if (!Array.isArray(visibleGroups) || visibleGroups.length === 0) {
+          return;
+        }
+
+        let nextTop = visibleGroups[0].offsetTop || toNumber(window.getComputedStyle(visibleGroups[0]).top, 0);
+        visibleGroups.forEach((groupEl) => {
+          const fittedHeight = fitTimelineGroupLayout(groupEl);
+          groupEl.style.setProperty('top', `${Math.round(nextTop)}px`, 'important');
+          nextTop += Math.max(fittedHeight, groupEl.offsetHeight || 0) + timelineVerticalGap;
+        });
+      };
+
       if (timelineInner) {
         timelineInner.querySelectorAll('.cms-timeline-item-dynamic').forEach((el) => el.remove());
       }
@@ -779,22 +1442,17 @@
         if (descEl) descEl.innerHTML = `<strong>${item.title || ''}</strong><br>${item.description || ''}`;
       });
 
+      const visibleStaticItems = items.filter((group) => window.getComputedStyle(group).display !== 'none');
+      relayoutStaticTimelineItems(visibleStaticItems);
+
       // 6.2 Handle cloning for items > 5
-      if (timelineInner && items.length > 0 && timelineItems.length > items.length) {
-        const template = items[items.length - 1]; // Use last slot as template
-        const first = items[0];
-        const next = items[1] || items[0];
-        
-        const rowGap = (next !== first) 
-          ? (next.offsetTop - first.offsetTop) 
-          : (first.offsetHeight + 20);
-
-        const actualRowGap = Math.max(20, rowGap + 12); // Extra breathing room
-        const baseTop = template.offsetTop; // Start from the last static item's position
+      if (timelineInner && visibleStaticItems.length > 0 && timelineItems.length > visibleStaticItems.length) {
+        const staticCount = visibleStaticItems.length;
+        const template = visibleStaticItems[staticCount - 1]; // Use last visible slot as template
         const leftStart = template.offsetLeft;
+        let nextTop = template.offsetTop + template.offsetHeight + timelineVerticalGap;
 
-        for (let i = items.length; i < timelineItems.length; i += 1) {
-          const dynamicIndex = i - (items.length - 1); // Relative to the last static item
+        for (let i = staticCount; i < timelineItems.length; i += 1) {
           const item = timelineItems[i];
           const clone = template.cloneNode(true);
           
@@ -806,7 +1464,7 @@
 
           clone.style.setProperty('display', 'block', 'important'); 
           clone.style.position = 'absolute';
-          clone.style.setProperty('top', `${baseTop + (dynamicIndex * actualRowGap)}px`, 'important');
+          clone.style.setProperty('top', `${Math.round(nextTop)}px`, 'important');
           clone.style.left = `${leftStart}px`;
           clone.style.setProperty('opacity', '1', 'important');
           clone.style.setProperty('visibility', 'visible', 'important');
@@ -824,12 +1482,20 @@
           if (descEl) descEl.innerHTML = `<strong>${item.title || ''}</strong><br>${item.description || ''}`;
 
           timelineInner.appendChild(clone);
+          const fittedCloneHeight = fitTimelineGroupLayout(clone);
+          nextTop += Math.max(fittedCloneHeight, clone.offsetHeight || 0) + timelineVerticalGap;
         }
 
         // 6.3 Update heights
-        const lastDynamicIndex = timelineItems.length - items.length;
-        const lastItemOffset = baseTop + (lastDynamicIndex * actualRowGap);
-        const totalInnerHeight = lastItemOffset + template.offsetHeight + 20;
+        const visibleTimelineItems = Array.from(timelineInner.children)
+          .filter((el) => el && el.nodeType === 1)
+          .filter((el) => window.getComputedStyle(el).display !== 'none');
+        const lastVisibleItem = visibleTimelineItems.length > 0
+          ? visibleTimelineItems[visibleTimelineItems.length - 1]
+          : null;
+        const totalInnerHeight = lastVisibleItem
+          ? (lastVisibleItem.offsetTop + lastVisibleItem.offsetHeight + 12)
+          : timelineGroup.offsetHeight;
 
         if (!timelineGroup.dataset.cmsBaseHeight) {
           timelineGroup.dataset.cmsBaseHeight = String(timelineGroup.offsetHeight);
@@ -843,6 +1509,9 @@
 
       // 6.4 Update section final height
       if (timelineSection && timelineContainer) {
+        timelineSection.style.setProperty('overflow-x', 'hidden', 'important');
+        timelineContainer.style.setProperty('overflow-x', 'hidden', 'important');
+
         if (!timelineSection.dataset.cmsBaseHeight) {
           timelineSection.dataset.cmsBaseHeight = String(timelineSection.offsetHeight);
         }
@@ -887,7 +1556,94 @@
       const tlTitle = document.getElementById('HEADLINE_TIMELINE');
       if (tlTitle) tlTitle.querySelector('h3').textContent = data.timeline.sectionTitle || 'Time-line chương trình';
 
-      const timelineImage = document.querySelector('#IMAGE264 .ladi-image-background');
+      const timelineImageWrap = document.getElementById('IMAGE264');
+      const timelineImage = timelineImageWrap ? timelineImageWrap.querySelector('.ladi-image-background') : null;
+
+      if (timelineImageWrap && timelineImage && timelineContainer && timelineGroup) {
+        ensureTimelineImageFxStyles();
+
+        if (timelineViewportWidth < 768) {
+          timelineImageWrap.style.setProperty('display', 'none', 'important');
+        } else {
+          timelineImageWrap.style.setProperty('display', 'block', 'important');
+
+        const containerWidth = timelineContainer.clientWidth || timelineContainer.offsetWidth || 0;
+        const groupLeft = timelineGroup.offsetLeft || 0;
+        const groupRight = groupLeft + (timelineGroup.offsetWidth || 0);
+
+        const visibleTimelineRows = timelineInner
+          ? Array.from(timelineInner.children)
+            .filter((el) => el && el.nodeType === 1)
+            .filter((el) => {
+              const style = window.getComputedStyle(el);
+              if (style.display === 'none' || style.visibility === 'hidden') return false;
+              const id = el.id || '';
+              return id.startsWith('GROUP') || el.classList.contains('cms-timeline-item-dynamic');
+            })
+          : [];
+
+        let contentTopAbs = timelineGroup.offsetTop || 0;
+        let contentBottomAbs = contentTopAbs + (timelineGroup.offsetHeight || 0);
+        let contentRightAbs = groupRight;
+        let firstRowTopAbs = contentTopAbs;
+
+        if (visibleTimelineRows.length > 0) {
+          const rowTopRel = visibleTimelineRows.reduce((minVal, el) => Math.min(minVal, el.offsetTop || 0), Number.POSITIVE_INFINITY);
+          const rowBottomRel = visibleTimelineRows.reduce((maxVal, el) => Math.max(maxVal, (el.offsetTop || 0) + (el.offsetHeight || 0)), 0);
+          const rowRightRel = visibleTimelineRows.reduce((maxVal, el) => Math.max(maxVal, (el.offsetLeft || 0) + (el.offsetWidth || 0)), 0);
+
+          if (Number.isFinite(rowTopRel)) {
+            contentTopAbs = (timelineGroup.offsetTop || 0) + rowTopRel;
+            contentBottomAbs = (timelineGroup.offsetTop || 0) + rowBottomRel;
+            firstRowTopAbs = contentTopAbs;
+          }
+          contentRightAbs = (timelineGroup.offsetLeft || 0) + rowRightRel;
+        }
+
+        const imageGap = timelineViewportWidth < 768 ? 10 : 18;
+
+        const desiredImageWidth = timelineViewportWidth >= 1400
+          ? 390
+          : timelineViewportWidth >= 1200
+            ? 350
+            : timelineViewportWidth >= 992
+              ? 315
+              : 250;
+
+        const rightAnchor = Math.max(contentRightAbs, groupLeft + 320);
+        const availableWidth = Math.max(220, containerWidth - rightAnchor - imageGap);
+        const targetWidth = Math.max(220, Math.min(desiredImageWidth, availableWidth));
+        const targetHeight = Math.round(targetWidth * 0.75);
+
+        const imageZoneLeft = rightAnchor + imageGap;
+        const imageZoneWidth = Math.max(targetWidth, containerWidth - imageZoneLeft);
+        let targetLeft = imageZoneLeft + Math.max(0, (imageZoneWidth - targetWidth) / 2);
+        if (targetLeft + targetWidth > containerWidth) {
+          targetLeft = Math.max(rightAnchor + 6, containerWidth - targetWidth);
+        }
+
+        const alignOffset = timelineViewportWidth < 768 ? 2 : 4;
+        const targetTop = Math.max(0, Math.round(firstRowTopAbs - alignOffset));
+
+        timelineImageWrap.classList.add('timeline-side-image-frame');
+        timelineImage.classList.add('timeline-side-image-bg');
+
+        timelineImageWrap.style.setProperty('width', `${Math.round(targetWidth)}px`, 'important');
+        timelineImageWrap.style.setProperty('height', `${Math.round(targetHeight)}px`, 'important');
+        timelineImageWrap.style.setProperty('left', `${Math.round(targetLeft)}px`, 'important');
+        timelineImageWrap.style.setProperty('top', `${Math.round(targetTop)}px`, 'important');
+        timelineImageWrap.style.setProperty('border-radius', timelineViewportWidth < 768 ? '14px' : '18px', 'important');
+
+        timelineImage.style.setProperty('width', `${Math.round(targetWidth)}px`, 'important');
+        timelineImage.style.setProperty('height', `${Math.round(targetHeight)}px`, 'important');
+        timelineImage.style.setProperty('left', '0px', 'important');
+        timelineImage.style.setProperty('top', '0px', 'important');
+        timelineImage.style.setProperty('background-size', 'cover', 'important');
+        timelineImage.style.setProperty('background-position', 'center', 'important');
+        timelineImage.style.setProperty('border-radius', 'inherit', 'important');
+        }
+      }
+
       if (timelineImage && data.timeline.sideImage) {
         timelineImage.style.backgroundImage = `url("${data.timeline.sideImage}")`;
       }
@@ -1003,14 +1759,14 @@
           });
           
           if (maxBottom > 0) {
-            journeySection.style.setProperty('height', `${maxBottom + 50}px`, 'important');
+            const isMobile = window.innerWidth < 992;
+            const extraGap = isMobile ? 10 : 50;
+            journeySection.style.setProperty('height', `${maxBottom + extraGap}px`, 'important');
           } else {
             // Fallback to minimal height if totally empty
-            journeySection.style.setProperty('height', cards.length === 0 ? '0px' : '600px', 'important');
+            journeySection.style.setProperty('height', cards.length === 0 ? '0px' : (window.innerWidth < 992 ? 'auto' : '600px'), 'important');
           }
           if (journeySection) {
-             const videoSec = document.getElementById('EVENT_VIDEO_SECTION');
-             if (videoSec) videoSec.style.setProperty('margin-top', '20px', 'important');
              journeySection.classList.add('cms-loaded');
           }
         }, 1500); // Give enough time for LadiPage to hide/show things
@@ -1044,6 +1800,22 @@
              }).join('<br>');
           } else if (data.rules.content) {
              rulesBody.innerHTML = data.rules.content.replace(/\n/g, '<br>');
+          }
+
+          // Force height update for Rules Section to avoid collapsing
+          const rulesSection = document.getElementById('SECTION27');
+          const rulesGroup = document.getElementById('GROUP322');
+          if (rulesSection && rulesGroup) {
+             rulesGroup.style.height = 'auto';
+             rulesBody.style.height = 'auto';
+             
+             setTimeout(() => {
+                const contentHeight = rulesBody.offsetHeight || rulesBody.scrollHeight;
+                rulesGroup.style.setProperty('height', `${contentHeight + 20}px`, 'important');
+                
+                const sHeight = rulesGroup.offsetTop + contentHeight + 80;
+                rulesSection.style.setProperty('height', `${Math.max(300, sHeight)}px`, 'important');
+             }, 350);
           }
        }
     }
@@ -1079,58 +1851,51 @@
       if (oldGrid) {
         oldGrid.remove();
       }
+      const oldMarquee = footerContainer.querySelector('.cms-footer-logo-marquee');
+      if (oldMarquee) {
+        oldMarquee.remove();
+      }
 
       if (logos.length === 0) {
         footerSec.style.setProperty('height', `${Number(footerSec.dataset.cmsBaseHeight)}px`, 'important');
       } else {
+        ensureFooterLogoMarqueeStyles();
+
         const firstLogoTop = originalLogos.length > 0 ? originalLogos[0].offsetTop : 180;
         const titleWrap = footerSec.querySelector('#HEADLINE256');
         const titleBottom = titleWrap
           ? (titleWrap.offsetTop + titleWrap.offsetHeight)
           : (firstLogoTop - 40);
-        const gridTop = Math.max(firstLogoTop, titleBottom + 24);
-        const grid = document.createElement('div');
-        grid.className = 'cms-footer-logo-grid';
-        grid.style.position = 'absolute';
-        grid.style.left = '0';
-        grid.style.right = '0';
-        grid.style.top = `${gridTop}px`;
-        grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(160px, 1fr))';
-        grid.style.gap = '24px 28px';
-        grid.style.padding = '0 40px';
-        grid.style.justifyItems = 'center';
-        grid.style.alignItems = 'center';
-        grid.style.zIndex = '2';
+        const marqueeTop = Math.max(firstLogoTop, titleBottom + 24);
+        const marquee = document.createElement('div');
+        marquee.className = 'cms-footer-logo-marquee';
+        marquee.style.top = `${marqueeTop}px`;
 
-        logos.forEach((logo, i) => {
+        const track = document.createElement('div');
+        track.className = 'cms-footer-logo-track';
+
+        // Duplicate list for seamless loop while keeping all logos on a single row.
+        const loopLogos = logos.concat(logos);
+        loopLogos.forEach((logo, i) => {
           const item = document.createElement('div');
           item.className = 'cms-footer-logo-item';
-          item.style.width = '170px';
-          item.style.maxWidth = '100%';
-          item.style.height = '96px';
-          item.style.display = 'flex';
-          item.style.alignItems = 'center';
-          item.style.justifyContent = 'center';
 
           const img = document.createElement('img');
           img.src = logo.image;
-          img.alt = logo.name || `logo-${i + 1}`;
-          img.style.maxWidth = '100%';
-          img.style.maxHeight = '100%';
-          img.style.objectFit = 'contain';
+          img.alt = logo.name || `logo-${(i % logos.length) + 1}`;
 
           item.appendChild(img);
-          grid.appendChild(item);
+          track.appendChild(item);
         });
 
-        footerContainer.appendChild(grid);
+        const speed = Math.max(18, Math.min(48, logos.length * 4));
+        track.style.setProperty('--cms-footer-speed', `${speed}s`);
 
-        // Stretch section height to fit all DB logos reliably.
-        const containerRect = footerContainer.getBoundingClientRect();
-        const gridRect = grid.getBoundingClientRect();
-        const gridBottomInContainer = (gridRect.bottom - containerRect.top);
-        const targetHeight = Math.ceil(gridBottomInContainer + 48);
+        marquee.appendChild(track);
+        footerContainer.appendChild(marquee);
+
+        // Keep section compact because logos are now always one horizontal row.
+        const targetHeight = Math.ceil(marqueeTop + 98 + 52);
         const baseHeight = Number(footerSec.dataset.cmsBaseHeight || footerSec.offsetHeight);
         footerSec.style.setProperty('height', `${Math.max(baseHeight, targetHeight)}px`, 'important');
       }
@@ -1149,6 +1914,7 @@
     const run = () => {
       if (isCleaningUp) return;
       loadData();
+      initArtistSwiper();
     };
 
     run();

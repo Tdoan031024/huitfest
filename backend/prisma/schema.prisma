@@ -40,21 +40,38 @@ model artist {
   @@index([eventId], map: "Artist_eventId_idx")
 }
 
+model artistextraitem {
+  id          Int      @id @default(autoincrement())
+  eventId     Int
+  name        String
+  imageUrl    String?  @db.Text
+  description String?  @db.Text
+  status      String   @default("revealed")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  event       event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "ArtistExtraItem_eventId_fkey")
+
+  @@index([eventId], map: "ArtistExtraItem_eventId_idx")
+  @@index([eventId, sortOrder], map: "ArtistExtraItem_eventId_sortOrder_idx")
+}
+
 model event {
-  id               Int            @id @default(autoincrement())
-  slug             String         @unique(map: "Event_slug_key")
+  id               Int               @id @default(autoincrement())
+  slug             String            @unique(map: "Event_slug_key")
   title            String
   subtitle         String?
-  description      String         @db.Text
+  description      String            @db.Text
   heroImage        String?
   startAt          DateTime
   endAt            DateTime
-  registrationOpen Boolean        @default(true)
-  createdAt        DateTime       @default(now())
+  registrationOpen Boolean           @default(true)
+  createdAt        DateTime          @default(now())
   updatedAt        DateTime
   pageConfig       Json?
   agendaitem       agendaitem[]
   artist           artist[]
+  artistextraitem  artistextraitem[]
   journeyitem      journeyitem[]
   registration     registration[]
   ruleitem         ruleitem[]

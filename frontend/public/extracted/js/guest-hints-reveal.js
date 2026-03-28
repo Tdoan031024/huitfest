@@ -131,21 +131,41 @@
     });
   }
 
-  function initGuestHintReveal() {
-    const section = document.getElementById('MUSIC_HINT_SECTION');
-    if (!section) return;
+  function resolveDetailElements(section) {
+    if (!section) return null;
 
-    const cards = section.querySelectorAll('[data-guest-id]');
     const detailEl = section.querySelector('[data-guest-detail]');
     const statusEl = section.querySelector('[data-guest-status]');
     const titleEl = section.querySelector('[data-guest-title]');
     const descEl = section.querySelector('[data-guest-desc]');
-    const hintsEl = section.querySelector('[data-guest-hints]');
-    if (!cards.length || !detailEl || !statusEl || !titleEl || !descEl || !hintsEl) return;
+    const hintsEl = detailEl ? detailEl.querySelector('[data-guest-hints]') : null;
 
-    const detailElements = { detailEl, statusEl, titleEl, descEl, hintsEl };
+    if (!detailEl || !statusEl || !titleEl || !descEl || !hintsEl) {
+      return null;
+    }
 
+    return { detailEl, statusEl, titleEl, descEl, hintsEl };
+  }
+
+  function initGuestHintRevealSection(section) {
+    if (!section) {
+      return;
+    }
+
+    const cards = section.querySelectorAll('[data-guest-id]');
+    const detailElements = resolveDetailElements(section);
+    if (!cards.length || !detailElements) {
+      return;
+    }
+
+    const { detailEl } = detailElements;
     cards.forEach((card) => {
+      if (card.__guestRevealBound) {
+        return;
+      }
+
+      card.__guestRevealBound = true;
+      card.dataset.guestRevealBound = '1';
       card.addEventListener('click', () => {
         const isSameCard = card.classList.contains('is-active');
         const isPanelOpen = !detailEl.classList.contains('is-hidden');
@@ -166,7 +186,22 @@
       });
     });
 
-    detailEl.classList.add('is-hidden');
+    if (!section.__guestRevealInitialized) {
+      detailEl.classList.add('is-hidden');
+      section.__guestRevealInitialized = true;
+    }
+
+    section.dataset.guestRevealBound = '1';
+  }
+
+  function initGuestHintReveal() {
+    const primarySection = document.getElementById('MUSIC_HINT_SECTION');
+    if (primarySection) {
+      initGuestHintRevealSection(primarySection);
+    }
+
+    const secondarySections = document.querySelectorAll('[data-secondary-artist-section="1"]');
+    secondarySections.forEach((section) => initGuestHintRevealSection(section));
   }
 
   if (document.readyState === 'loading') {
@@ -177,21 +212,31 @@
 
   // Globally expose refresh to allow cms-bridge.js to trigger update on data change
   window.refreshActiveGuestDetail = () => {
-    const section = document.getElementById('MUSIC_HINT_SECTION');
-    if (!section) return;
+    const sections = document.querySelectorAll('#MUSIC_HINT_SECTION, [data-secondary-artist-section="1"]');
 
-    const activeCard = section.querySelector('.music-guest-card.is-active');
-    if (!activeCard) return;
+    sections.forEach((section) => {
+      const activeCard = section.querySelector('.music-guest-card.is-active');
+      if (!activeCard) return;
 
-    const guestId = activeCard.getAttribute('data-guest-id');
-    const detailEl = section.querySelector('[data-guest-detail]');
-    const statusEl = section.querySelector('[data-guest-status]');
-    const titleEl = section.querySelector('[data-guest-title]');
-    const descEl = section.querySelector('[data-guest-desc]');
-    const hintsEl = section.querySelector('[data-guest-hints]');
+      const guestId = activeCard.getAttribute('data-guest-id');
+      const detailElements = resolveDetailElements(section);
+      if (!guestId || !detailElements) return;
 
-    if (!guestId || !detailEl || !statusEl || !titleEl || !descEl || !hintsEl) return;
+      renderGuestDetail(guestId, detailElements, activeCard);
+    });
+  };
 
-    renderGuestDetail(guestId, { detailEl, statusEl, titleEl, descEl, hintsEl }, activeCard);
+  // Expose init helper for dynamically injected sections (artists list 2)
+  window.initGuestHintRevealSection = (sectionOrSelector) => {
+    if (!sectionOrSelector) return;
+
+    if (typeof sectionOrSelector === 'string') {
+      document.querySelectorAll(sectionOrSelector).forEach((section) => {
+        initGuestHintRevealSection(section);
+      });
+      return;
+    }
+
+    initGuestHintRevealSection(sectionOrSelector);
   };
 })();
