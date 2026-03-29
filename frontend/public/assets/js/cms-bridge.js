@@ -2012,6 +2012,15 @@ Trân trọng.</p>
           holder.style.setProperty('overflow', 'hidden', 'important');
         });
 
+        const paragraphBottom = (paragraphEl.offsetTop || paragraphTop) + (paragraphEl.offsetHeight || 0);
+
+        textContainers.forEach((holder) => {
+          const holderTop = holder.offsetTop || toNumber(window.getComputedStyle(holder).top, 0);
+          const holderHeight = holder.offsetHeight || toNumber(window.getComputedStyle(holder).height, 0);
+          const neededHeight = Math.max(holderHeight, Math.ceil(paragraphBottom - holderTop + 12));
+          holder.style.setProperty('height', `${Math.max(neededHeight, holderHeight)}px`, 'important');
+        });
+
         const baseTextBoxHeight = textContainers.reduce((maxHeight, holder) => {
           const holderHeight = holder.offsetHeight || toNumber(window.getComputedStyle(holder).height, 0);
           return Math.max(maxHeight, holderHeight);
@@ -2035,7 +2044,7 @@ Trân trọng.</p>
           : ((groupEl.querySelector('.ladi-headline')?.parentElement?.offsetTop || 0) + (groupEl.querySelector('.ladi-headline')?.parentElement?.offsetHeight || 0));
 
         const baseGroupHeight = groupEl.offsetHeight || toNumber(window.getComputedStyle(groupEl).height, 0);
-        const finalGroupHeight = Math.max(baseGroupHeight, baseTextBoxHeight, timeBottom + (isMobile ? 4 : 6));
+        const finalGroupHeight = Math.max(baseGroupHeight, baseTextBoxHeight, paragraphBottom + 8, timeBottom + (isMobile ? 4 : 6));
         groupEl.style.setProperty('height', `${Math.ceil(finalGroupHeight)}px`, 'important');
 
         const inner = groupEl.querySelector('.ladi-group');
@@ -2295,6 +2304,20 @@ Trân trọng.</p>
 
         timelineImageWrap.classList.add('timeline-side-image-frame');
         timelineImage.classList.add('timeline-side-image-bg');
+
+        const timelineImageShell = timelineImageWrap.querySelector('.ladi-image');
+        timelineImageWrap.style.setProperty('overflow', 'hidden', 'important');
+        timelineImageWrap.style.setProperty('overflow-x', 'hidden', 'important');
+        timelineImageWrap.style.setProperty('overflow-y', 'hidden', 'important');
+        timelineImageWrap.style.setProperty('scrollbar-width', 'none', 'important');
+        timelineImageWrap.style.setProperty('-ms-overflow-style', 'none', 'important');
+        if (timelineImageShell) {
+          timelineImageShell.style.setProperty('overflow', 'hidden', 'important');
+          timelineImageShell.style.setProperty('overflow-x', 'hidden', 'important');
+          timelineImageShell.style.setProperty('overflow-y', 'hidden', 'important');
+          timelineImageShell.style.setProperty('scrollbar-width', 'none', 'important');
+          timelineImageShell.style.setProperty('-ms-overflow-style', 'none', 'important');
+        }
 
         timelineImageWrap.style.setProperty('width', `${Math.round(targetWidth)}px`, 'important');
         timelineImageWrap.style.setProperty('height', `${Math.round(targetHeight)}px`, 'important');
