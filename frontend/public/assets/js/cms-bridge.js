@@ -346,11 +346,11 @@
         font-weight: 700;
         letter-spacing: 0.2px;
         cursor: pointer;
-        padding: 9px 18px;
+        padding: 10px 24px;
         box-shadow: 0 8px 18px rgba(18, 28, 74, 0.45);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         position: relative;
-        z-index: 100;
+        z-index: 9999 !important;
         pointer-events: auto !important;
       }
 
@@ -509,8 +509,12 @@
 
       @media (max-width: 767px) {
         .cms-ticket-register-wrap {
+          display: flex;
           justify-content: center;
+          width: 100%;
           margin-top: 10px;
+          position: relative;
+          z-index: 9999 !important;
         }
 
         .cms-ticket-register-btn {
@@ -524,19 +528,41 @@
         }
 
         .cms-ticket-modal-card {
-          width: calc(100vw - 20px);
-          max-height: calc(100vh - 20px);
-          border-radius: 12px;
-          padding: 14px 12px 12px;
+          width: min(92vw, 360px);
+          max-height: calc(100vh - 40px);
+          border-radius: 14px;
+          padding: 16px 14px 12px;
         }
 
         .cms-ticket-modal-title {
-          font-size: 24px;
+          font-size: 18px;
+          margin-bottom: 12px;
+        }
+
+        .cms-ticket-form-group {
+          margin-bottom: 10px;
+        }
+
+        .cms-ticket-form-group label {
+          font-size: 13px;
+          margin-bottom: 4px;
+        }
+
+        .cms-ticket-form-group input,
+        .cms-ticket-form-group select {
+          padding: 8px 10px;
+          font-size: 13px;
+        }
+
+        .cms-ticket-submit-btn {
+          padding: 10px 18px;
+          font-size: 14px;
+          margin-top: 8px;
         }
 
         .cms-ticket-form-grid {
           grid-template-columns: 1fr;
-          gap: 9px;
+          gap: 6px;
         }
       }
     `;
@@ -551,11 +577,27 @@
     document.body.classList.toggle('cms-ticket-modal-open', isAnyOpen);
   }
 
+  let lastTicketModalOpenTime = 0;
+
   function setTicketModalVisibility(modalId, visible) {
     const modal = document.getElementById(modalId);
     if (!modal) {
+      console.warn(`HUIT FEST CMS: modal not found: ${modalId}`);
       return;
     }
+    
+    if (visible) {
+      lastTicketModalOpenTime = Date.now();
+      console.log(`HUIT FEST CMS: Open modal ${modalId} at ${lastTicketModalOpenTime}`);
+    } else {
+      const now = Date.now();
+      if (now - lastTicketModalOpenTime < 300) {
+        console.warn(`HUIT FEST CMS: Ignoring rapid close request for modal ${modalId}`);
+        return;
+      }
+      console.log(`HUIT FEST CMS: Close modal ${modalId}`);
+    }
+
     modal.hidden = !visible;
     modal.style.setProperty('display', visible ? 'flex' : 'none', 'important');
     updateTicketModalLockState();
@@ -733,8 +775,8 @@ Trân trọng.</p>
       if (!(target instanceof HTMLElement)) {
         return;
       }
-      if (target.dataset.ticketAction === 'close-form') {
-        closeFormModal();
+      if (target.dataset.ticketAction === 'close-form' || target.closest('.cms-ticket-modal-close')) {
+        setTicketModalVisibility('cms-ticket-register-modal', false);
       }
     });
 
@@ -743,8 +785,8 @@ Trân trọng.</p>
       if (!(target instanceof HTMLElement)) {
         return;
       }
-      if (target.dataset.ticketAction === 'close-success') {
-        closeSuccessModal();
+      if (target.dataset.ticketAction === 'close-success' || target.closest('.cms-ticket-success-close')) {
+        setTicketModalVisibility('cms-ticket-register-success-modal', false);
       }
     });
 
@@ -852,13 +894,9 @@ Trân trọng.</p>
   }
 
   function ensureTicketRegistrationUi(sectionEl, noteGroup) {
-    const sectionContainer = sectionEl ? sectionEl.querySelector('.ladi-container') : null;
-    const listRoot = document.querySelector('#LIST_PARAGRAPH8 .ladi-list-paragraph');
-    const listBlock = document.getElementById('LIST_PARAGRAPH8');
-
-    if (!sectionEl || !noteGroup || !sectionContainer || !listRoot || !listBlock) {
-      return;
-    }
+    if (!sectionEl || !noteGroup) return;
+    const container = sectionEl.querySelector('.ladi-container');
+    if (!container) return;
 
     ensureTicketRegistrationModal();
     bindTicketRegistrationEvents();
@@ -868,49 +906,47 @@ Trân trọng.</p>
       registerWrap = document.createElement('div');
       registerWrap.id = 'cms-ticket-register-wrap';
       registerWrap.className = 'cms-ticket-register-wrap';
-
+      
       const registerBtn = document.createElement('button');
       registerBtn.type = 'button';
       registerBtn.className = 'cms-ticket-register-btn';
       registerBtn.textContent = 'Đăng ký vé';
-      registerBtn.addEventListener('click', (e) => {
+      
+      const handleTrigger = (e) => {
+        console.log('HUIT FEST CMS: Register button interaction detected!');
         e.preventDefault();
         e.stopPropagation();
-        
-        const formEl = document.getElementById('cms-ticket-register-form');
-        const errorEl = document.getElementById('cms-ticket-register-error');
-        if (formEl instanceof HTMLFormElement) {
-          formEl.reset();
-          applyAudienceConditionalFields(formEl);
-        }
-        if (errorEl) {
-          errorEl.textContent = '';
-        }
         setTicketModalVisibility('cms-ticket-register-modal', true);
-      });
+      };
+
+      registerBtn.addEventListener('click', handleTrigger);
+      registerBtn.addEventListener('touchstart', handleTrigger, { passive: false });
 
       registerWrap.appendChild(registerBtn);
+      container.appendChild(registerWrap);
     }
 
-    if (registerWrap.parentElement !== listRoot) {
-      listRoot.appendChild(registerWrap);
-    }
+    // Position it at the bottom of the note group
+    const noteTop = noteGroup.offsetTop || 0;
+    const noteHeight = noteGroup.offsetHeight || 0;
+    const wrapTop = noteTop + noteHeight + 12;
 
-    const listHeight = Math.ceil(listRoot.getBoundingClientRect().height);
-    const requiredNoteHeight = Math.max(
-      noteGroup.offsetHeight || 0,
-      (listBlock.offsetTop || 0) + listHeight + 8
-    );
-
-    noteGroup.style.setProperty('height', `${requiredNoteHeight}px`, 'important');
+    registerWrap.style.setProperty('position', 'absolute', 'important');
+    registerWrap.style.setProperty('top', `${wrapTop}px`, 'important');
+    registerWrap.style.setProperty('left', '0', 'important');
+    registerWrap.style.setProperty('width', '100%', 'important');
+    registerWrap.style.setProperty('display', 'flex', 'important');
+    registerWrap.style.setProperty('justify-content', 'center', 'important');
+    registerWrap.style.setProperty('z-index', '9999', 'important');
+    registerWrap.style.setProperty('pointer-events', 'auto', 'important');
+    
+    // Ensure section height accommodates everything
+    const finalSectionHeight = wrapTop + 60;
+    sectionEl.style.setProperty('height', `${finalSectionHeight}px`, 'important');
     const noteInner = noteGroup.querySelector('.ladi-group');
     if (noteInner) {
-      noteInner.style.setProperty('height', `${requiredNoteHeight}px`, 'important');
+      noteInner.style.setProperty('height', `${noteHeight}px`, 'important');
     }
-
-    const sectionBaseHeight = Number(sectionEl.dataset.cmsBaseHeight || sectionEl.offsetHeight || 0);
-    const requiredSectionHeight = (noteGroup.offsetTop || 0) + requiredNoteHeight + 20;
-    sectionEl.style.setProperty('height', `${Math.max(sectionBaseHeight, requiredSectionHeight)}px`, 'important');
   }
 
   function ensureFooterLogoMarqueeStyles() {
@@ -1597,7 +1633,7 @@ Trân trọng.</p>
           }
         }
         
-        ticketHeadingGroup.style.top = `${Math.round(headingBaseTop)}px`;
+        ticketHeadingGroup.style.setProperty('top', `${Math.round(headingBaseTop)}px`, 'important');
 
         const stepGroups = ticketPrimaryGroups.filter((el) => el && el !== ticketHeadingGroup);
         if (stepGroups.length > 0) {
@@ -1608,17 +1644,16 @@ Trân trọng.</p>
           const firstStepBase = Number(stepGroups[0].dataset.cmsBaseTop || stepGroups[0].offsetTop);
           const totalShift = firstStepBase - stepStartTop;
 
-          // Pull all step groups up
           stepGroups.forEach((el) => {
             const baseTop = Number(el.dataset.cmsBaseTop || el.offsetTop);
-            el.style.top = `${Math.round(baseTop - totalShift)}px`;
+            el.style.setProperty('top', `${Math.round(baseTop - totalShift)}px`, 'important');
           });
         }
       } else {
         // Desktop fallback
         ticketPrimaryGroups.forEach((el) => {
           const baseTop = Number(el.dataset.cmsBaseTop || el.offsetTop);
-          el.style.top = `${Math.round(baseTop)}px`;
+          el.style.setProperty('top', `${Math.round(baseTop)}px`, 'important');
         });
       }
 
@@ -1796,7 +1831,7 @@ Trân trọng.</p>
             ? Math.max(baseNoteTop, stepBottom + noteGap)
             : baseNoteTop);
 
-        noteGroup.style.top = `${noteTop}px`;
+        noteGroup.style.setProperty('top', `${noteTop}px`, 'important');
 
         const minSectionHeight = noteTop + noteGroup.offsetHeight + (isTicketMobile ? 5 : 32);
         const finalSectionHeight = isTicketMobile
@@ -2516,12 +2551,12 @@ Trân trọng.</p>
              
              setTimeout(() => {
                 const contentHeight = rulesBody.offsetHeight || rulesBody.scrollHeight;
-                rulesGroup.style.setProperty('height', `${contentHeight + 20}px`, 'important');
-                
                 const sHeight = rulesGroup.offsetTop + contentHeight + 80;
-                rulesSection.style.setProperty('height', `${Math.max(300, sHeight)}px`, 'important');
+                const finalRulesHeight = Math.max(300, sHeight);
+                rulesSection.style.setProperty('height', `${finalRulesHeight}px`, 'important');
                 if (rulesContainer) {
-                   rulesContainer.style.setProperty('height', `${Math.max(300, sHeight)}px`, 'important');
+                   rulesContainer.style.setProperty('height', `${finalRulesHeight}px`, 'important');
+                   rulesContainer.style.setProperty('min-height', `${finalRulesHeight}px`, 'important');
                 }
                 
                 // Sync Background Image Box Size
@@ -2624,10 +2659,16 @@ Trân trọng.</p>
         marquee.appendChild(track);
         footerContainer.appendChild(marquee);
 
-        // Keep section compact because logos are now always one horizontal row.
-        const targetHeight = Math.ceil(marqueeTop + 98 + 52);
-        const baseHeight = Number(footerSec.dataset.cmsBaseHeight || footerSec.offsetHeight);
-        const fHeight = Math.max(baseHeight, targetHeight);
+        // Correct height calculation to include ALL children (logos + static text)
+        let maxBottom = marqueeTop + 150; 
+        Array.from(footerContainer.children).forEach(child => {
+          if (child.style.display !== 'none' && child !== marquee) {
+            const bottom = child.offsetTop + child.offsetHeight;
+            if (bottom > maxBottom) maxBottom = bottom;
+          }
+        });
+ 
+        const fHeight = Math.round(maxBottom + 40);
         footerSec.style.setProperty('height', `${fHeight}px`, 'important');
         if (footerContainer) {
            footerContainer.style.setProperty('height', `${fHeight}px`, 'important');
