@@ -1193,7 +1193,7 @@
         const finalSectionHeight = isTicketMobile
           ? minSectionHeight
           : Math.max(baseSectionHeight, minSectionHeight);
-        sectionEl.style.height = `${finalSectionHeight}px`;
+        sectionEl.style.setProperty('height', `${finalSectionHeight}px`, 'important');
       }
       
       const noteEl = document.querySelector('#LIST_PARAGRAPH8 ul');
@@ -1209,6 +1209,10 @@
       const timelineSection = document.getElementById('SECTION18');
       const timelineContainer = timelineSection ? timelineSection.querySelector('.ladi-container') : null;
       const timelineInner = timelineGroup.querySelector('.ladi-group');
+
+      if (!timelineGroup.dataset.cmsBaseTop) {
+        timelineGroup.dataset.cmsBaseTop = String(timelineGroup.offsetTop || 0);
+      }
 
       const items = [
         document.getElementById('GROUP285'),
@@ -1365,19 +1369,14 @@
 
         const paragraphTop = paragraphEl.offsetTop || toNumber(window.getComputedStyle(paragraphEl).top, isMobile ? 9 : 12);
         const paragraphLeft = paragraphEl.offsetLeft || toNumber(window.getComputedStyle(paragraphEl).left, isMobile ? 138 : 214);
-        const lineChunks = String(paragraphText.textContent || '')
-          .split(/\n+/)
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0);
-        const longestLineLength = lineChunks.reduce((maxLen, line) => Math.max(maxLen, line.length), 0);
-        const estimatedParagraphWidth = (longestLineLength * (isMobile ? 6.9 : 7.3)) + (isMobile ? 30 : 34);
         const maxParagraphWidthByViewport = Number.isFinite(maxGroupWidthByViewport)
           ? Math.max(140, maxGroupWidthByViewport - paragraphLeft - (isMobile ? 24 : 20))
           : maxParagraphWidth;
         const effectiveMinParagraphWidth = Math.min(minParagraphWidth, maxParagraphWidthByViewport);
+        const normalizedParagraphBaseWidth = isMobile ? maxParagraphWidth : 332;
         const adaptiveParagraphWidth = Math.max(
           effectiveMinParagraphWidth,
-          Math.min(maxParagraphWidth, estimatedParagraphWidth, maxParagraphWidthByViewport)
+          Math.min(maxParagraphWidthByViewport, normalizedParagraphBaseWidth)
         );
 
         paragraphEl.style.setProperty('width', `${Math.round(adaptiveParagraphWidth)}px`, 'important');
@@ -1546,12 +1545,12 @@
       // 6.4 Update section final height
       if (timelineSection && timelineContainer) {
         timelineSection.style.setProperty('overflow-x', 'hidden', 'important');
-        timelineSection.style.setProperty('overflow-y', 'hidden', 'important');
+        timelineSection.style.setProperty('overflow-y', 'visible', 'important');
         timelineContainer.style.setProperty('overflow-x', 'hidden', 'important');
-        timelineContainer.style.setProperty('overflow-y', 'hidden', 'important');
-        timelineGroup.style.setProperty('overflow-y', 'hidden', 'important');
+        timelineContainer.style.setProperty('overflow-y', 'visible', 'important');
+        timelineGroup.style.setProperty('overflow-y', 'visible', 'important');
         if (timelineInner) {
-          timelineInner.style.setProperty('overflow-y', 'hidden', 'important');
+          timelineInner.style.setProperty('overflow-y', 'visible', 'important');
         }
 
         if (!timelineSection.dataset.cmsBaseHeight) {
@@ -1593,6 +1592,30 @@
         timelineSection.classList.add('cms-loaded');
       } else {
         if (timelineSection) timelineSection.classList.add('cms-loaded');
+      }
+
+      // Mobile fallback: always prioritize timeline content visibility and hide side image.
+      if (isTimelineMobile && timelineSection && timelineContainer) {
+        const timelineHeading = document.getElementById('HEADLINE_TIMELINE');
+        const headingBottom = timelineHeading
+          ? ((timelineHeading.offsetTop || 0) + (timelineHeading.offsetHeight || 0))
+          : 0;
+
+        const desiredGroupTop = Math.max(48, Math.round(headingBottom + 8));
+        const currentGroupTop = timelineGroup.offsetTop || desiredGroupTop;
+        if (currentGroupTop < desiredGroupTop) {
+          timelineGroup.style.setProperty('top', `${desiredGroupTop}px`, 'important');
+        }
+
+        const effectiveGroupTop = timelineGroup.offsetTop || desiredGroupTop;
+        const effectiveGroupHeight = timelineGroup.offsetHeight || 0;
+        const mobileSectionHeight = Math.max(
+          effectiveGroupTop + effectiveGroupHeight + 20,
+          headingBottom + 180
+        );
+
+        timelineSection.style.setProperty('height', `${Math.ceil(mobileSectionHeight)}px`, 'important');
+        timelineContainer.style.setProperty('height', '100%', 'important');
       }
       
       const tlTitle = document.getElementById('HEADLINE_TIMELINE');
@@ -1665,7 +1688,9 @@
         }
 
         const alignOffset = timelineViewportWidth < 768 ? 2 : 4;
-        const targetTop = Math.max(0, Math.round(firstRowTopAbs - alignOffset));
+        const baseTimelineTop = Number.parseFloat(String(timelineGroup.dataset.cmsBaseTop || ''));
+        const imageAnchorTop = Number.isFinite(baseTimelineTop) ? baseTimelineTop : firstRowTopAbs;
+        const targetTop = Math.max(0, Math.round(imageAnchorTop - alignOffset));
 
         timelineImageWrap.classList.add('timeline-side-image-frame');
         timelineImage.classList.add('timeline-side-image-bg');
