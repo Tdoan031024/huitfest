@@ -78,6 +78,147 @@
 
   patchUploadEndpoint();
 
+  const enforceFreshAdminConfig = async () => {
+    if (window.__huitAdminConfigSyncStarted) return;
+    window.__huitAdminConfigSyncStarted = true;
+
+    const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
+    const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
+    const storageKeys = ['landingPageData', 'landingPageData.public.v2'];
+    const reloadGuardKey = '__huitAdminConfigReloadGuard';
+    const slugCandidates = ['huit-fest-2026', 'fptu-fest-2026', 'huitu-fest-2026'];
+
+    const stableSerialize = (value) => {
+      const seen = new WeakSet();
+      return JSON.stringify(value, (key, val) => {
+        if (!val || typeof val !== 'object') return val;
+        if (seen.has(val)) return null;
+        seen.add(val);
+
+        if (Array.isArray(val)) return val;
+
+        const sorted = {};
+        Object.keys(val).sort().forEach((name) => {
+          sorted[name] = val[name];
+        });
+        return sorted;
+      });
+    };
+
+    const readStoredConfig = (key) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const writeStoredConfig = (payload) => {
+      const raw = JSON.stringify(payload);
+      storageKeys.forEach((key) => {
+        try {
+          localStorage.setItem(key, raw);
+        } catch (error) {}
+      });
+    };
+
+    const getReloadGuard = () => {
+      try {
+        return sessionStorage.getItem(reloadGuardKey) === '1';
+      } catch (error) {
+        return false;
+      }
+    };
+
+    const setReloadGuard = () => {
+      try {
+        sessionStorage.setItem(reloadGuardKey, '1');
+      } catch (error) {}
+    };
+
+    const clearReloadGuard = () => {
+      try {
+        sessionStorage.removeItem(reloadGuardKey);
+      } catch (error) {}
+    };
+
+    const fetchLatestConfig = async () => {
+      for (let i = 0; i < slugCandidates.length; i += 1) {
+        const slug = slugCandidates[i];
+        const url = `${basePrefix}/api/events/${encodeURIComponent(slug)}/config?_ts=${Date.now()}`;
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+            },
+          });
+
+          if (response.status === 401 || response.status === 403) {
+            return null;
+          }
+
+          if (!response.ok) {
+            continue;
+          }
+
+          return response.json();
+        } catch (error) {
+          // Try next candidate slug.
+        }
+      }
+
+      return null;
+    };
+
+    const latestConfig = await fetchLatestConfig();
+    if (!latestConfig || typeof latestConfig !== 'object') {
+      return;
+    }
+
+    let latestSignature = '';
+    try {
+      latestSignature = stableSerialize(latestConfig);
+    } catch (error) {
+      latestSignature = JSON.stringify(latestConfig);
+    }
+
+    const hasUpToDateSnapshot = storageKeys.some((key) => {
+      const stored = readStoredConfig(key);
+      if (!stored) return false;
+      try {
+        return stableSerialize(stored) === latestSignature;
+      } catch (error) {
+        return JSON.stringify(stored) === latestSignature;
+      }
+    });
+
+    if (hasUpToDateSnapshot) {
+      clearReloadGuard();
+      return;
+    }
+
+    writeStoredConfig(latestConfig);
+
+    if (getReloadGuard()) {
+      return;
+    }
+
+    setReloadGuard();
+    window.location.reload();
+  };
+
+  setTimeout(() => {
+    enforceFreshAdminConfig().catch((error) => {
+      console.warn('Admin config freshness sync skipped:', error);
+    });
+  }, 0);
+
   const normalizeImageUrl = (rawUrl) => {
     if (!rawUrl || typeof rawUrl !== 'string') return '';
     const value = rawUrl.trim();
