@@ -12,6 +12,10 @@
   let swipers = [];
   let ticketRegistrationBound = false;
 
+  // Set to true to completely hide/disable the ticket registration button and modal.
+  // Toggle this flag to `false` when you want the button/modal available again.
+  const DISABLE_TICKET_REGISTRATION = true;
+
   const TICKET_AUDIENCE_OPTIONS = [
     'Học sinh THPT',
     'Sinh viên HUIT',
@@ -897,6 +901,15 @@ Trân trọng.</p>
     if (!sectionEl || !noteGroup) return;
     const container = sectionEl.querySelector('.ladi-container');
     if (!container) return;
+
+    // If ticket registration is disabled by flag, hide any existing wrap and skip setup.
+    if (typeof DISABLE_TICKET_REGISTRATION !== 'undefined' && DISABLE_TICKET_REGISTRATION) {
+      const existingWrap = document.getElementById('cms-ticket-register-wrap');
+      if (existingWrap) {
+        existingWrap.style.setProperty('display', 'none', 'important');
+      }
+      return;
+    }
 
     ensureTicketRegistrationModal();
     bindTicketRegistrationEvents();
