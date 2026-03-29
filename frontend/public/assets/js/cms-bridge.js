@@ -30,6 +30,7 @@
         slidesPerView: 2.2,
         spaceBetween: 12,
         centeredSlides: false,
+        centerInsufficientSlides: true,
         loop: false,
         grabCursor: true,
         speed: 700,
@@ -255,6 +256,20 @@
         animation: timelineImageFloat 6.4s ease-in-out infinite;
         transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
         z-index: 4;
+      }
+
+      .timeline-side-image-frame,
+      .timeline-side-image-frame .ladi-image {
+        overflow-y: hidden !important;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .timeline-side-image-frame::-webkit-scrollbar,
+      .timeline-side-image-frame .ladi-image::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
       }
 
       .timeline-side-image-frame::before {
@@ -1531,7 +1546,13 @@
       // 6.4 Update section final height
       if (timelineSection && timelineContainer) {
         timelineSection.style.setProperty('overflow-x', 'hidden', 'important');
+        timelineSection.style.setProperty('overflow-y', 'hidden', 'important');
         timelineContainer.style.setProperty('overflow-x', 'hidden', 'important');
+        timelineContainer.style.setProperty('overflow-y', 'hidden', 'important');
+        timelineGroup.style.setProperty('overflow-y', 'hidden', 'important');
+        if (timelineInner) {
+          timelineInner.style.setProperty('overflow-y', 'hidden', 'important');
+        }
 
         if (!timelineSection.dataset.cmsBaseHeight) {
           timelineSection.dataset.cmsBaseHeight = String(timelineSection.offsetHeight);

@@ -1148,6 +1148,120 @@
       margin-top: 10px !important;
     }
 
+    /* Desktop: keep About HUIT right image from overlapping next section */
+    @media (min-width: 992px) {
+      #ABOUT_HUIT_SECTION {
+        padding-bottom: 24px !important;
+      }
+
+      #ABOUT_HUIT_SECTION .about-huit-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 560px);
+        align-items: start;
+      }
+
+      #ABOUT_HUIT_SECTION .about-huit-logo-wrap {
+        min-height: 260px;
+        justify-content: center;
+        padding-right: 0;
+      }
+
+      #ABOUT_HUIT_SECTION .about-huit-logo {
+        width: 100%;
+        max-width: min(560px, 42vw);
+        transform: translateX(22px);
+      }
+    }
+
+    /* Keep video block separated from the section above on desktop */
+    @media (min-width: 992px) {
+      #EVENT_VIDEO_SECTION {
+        margin-top: 24px !important;
+        padding-top: 10px !important;
+      }
+
+      #EVENT_VIDEO_SECTION .event-video-title {
+        margin-bottom: 22px;
+      }
+
+      /* Desktop: make the "Quy dinh chung" frame taller */
+      #SECTION27 {
+        height: 1085px !important;
+      }
+
+      #IMAGE245,
+      #IMAGE245 > .ladi-image > .ladi-image-background {
+        height: 960px !important;
+      }
+
+      #GROUP322 {
+        height: 860px !important;
+      }
+
+      /* Desktop: increase footer visible height */
+      #SECTION29 {
+        height: 285px !important;
+      }
+
+      #HEADLINE256 {
+        top: 50px !important;
+      }
+
+      #IMAGE269 {
+        top: 138px !important;
+      }
+
+      #IMAGE270 {
+        top: 154px !important;
+      }
+
+      #IMAGE271 {
+        top: 160px !important;
+      }
+    }
+
+    /* Blend timeline section background with the global page gradient */
+    #SECTION18,
+    #SECTION18 > .ladi-section-background,
+    #SECTION18 > .ladi-container {
+      background: transparent !important;
+    }
+
+    #SECTION18 > .ladi-container {
+      position: relative;
+    }
+
+    #SECTION18 #IMAGE232 .ladi-image,
+    #SECTION18 #IMAGE247 .ladi-image {
+      opacity: 0.2 !important;
+      filter: blur(2px);
+      mix-blend-mode: screen;
+    }
+
+    #SECTION18 #IMAGE232,
+    #SECTION18 #IMAGE247 {
+      pointer-events: none;
+    }
+
+    #SECTION18 .timeline-side-image-frame {
+      background: linear-gradient(145deg, rgba(18, 26, 71, 0.48), rgba(13, 18, 52, 0.62)) !important;
+      border-color: rgba(167, 214, 255, 0.35) !important;
+      box-shadow: 0 16px 28px rgba(5, 14, 46, 0.36), 0 0 18px rgba(115, 146, 255, 0.16) !important;
+    }
+
+    #SECTION18 > .ladi-container::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, rgba(11, 25, 56, 0.08) 0%, rgba(11, 25, 56, 0.03) 55%, rgba(11, 25, 56, 0) 100%);
+      z-index: 0;
+    }
+
+    #SECTION18 > .ladi-container > .ladi-element,
+    #SECTION18 > .ladi-container > #EFFECT_NOTE1 {
+      z-index: 1;
+    }
+
     @media (min-width: 768px) {
       #SECTION19 #GROUP245 {
         top: 20px !important;
@@ -1409,7 +1523,7 @@
       }
     }
   </style>
-  <script src="/assets/js/cms-bridge.js?v=20260329-16"></script>
+  <script src="/assets/js/cms-bridge.js?v=20260329-18"></script>
 </body>
 
 </html>
