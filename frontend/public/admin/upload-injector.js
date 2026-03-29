@@ -406,12 +406,737 @@
 
     injectResponsiveStyles();
 
+    const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
+    const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
+    const apiBase = `${basePrefix}/api`;
+
+    const REG_SIDEBAR_INACTIVE_CLASS = 'w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors border-l-[3px] border-transparent text-purple-300/55 hover:text-white hover:bg-purple-600/10 hover:border-l-purple-500/50';
+    const REG_SIDEBAR_ACTIVE_CLASS = 'w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors border-l-[3px] border-transparent text-white bg-purple-600/20 border-l-purple-500';
+    const registrationsUiState = window.__huitRegistrationsUiState || { isOpen: false };
+    window.__huitRegistrationsUiState = registrationsUiState;
+
+    const ensureRegistrationsPanelStyles = () => {
+      if (document.getElementById('huit-registrations-inline-style')) return;
+
+      const style = document.createElement('style');
+      style.id = 'huit-registrations-inline-style';
+      style.textContent = `
+        .huit-reg-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .huit-reg-title {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .huit-reg-title h3 {
+          margin: 0;
+          font-size: 22px;
+          color: #f8f5ff;
+        }
+
+        .huit-reg-title p {
+          margin: 4px 0 0;
+          color: #b8a9ea;
+          font-size: 13px;
+        }
+
+        .huit-reg-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .huit-reg-btn {
+          border: 1px solid rgba(124, 58, 237, 0.38);
+          border-radius: 10px;
+          background: rgba(124, 58, 237, 0.16);
+          color: #f5ecff;
+          cursor: pointer;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 8px 12px;
+        }
+
+        .huit-reg-btn.success {
+          border-color: rgba(16, 185, 129, 0.42);
+          background: rgba(16, 185, 129, 0.14);
+          color: #c5fce4;
+        }
+
+        .huit-reg-panel,
+        .huit-reg-stats,
+        .huit-reg-table {
+          border: 1px solid rgba(88, 28, 135, 0.35);
+          border-radius: 12px;
+          background: rgba(17, 9, 40, 0.92);
+        }
+
+        .huit-reg-panel {
+          padding: 12px;
+        }
+
+        .huit-reg-filter-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .huit-reg-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .huit-reg-field label {
+          color: #b8a9ea;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .huit-reg-field input,
+        .huit-reg-field select {
+          height: 38px;
+          border-radius: 9px;
+          border: 1px solid rgba(125, 95, 191, 0.5);
+          background: rgba(16, 11, 36, 0.88);
+          color: #f3ecff;
+          padding: 0 10px;
+          font-size: 13px;
+          outline: none;
+        }
+
+        .huit-reg-stats {
+          padding: 12px;
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .huit-reg-stat {
+          border: 1px solid rgba(73, 48, 131, 0.5);
+          border-radius: 10px;
+          background: rgba(12, 7, 28, 0.75);
+          padding: 10px;
+        }
+
+        .huit-reg-stat-key {
+          color: #b8a9ea;
+          font-size: 12px;
+          margin-bottom: 4px;
+        }
+
+        .huit-reg-stat-value {
+          color: #ffffff;
+          font-size: 28px;
+          font-weight: 800;
+        }
+
+        .huit-reg-table-wrap {
+          overflow: auto;
+        }
+
+        .huit-reg-table table {
+          width: 100%;
+          min-width: 1120px;
+          border-collapse: collapse;
+        }
+
+        .huit-reg-table th,
+        .huit-reg-table td {
+          border-bottom: 1px solid rgba(77, 51, 138, 0.45);
+          text-align: left;
+          vertical-align: top;
+          padding: 10px;
+          font-size: 13px;
+        }
+
+        .huit-reg-table th:nth-child(8),
+        .huit-reg-table td:nth-child(8) {
+          min-width: 116px;
+          text-align: center;
+          vertical-align: middle;
+        }
+
+        .huit-reg-table th {
+          color: #ddd6fe;
+          background: rgba(19, 10, 45, 0.95);
+          position: sticky;
+          top: 0;
+          z-index: 2;
+        }
+
+        .huit-reg-status {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 94px;
+          border-radius: 999px;
+          border: 1px solid transparent;
+          padding: 5px 11px;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1;
+          white-space: nowrap;
+        }
+
+        .huit-reg-status.pending {
+          background: linear-gradient(140deg, rgba(245, 158, 11, 0.24), rgba(245, 158, 11, 0.12));
+          border-color: rgba(245, 158, 11, 0.4);
+          color: #fcd34d;
+        }
+
+        .huit-reg-status.approved {
+          background: linear-gradient(140deg, rgba(16, 185, 129, 0.24), rgba(16, 185, 129, 0.12));
+          border-color: rgba(16, 185, 129, 0.4);
+          color: #86efac;
+        }
+
+        .huit-reg-status.rejected {
+          background: linear-gradient(140deg, rgba(239, 68, 68, 0.24), rgba(239, 68, 68, 0.12));
+          border-color: rgba(239, 68, 68, 0.4);
+          color: #fca5a5;
+        }
+
+        .huit-reg-priority {
+          color: #fde047;
+          font-weight: 700;
+        }
+
+        .huit-reg-row-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .huit-reg-mini-btn {
+          border: 1px solid rgba(96, 70, 163, 0.65);
+          border-radius: 8px;
+          background: rgba(17, 11, 40, 0.92);
+          color: #f3ecff;
+          cursor: pointer;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 5px 8px;
+        }
+
+        .huit-reg-mini-btn.success {
+          border-color: rgba(16, 185, 129, 0.5);
+          color: #a7f3d0;
+        }
+
+        .huit-reg-mini-btn.warn {
+          border-color: rgba(245, 158, 11, 0.5);
+          color: #fde68a;
+        }
+
+        .huit-reg-mini-btn.danger {
+          border-color: rgba(239, 68, 68, 0.5);
+          color: #fecaca;
+        }
+
+        .huit-reg-message {
+          min-height: 18px;
+          color: #b8a9ea;
+          font-size: 13px;
+        }
+
+        .huit-reg-message.error {
+          color: #fca5a5;
+        }
+
+        .huit-reg-message.success {
+          color: #86efac;
+        }
+
+        @media (max-width: 1024px) {
+          .huit-reg-filter-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .huit-reg-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 767px) {
+          .huit-reg-filter-grid,
+          .huit-reg-stats {
+            grid-template-columns: 1fr;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    };
+
+    const setRegistrationsSidebarActive = (active) => {
+      const sidebarBtn = document.querySelector('[data-sidebar-registrations-btn="1"]');
+      if (!sidebarBtn) return;
+      sidebarBtn.className = active ? REG_SIDEBAR_ACTIVE_CLASS : REG_SIDEBAR_INACTIVE_CLASS;
+    };
+
+    const hideNativeCardsForRegistrations = () => {
+      const cards = Array.from(document.querySelectorAll('main [data-slot="card"]'));
+      cards.forEach((card) => {
+        if (!(card instanceof HTMLElement)) return;
+        if (card.id === 'huit-admin-registrations-card') return;
+        if (card.style.display !== 'none') {
+          card.dataset.huitRegHidden = '1';
+          card.style.display = 'none';
+        }
+      });
+    };
+
+    const restoreNativeCardsFromRegistrations = () => {
+      const hiddenCards = Array.from(document.querySelectorAll('main [data-huit-reg-hidden="1"]'));
+      hiddenCards.forEach((card) => {
+        if (!(card instanceof HTMLElement)) return;
+        card.style.display = '';
+        delete card.dataset.huitRegHidden;
+      });
+    };
+
+    const ensureRegistrationsInlineCard = () => {
+      let card = document.getElementById('huit-admin-registrations-card');
+      if (card) return card;
+
+      const main = document.querySelector('main');
+      if (!main) return null;
+
+      ensureRegistrationsPanelStyles();
+
+      card = document.createElement('div');
+      card.id = 'huit-admin-registrations-card';
+      card.setAttribute('data-slot', 'card');
+      card.setAttribute('data-size', 'default');
+      card.className = 'group/card flex flex-col gap-4 overflow-hidden rounded-xl py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl border-purple-800/30 bg-[#0f0929]/90 shadow-2xl';
+      card.style.display = 'none';
+
+      card.innerHTML = `
+        <div data-slot="card-header" class="group/card-header @container/card-header grid auto-rows-min gap-1 rounded-t-xl px-4 group-data-[size=sm]/card:px-3 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4 group-data-[size=sm]/card:[.border-b]:pb-3 flex-row items-center justify-between border-b border-purple-900/25 pb-4">
+          <div data-slot="card-title" class="font-heading group-data-[size=sm]/card:text-sm text-lg font-bold text-white">Quản lý đăng ký vé</div>
+        </div>
+        <div data-slot="card-content" class="px-4 group-data-[size=sm]/card:px-3 pt-6">
+          <div class="huit-reg-wrap">
+            <div class="huit-reg-title">
+              <div>
+                <h3>Danh sách đăng ký</h3>
+                <p data-role="event-label">Đang tải dữ liệu sự kiện...</p>
+              </div>
+              <div class="huit-reg-actions">
+                <button type="button" class="huit-reg-btn" data-role="refresh-btn">Làm mới</button>
+                <button type="button" class="huit-reg-btn success" data-role="export-btn">Xuất Excel</button>
+              </div>
+            </div>
+
+            <div class="huit-reg-panel">
+              <div class="huit-reg-filter-grid">
+                <div class="huit-reg-field">
+                  <label for="huit-reg-search">Tìm kiếm (họ tên, email, SĐT)</label>
+                  <input id="huit-reg-search" data-role="search-input" type="text" placeholder="Nhập từ khóa..." />
+                </div>
+                <div class="huit-reg-field">
+                  <label for="huit-reg-role">Nhóm đối tượng</label>
+                  <select id="huit-reg-role" data-role="role-filter">
+                    <option value="">Tất cả</option>
+                    <option value="Học sinh THPT">Học sinh THPT</option>
+                    <option value="Sinh viên HUIT">Sinh viên HUIT</option>
+                    <option value="Sinh viên trường đại học khác">Sinh viên trường đại học khác</option>
+                    <option value="Người đi làm">Người đi làm</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+                <div class="huit-reg-field">
+                  <label for="huit-reg-status">Trạng thái</label>
+                  <select id="huit-reg-status" data-role="status-filter">
+                    <option value="">Tất cả</option>
+                    <option value="pending">Chờ duyệt</option>
+                    <option value="approved">Đã duyệt</option>
+                    <option value="rejected">Từ chối</option>
+                  </select>
+                </div>
+                <div class="huit-reg-field">
+                  <label for="huit-reg-priority">Ưu tiên</label>
+                  <select id="huit-reg-priority" data-role="priority-filter">
+                    <option value="">Tất cả</option>
+                    <option value="true">Ưu tiên</option>
+                    <option value="false">Không ưu tiên</option>
+                  </select>
+                </div>
+              </div>
+              <div class="huit-reg-actions" style="margin-top:10px;">
+                <button type="button" class="huit-reg-btn" data-role="apply-filter-btn">Áp dụng bộ lọc</button>
+                <button type="button" class="huit-reg-btn" data-role="clear-filter-btn">Xóa lọc</button>
+              </div>
+            </div>
+
+            <div class="huit-reg-stats">
+              <div class="huit-reg-stat"><div class="huit-reg-stat-key">Tổng</div><div class="huit-reg-stat-value" data-role="st-total">0</div></div>
+              <div class="huit-reg-stat"><div class="huit-reg-stat-key">Chờ duyệt</div><div class="huit-reg-stat-value" data-role="st-pending">0</div></div>
+              <div class="huit-reg-stat"><div class="huit-reg-stat-key">Đã duyệt</div><div class="huit-reg-stat-value" data-role="st-approved">0</div></div>
+              <div class="huit-reg-stat"><div class="huit-reg-stat-key">Từ chối</div><div class="huit-reg-stat-value" data-role="st-rejected">0</div></div>
+              <div class="huit-reg-stat"><div class="huit-reg-stat-key">Ưu tiên</div><div class="huit-reg-stat-value" data-role="st-priority">0</div></div>
+            </div>
+
+            <div class="huit-reg-table">
+              <div class="huit-reg-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Họ tên</th>
+                      <th>Liên hệ</th>
+                      <th>Đối tượng</th>
+                      <th>THPT / MSSV</th>
+                      <th>Ngày sinh</th>
+                      <th>Mã giới thiệu</th>
+                      <th>Trạng thái</th>
+                      <th>Ưu tiên</th>
+                      <th>Mã vé</th>
+                      <th>Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody data-role="table-body">
+                    <tr><td colspan="11">Đang tải...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="huit-reg-message" data-role="message"></div>
+          </div>
+        </div>
+      `;
+
+      main.appendChild(card);
+
+      if (card.dataset.regBound === '1') {
+        return card;
+      }
+
+      card.dataset.regBound = '1';
+
+      const regState = { items: [], loading: false };
+      const eventLabel = card.querySelector('[data-role="event-label"]');
+      const searchInput = card.querySelector('[data-role="search-input"]');
+      const roleFilter = card.querySelector('[data-role="role-filter"]');
+      const statusFilter = card.querySelector('[data-role="status-filter"]');
+      const priorityFilter = card.querySelector('[data-role="priority-filter"]');
+      const tableBody = card.querySelector('[data-role="table-body"]');
+      const messageBox = card.querySelector('[data-role="message"]');
+      const refreshBtn = card.querySelector('[data-role="refresh-btn"]');
+      const exportBtn = card.querySelector('[data-role="export-btn"]');
+      const applyFilterBtn = card.querySelector('[data-role="apply-filter-btn"]');
+      const clearFilterBtn = card.querySelector('[data-role="clear-filter-btn"]');
+      const stTotal = card.querySelector('[data-role="st-total"]');
+      const stPending = card.querySelector('[data-role="st-pending"]');
+      const stApproved = card.querySelector('[data-role="st-approved"]');
+      const stRejected = card.querySelector('[data-role="st-rejected"]');
+      const stPriority = card.querySelector('[data-role="st-priority"]');
+
+      const setMessage = (text, type) => {
+        if (!messageBox) return;
+        messageBox.textContent = text || '';
+        messageBox.className = `huit-reg-message${type ? ` ${type}` : ''}`;
+      };
+
+      const escapeHtml = (value) => String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+      const statusLabel = (status) => {
+        if (status === 'approved') return 'Đã duyệt';
+        if (status === 'rejected') return 'Từ chối';
+        return 'Chờ duyệt';
+      };
+
+      const formatDate = (value) => {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleString('vi-VN', { hour12: false });
+      };
+
+      const setCounters = (counters) => {
+        stTotal.textContent = counters && counters.total ? String(counters.total) : '0';
+        stPending.textContent = counters && counters.pending ? String(counters.pending) : '0';
+        stApproved.textContent = counters && counters.approved ? String(counters.approved) : '0';
+        stRejected.textContent = counters && counters.rejected ? String(counters.rejected) : '0';
+        stPriority.textContent = counters && counters.priority ? String(counters.priority) : '0';
+      };
+
+      const buildQueryParams = () => {
+        const params = new URLSearchParams();
+        const search = String(searchInput?.value || '').trim();
+        const role = String(roleFilter?.value || '').trim();
+        const status = String(statusFilter?.value || '').trim();
+        const priority = String(priorityFilter?.value || '').trim();
+
+        if (search) params.set('search', search);
+        if (role) params.set('role', role);
+        if (status) params.set('status', status);
+        if (priority) params.set('priority', priority);
+
+        return params;
+      };
+
+      const renderTable = () => {
+        if (!tableBody) return;
+
+        if (regState.loading) {
+          tableBody.innerHTML = '<tr><td colspan="11">Đang tải...</td></tr>';
+          return;
+        }
+
+        if (!regState.items.length) {
+          tableBody.innerHTML = '<tr><td colspan="11">Không có dữ liệu.</td></tr>';
+          return;
+        }
+
+        const rows = regState.items.map((item) => [
+          '<tr>',
+          `<td>${item.id}</td>`,
+          `<td>${escapeHtml(item.fullName)}</td>`,
+          `<td><div>${escapeHtml(item.email)}</div><div>${escapeHtml(item.phone)}</div><div style="color:#a392da;font-size:12px;">${escapeHtml(formatDate(item.createdAt))}</div></td>`,
+          `<td>${escapeHtml(item.audience || '')}</td>`,
+          `<td>${escapeHtml(item.schoolOrStudentId || '')}</td>`,
+          `<td>${escapeHtml(item.birthDate || '')}</td>`,
+          `<td>${escapeHtml(item.referralCode || '')}</td>`,
+          `<td><span class="huit-reg-status ${item.status}">${statusLabel(item.status)}</span></td>`,
+          `<td>${item.priority ? '<span class="huit-reg-priority">Ưu tiên</span>' : ''}</td>`,
+          `<td>${escapeHtml(item.ticketCode || '')}</td>`,
+          `<td><div class="huit-reg-row-actions"><button class="huit-reg-mini-btn success" data-action="approve" data-id="${item.id}">Duyệt</button><button class="huit-reg-mini-btn success" data-action="approve-email" data-id="${item.id}">Duyệt + Email</button><button class="huit-reg-mini-btn danger" data-action="reject" data-id="${item.id}">Từ chối</button><button class="huit-reg-mini-btn warn" data-action="priority" data-id="${item.id}">${item.priority ? 'Bỏ ưu tiên' : 'Ưu tiên'}</button></div>${item.rejectedReason ? `<div style="margin-top:6px;color:#fca5a5;">Lý do: ${escapeHtml(item.rejectedReason)}</div>` : ''}</td>`,
+          '</tr>',
+        ].join('')).join('');
+
+        tableBody.innerHTML = rows;
+      };
+
+      const loadData = async () => {
+        regState.loading = true;
+        renderTable();
+        setMessage('');
+
+        const params = buildQueryParams();
+        const query = params.toString();
+        const url = `${apiBase}/registrations/admin${query ? `?${query}` : ''}`;
+
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+          });
+
+          if (response.status === 401) {
+            window.location.href = `${apiBase}/admin/auth/login-page`;
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const payload = await response.json();
+          regState.items = Array.isArray(payload.items) ? payload.items : [];
+          if (eventLabel) {
+            eventLabel.textContent = payload.eventTitle
+              ? `${payload.eventTitle} - quản lý đăng ký vé`
+              : 'Quản lý đăng ký vé';
+          }
+          setCounters(payload.counters || {});
+        } catch (error) {
+          regState.items = [];
+          setCounters({});
+          setMessage(`Không thể tải dữ liệu đăng ký. ${error && error.message ? error.message : ''}`, 'error');
+        } finally {
+          regState.loading = false;
+          renderTable();
+        }
+      };
+
+      const updateRegistration = async (id, data) => {
+        setMessage('Đang cập nhật...', '');
+        try {
+          const response = await fetch(`${apiBase}/registrations/admin/${encodeURIComponent(String(id))}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `HTTP ${response.status}`);
+          }
+
+          const updated = await response.json();
+          await loadData();
+
+          if (updated && updated.emailResult && updated.emailResult.sent === false) {
+            setMessage(updated.emailResult.message || 'Cập nhật thành công nhưng gửi email thất bại.', 'error');
+          } else if (updated && updated.emailResult && updated.emailResult.sent === true) {
+            setMessage(updated.emailResult.message || 'Cập nhật thành công và đã gửi email.', 'success');
+          } else {
+            setMessage('Cập nhật thành công.', 'success');
+          }
+        } catch (error) {
+          setMessage(`Cập nhật thất bại. ${error && error.message ? error.message : ''}`, 'error');
+        }
+      };
+
+      tableBody.addEventListener('click', async (event) => {
+        const target = event.target && event.target.closest
+          ? event.target.closest('button[data-action][data-id]')
+          : null;
+        if (!target) return;
+
+        const action = target.getAttribute('data-action');
+        const id = Number(target.getAttribute('data-id'));
+        if (!Number.isFinite(id)) return;
+
+        const item = regState.items.find((entry) => entry.id === id);
+        if (!item) return;
+
+        if (action === 'approve') {
+          await updateRegistration(id, { status: 'approved' });
+          return;
+        }
+
+        if (action === 'approve-email') {
+          await updateRegistration(id, { status: 'approved', sendEmail: true });
+          return;
+        }
+
+        if (action === 'reject') {
+          const reason = window.prompt('Nhập lý do từ chối (không bắt buộc):', item.rejectedReason || '');
+          if (reason === null) return;
+          await updateRegistration(id, { status: 'rejected', reason });
+          return;
+        }
+
+        if (action === 'priority') {
+          await updateRegistration(id, { priority: !item.priority });
+        }
+      });
+
+      refreshBtn.addEventListener('click', () => {
+        loadData();
+      });
+
+      applyFilterBtn.addEventListener('click', () => {
+        loadData();
+      });
+
+      clearFilterBtn.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (roleFilter) roleFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (priorityFilter) priorityFilter.value = '';
+        loadData();
+      });
+
+      exportBtn.addEventListener('click', () => {
+        const params = buildQueryParams();
+        const query = params.toString();
+        const url = `${apiBase}/registrations/admin/export${query ? `?${query}` : ''}`;
+        window.open(url, '_blank');
+      });
+
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          loadData();
+        }
+      });
+
+      card.__huitRegistrationsLoad = loadData;
+      return card;
+    };
+
+    const openRegistrationsInlinePanel = async () => {
+      const card = ensureRegistrationsInlineCard();
+      if (!card) return;
+
+      hideNativeCardsForRegistrations();
+      card.style.display = 'flex';
+      registrationsUiState.isOpen = true;
+      setRegistrationsSidebarActive(true);
+
+      if (typeof card.__huitRegistrationsLoad === 'function') {
+        await card.__huitRegistrationsLoad();
+      }
+    };
+
+    const closeRegistrationsInlinePanel = () => {
+      const card = document.getElementById('huit-admin-registrations-card');
+      if (card) {
+        card.style.display = 'none';
+      }
+      registrationsUiState.isOpen = false;
+      setRegistrationsSidebarActive(false);
+      restoreNativeCardsFromRegistrations();
+    };
+
+    const ensureRegistrationsSidebarButton = (sidebarNav) => {
+      if (!sidebarNav) return;
+
+      if (!sidebarNav.querySelector('[data-sidebar-registrations-btn="1"]')) {
+        const sidebarBtn = document.createElement('button');
+        sidebarBtn.type = 'button';
+        sidebarBtn.setAttribute('data-sidebar-registrations-btn', '1');
+        sidebarBtn.className = REG_SIDEBAR_INACTIVE_CLASS;
+        sidebarBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+            <path d="M8 8h8"></path>
+            <path d="M8 12h8"></path>
+            <path d="M8 16h5"></path>
+          </svg>
+          Quản lý đăng ký
+        `;
+        sidebarNav.appendChild(sidebarBtn);
+      }
+
+      setRegistrationsSidebarActive(registrationsUiState.isOpen);
+
+      if (sidebarNav.dataset.registrationsBound === '1') return;
+      sidebarNav.dataset.registrationsBound = '1';
+
+      sidebarNav.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+
+        const regButton = target.closest('[data-sidebar-registrations-btn="1"]');
+        if (regButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          openRegistrationsInlinePanel();
+          return;
+        }
+
+        if (!registrationsUiState.isOpen) return;
+
+        const navControl = target.closest('button, a');
+        if (!navControl) return;
+
+        closeRegistrationsInlinePanel();
+      }, true);
+    };
+
     const simplifyHeaderActions = () => {
       const header = document.querySelector('header.sticky');
       if (!header) return;
-
-      const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
-      const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
 
       const actionWrap = header.querySelector('div:last-child');
       if (!actionWrap) return;
@@ -461,6 +1186,11 @@
         actionWrap.appendChild(mainBtn);
       }
 
+      const headerRegistrationBtn = actionWrap.querySelector('[data-registrations-manage-btn="1"]');
+      if (headerRegistrationBtn) {
+        headerRegistrationBtn.remove();
+      }
+
       const legacyArtistsExtraBtn = actionWrap.querySelector('[data-artists-extra-btn="1"]');
       if (legacyArtistsExtraBtn) {
         legacyArtistsExtraBtn.remove();
@@ -502,19 +1232,22 @@
 
         logoutBtn.addEventListener('click', async () => {
           try {
-            await fetch('/api/admin/auth/logout', {
+            await fetch(`${basePrefix}/api/admin/auth/logout`, {
               method: 'POST',
               credentials: 'include'
             });
           } catch (error) {
             console.warn('Logout request failed, redirecting anyway.', error);
           } finally {
-            window.location.href = '/api/admin/auth/login-page';
+            window.location.href = `${basePrefix}/api/admin/auth/login-page`;
           }
         });
 
         actionWrap.appendChild(logoutBtn);
       }
+
+      const sidebarNav = document.querySelector('aside nav');
+      ensureRegistrationsSidebarButton(sidebarNav);
     };
 
     const isSection3ArtistCard = (card) => {

@@ -10,6 +10,16 @@
   let lastRenderedArtistSlots = [];
   let lastRenderedArtistsBySlot = Object.create(null);
   let swipers = [];
+  let ticketRegistrationBound = false;
+
+  const TICKET_AUDIENCE_OPTIONS = [
+    'Học sinh THPT',
+    'Sinh viên HUIT',
+    'Thầy cô',
+    'Cán bộ HUIT',
+    'Cựu sinh viên HUIT',
+    'Khán giả tự do'
+  ];
 
   function initArtistSwiper() {
     // Wait for Swiper to be available
@@ -302,6 +312,593 @@
     `;
 
     document.head.appendChild(style);
+  }
+
+  function getApiPrefix() {
+    const path = window.location.pathname || '';
+    if (path === '/nodeapi' || path.startsWith('/nodeapi/')) {
+      return '/nodeapi/api';
+    }
+    return '/api';
+  }
+
+  function ensureTicketRegistrationStyles() {
+    if (document.getElementById('cms-ticket-register-style')) {
+      return;
+    }
+
+    const style = document.createElement('style');
+    style.id = 'cms-ticket-register-style';
+    style.textContent = `
+      .cms-ticket-register-wrap {
+        margin-top: 12px;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .cms-ticket-register-btn {
+        border: 1px solid rgba(171, 204, 255, 0.72);
+        border-radius: 999px;
+        background: linear-gradient(120deg, rgba(48, 108, 255, 0.8), rgba(149, 79, 255, 0.78));
+        color: #f4f8ff;
+        font-family: Montserrat, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        padding: 9px 18px;
+        box-shadow: 0 8px 18px rgba(18, 28, 74, 0.45);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .cms-ticket-register-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 22px rgba(18, 28, 74, 0.52);
+      }
+
+      .cms-ticket-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .cms-ticket-modal[hidden] {
+        display: none !important;
+      }
+
+      .cms-ticket-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(4, 8, 26, 0.72);
+        backdrop-filter: blur(2px);
+      }
+
+      .cms-ticket-modal-card {
+        position: relative;
+        width: min(560px, calc(100vw - 32px));
+        max-height: calc(100vh - 40px);
+        overflow: auto;
+        border-radius: 16px;
+        border: 1px solid rgba(167, 205, 255, 0.45);
+        background: linear-gradient(165deg, rgba(14, 22, 66, 0.96), rgba(8, 12, 36, 0.97));
+        box-shadow: 0 26px 44px rgba(4, 8, 24, 0.6);
+        padding: 18px 18px 16px;
+        color: #edf3ff;
+      }
+
+      .cms-ticket-modal-close {
+        position: absolute;
+        right: 10px;
+        top: 8px;
+        border: 0;
+        background: transparent;
+        color: rgba(224, 236, 255, 0.88);
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .cms-ticket-modal-title {
+        margin: 2px 0 14px;
+        font-family: UZOLUdpbHJveSBYQmsZCvdGY, sans-serif;
+        font-size: 30px;
+        line-height: 1.1;
+        text-align: center;
+        color: #f1f6ff;
+      }
+
+      .cms-ticket-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .cms-ticket-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .cms-ticket-field[hidden] {
+        display: none !important;
+      }
+
+      .cms-ticket-field.full {
+        grid-column: 1 / -1;
+      }
+
+      .cms-ticket-field label {
+        font-family: Montserrat, sans-serif;
+        font-size: 12px;
+        color: rgba(216, 228, 255, 0.95);
+      }
+
+      .cms-ticket-field input,
+      .cms-ticket-field select {
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid rgba(165, 197, 255, 0.45);
+        background: rgba(18, 28, 78, 0.72);
+        color: #f5f9ff;
+        font-family: Montserrat, sans-serif;
+        font-size: 14px;
+        padding: 0 12px;
+        outline: none;
+      }
+
+      .cms-ticket-field input::placeholder {
+        color: rgba(206, 221, 255, 0.62);
+      }
+
+      .cms-ticket-form-error {
+        min-height: 18px;
+        margin: 8px 2px 0;
+        font-family: Montserrat, sans-serif;
+        font-size: 12px;
+        color: #ffb3b3;
+      }
+
+      .cms-ticket-form-actions {
+        margin-top: 8px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .cms-ticket-submit-btn {
+        min-width: 156px;
+        border: 1px solid rgba(182, 214, 255, 0.7);
+        border-radius: 999px;
+        background: linear-gradient(120deg, rgba(40, 110, 255, 0.86), rgba(150, 89, 255, 0.84));
+        color: #f8fbff;
+        font-family: Montserrat, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 10px 20px;
+      }
+
+      .cms-ticket-submit-btn[disabled] {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .cms-ticket-success-text {
+        margin: 8px 0 12px;
+        white-space: pre-line;
+        font-family: Montserrat, sans-serif;
+        font-size: 14px;
+        line-height: 1.65;
+        color: rgba(232, 240, 255, 0.96);
+      }
+
+      body.cms-ticket-modal-open {
+        overflow: hidden;
+      }
+
+      @media (max-width: 767px) {
+        .cms-ticket-register-wrap {
+          justify-content: center;
+          margin-top: 10px;
+        }
+
+        .cms-ticket-register-btn {
+          font-size: 13px;
+          padding: 8px 16px;
+        }
+
+        .cms-ticket-modal {
+          padding: 10px;
+          align-items: flex-start;
+        }
+
+        .cms-ticket-modal-card {
+          width: calc(100vw - 20px);
+          max-height: calc(100vh - 20px);
+          border-radius: 12px;
+          padding: 14px 12px 12px;
+        }
+
+        .cms-ticket-modal-title {
+          font-size: 24px;
+        }
+
+        .cms-ticket-form-grid {
+          grid-template-columns: 1fr;
+          gap: 9px;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  function updateTicketModalLockState() {
+    const formModal = document.getElementById('cms-ticket-register-modal');
+    const successModal = document.getElementById('cms-ticket-register-success-modal');
+    const isAnyOpen = !!((formModal && !formModal.hidden) || (successModal && !successModal.hidden));
+    document.body.classList.toggle('cms-ticket-modal-open', isAnyOpen);
+  }
+
+  function setTicketModalVisibility(modalId, visible) {
+    const modal = document.getElementById(modalId);
+    if (!modal) {
+      return;
+    }
+    modal.hidden = !visible;
+    updateTicketModalLockState();
+  }
+
+  function normalizeAudienceLabel(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function isHighSchoolAudience(value) {
+    const normalized = normalizeAudienceLabel(value);
+    return normalized.includes('hoc sinh') && (normalized.includes('thpt') || normalized.includes('tht'));
+  }
+
+  function isHuitStudentAudience(value) {
+    const normalized = normalizeAudienceLabel(value);
+    return normalized.includes('sinh vien') && normalized.includes('huit');
+  }
+
+  function applyAudienceConditionalFields(formEl) {
+    if (!formEl) {
+      return;
+    }
+
+    const audience = formEl.querySelector('[name="audienceType"]');
+    const highSchoolRow = formEl.querySelector('[data-ticket-row="highSchool"]');
+    const studentIdRow = formEl.querySelector('[data-ticket-row="studentId"]');
+    const highSchoolInput = formEl.querySelector('[name="highSchoolName"]');
+    const studentIdInput = formEl.querySelector('[name="studentId"]');
+
+    const audienceValue = audience ? String(audience.value || '') : '';
+
+    const needHighSchool = isHighSchoolAudience(audienceValue);
+    const needStudentId = isHuitStudentAudience(audienceValue);
+
+    if (highSchoolRow) {
+      highSchoolRow.hidden = !needHighSchool;
+    }
+    if (studentIdRow) {
+      studentIdRow.hidden = !needStudentId;
+    }
+
+    if (highSchoolInput) {
+      highSchoolInput.required = needHighSchool;
+      if (!needHighSchool) {
+        highSchoolInput.value = '';
+      }
+    }
+
+    if (studentIdInput) {
+      studentIdInput.required = needStudentId;
+      if (!needStudentId) {
+        studentIdInput.value = '';
+      }
+    }
+  }
+
+  function ensureTicketRegistrationModal() {
+    if (document.getElementById('cms-ticket-register-modal')) {
+      return;
+    }
+
+    ensureTicketRegistrationStyles();
+
+    const audienceOptions = TICKET_AUDIENCE_OPTIONS
+      .map((option) => `<option value="${option}">${option}</option>`)
+      .join('');
+
+    const formModal = document.createElement('div');
+    formModal.id = 'cms-ticket-register-modal';
+    formModal.className = 'cms-ticket-modal';
+    formModal.hidden = true;
+    formModal.innerHTML = `
+      <div class="cms-ticket-modal-backdrop" data-ticket-action="close-form"></div>
+      <div class="cms-ticket-modal-card" role="dialog" aria-modal="true" aria-labelledby="cms-ticket-modal-title">
+        <button type="button" class="cms-ticket-modal-close" data-ticket-action="close-form" aria-label="Đóng">&times;</button>
+        <h3 id="cms-ticket-modal-title" class="cms-ticket-modal-title">Đăng ký vé</h3>
+        <form id="cms-ticket-register-form" novalidate>
+          <div class="cms-ticket-form-grid">
+            <div class="cms-ticket-field full">
+              <label for="ticket-full-name">Họ tên</label>
+              <input id="ticket-full-name" name="fullName" type="text" required minlength="2" maxlength="120" placeholder="Nhập họ và tên" />
+            </div>
+            <div class="cms-ticket-field">
+              <label for="ticket-birth-date">Ngày sinh</label>
+              <input id="ticket-birth-date" name="birthDate" type="date" required />
+            </div>
+            <div class="cms-ticket-field">
+              <label for="ticket-phone">Sđt</label>
+              <input id="ticket-phone" name="phone" type="tel" required placeholder="0xxxxxxxxx" />
+            </div>
+            <div class="cms-ticket-field full">
+              <label for="ticket-email">Email</label>
+              <input id="ticket-email" name="email" type="email" required placeholder="you@example.com" />
+            </div>
+            <div class="cms-ticket-field full">
+              <label for="ticket-referral">Mã giới thiệu (không bắt buộc)</label>
+              <input id="ticket-referral" name="referralCode" type="text" placeholder="Nhập mã nếu có" />
+            </div>
+            <div class="cms-ticket-field full">
+              <label for="ticket-audience">Bạn là</label>
+              <select id="ticket-audience" name="audienceType" required>
+                <option value="" disabled selected>Chọn đối tượng</option>
+                ${audienceOptions}
+              </select>
+            </div>
+            <div class="cms-ticket-field full" data-ticket-row="highSchool" hidden>
+              <label for="ticket-high-school">Tên trường THPT</label>
+              <input id="ticket-high-school" name="highSchoolName" type="text" placeholder="Nhập tên trường THPT" />
+            </div>
+            <div class="cms-ticket-field full" data-ticket-row="studentId" hidden>
+              <label for="ticket-student-id">MSSV</label>
+              <input id="ticket-student-id" name="studentId" type="text" placeholder="Nhập MSSV" />
+            </div>
+          </div>
+          <p id="cms-ticket-register-error" class="cms-ticket-form-error"></p>
+          <div class="cms-ticket-form-actions">
+            <button type="submit" class="cms-ticket-submit-btn" id="cms-ticket-submit-btn">Đăng ký</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    const successModal = document.createElement('div');
+    successModal.id = 'cms-ticket-register-success-modal';
+    successModal.className = 'cms-ticket-modal';
+    successModal.hidden = true;
+    successModal.innerHTML = `
+      <div class="cms-ticket-modal-backdrop" data-ticket-action="close-success"></div>
+      <div class="cms-ticket-modal-card" role="dialog" aria-modal="true" aria-labelledby="cms-ticket-success-title">
+        <button type="button" class="cms-ticket-modal-close" data-ticket-action="close-success" aria-label="Đóng">&times;</button>
+        <h3 id="cms-ticket-success-title" class="cms-ticket-modal-title">Thông báo</h3>
+        <p class="cms-ticket-success-text">Bạn đã đăng ký thành công!.
+Sau đó Ban tổ chức sẽ xem xét và cấp vé theo diện ưu tiên trước. Vé điện tử sẽ được gửi qua email trong thời gian tới. Ngoài ra, bạn có thể tham dự ngoài khu vực fanzone vào công tự do.
+Trân trọng.</p>
+        <div class="cms-ticket-form-actions">
+          <button type="button" class="cms-ticket-submit-btn" data-ticket-action="close-success">Đã hiểu</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(formModal);
+    document.body.appendChild(successModal);
+  }
+
+  function bindTicketRegistrationEvents() {
+    if (ticketRegistrationBound) {
+      return;
+    }
+
+    const formModal = document.getElementById('cms-ticket-register-modal');
+    const successModal = document.getElementById('cms-ticket-register-success-modal');
+    if (!formModal || !successModal) {
+      return;
+    }
+
+    const form = document.getElementById('cms-ticket-register-form');
+    const errorEl = document.getElementById('cms-ticket-register-error');
+    const submitBtn = document.getElementById('cms-ticket-submit-btn');
+
+    if (!form || !errorEl || !submitBtn) {
+      return;
+    }
+
+    const closeFormModal = () => setTicketModalVisibility('cms-ticket-register-modal', false);
+    const closeSuccessModal = () => setTicketModalVisibility('cms-ticket-register-success-modal', false);
+
+    formModal.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+      if (target.dataset.ticketAction === 'close-form') {
+        closeFormModal();
+      }
+    });
+
+    successModal.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+      if (target.dataset.ticketAction === 'close-success') {
+        closeSuccessModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+      if (!successModal.hidden) {
+        closeSuccessModal();
+      }
+      if (!formModal.hidden) {
+        closeFormModal();
+      }
+    });
+
+    const audienceSelect = form.querySelector('[name="audienceType"]');
+    if (audienceSelect) {
+      audienceSelect.addEventListener('change', () => {
+        applyAudienceConditionalFields(form);
+      });
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorEl.textContent = '';
+
+      applyAudienceConditionalFields(form);
+
+      if (!(form instanceof HTMLFormElement) || !form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData(form);
+      const fullName = String(formData.get('fullName') || '').trim();
+      const birthDate = String(formData.get('birthDate') || '').trim();
+      const email = String(formData.get('email') || '').trim();
+      const phone = String(formData.get('phone') || '').trim();
+      const referralCode = String(formData.get('referralCode') || '').trim();
+      const audienceType = String(formData.get('audienceType') || '').trim();
+      const highSchoolName = String(formData.get('highSchoolName') || '').trim();
+      const studentId = String(formData.get('studentId') || '').trim();
+
+      const isHighSchool = isHighSchoolAudience(audienceType);
+      const isHuitStudent = isHuitStudentAudience(audienceType);
+
+      if (isHighSchool && !highSchoolName) {
+        errorEl.textContent = 'Vui lòng nhập tên trường THPT.';
+        return;
+      }
+
+      if (isHuitStudent && !studentId) {
+        errorEl.textContent = 'Vui lòng nhập MSSV.';
+        return;
+      }
+
+      const payload = {
+        fullName,
+        email,
+        phone,
+        role: audienceType,
+        school: isHighSchool ? highSchoolName : undefined,
+        major: isHuitStudent ? studentId : undefined,
+        province: birthDate || undefined,
+        campus: referralCode || undefined,
+      };
+
+      submitBtn.setAttribute('disabled', 'true');
+
+      try {
+        const response = await fetch(`${getApiPrefix()}/registrations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+          try {
+            const errorData = await response.json();
+            if (errorData && typeof errorData.message === 'string') {
+              errorMessage = errorData.message;
+            }
+          } catch (_error) {
+            // Keep fallback message.
+          }
+          throw new Error(errorMessage);
+        }
+
+        form.reset();
+        applyAudienceConditionalFields(form);
+        closeFormModal();
+        setTicketModalVisibility('cms-ticket-register-success-modal', true);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Đăng ký thất bại. Vui lòng thử lại.';
+        errorEl.textContent = message;
+      } finally {
+        submitBtn.removeAttribute('disabled');
+      }
+    });
+
+    ticketRegistrationBound = true;
+  }
+
+  function ensureTicketRegistrationUi(sectionEl, noteGroup) {
+    const sectionContainer = sectionEl ? sectionEl.querySelector('.ladi-container') : null;
+    const listRoot = document.querySelector('#LIST_PARAGRAPH8 .ladi-list-paragraph');
+    const listBlock = document.getElementById('LIST_PARAGRAPH8');
+
+    if (!sectionEl || !noteGroup || !sectionContainer || !listRoot || !listBlock) {
+      return;
+    }
+
+    ensureTicketRegistrationModal();
+    bindTicketRegistrationEvents();
+
+    let registerWrap = document.getElementById('cms-ticket-register-wrap');
+    if (!registerWrap) {
+      registerWrap = document.createElement('div');
+      registerWrap.id = 'cms-ticket-register-wrap';
+      registerWrap.className = 'cms-ticket-register-wrap';
+
+      const registerBtn = document.createElement('button');
+      registerBtn.type = 'button';
+      registerBtn.className = 'cms-ticket-register-btn';
+      registerBtn.textContent = 'Đăng ký vé';
+      registerBtn.addEventListener('click', () => {
+        const formEl = document.getElementById('cms-ticket-register-form');
+        const errorEl = document.getElementById('cms-ticket-register-error');
+        if (formEl instanceof HTMLFormElement) {
+          formEl.reset();
+          applyAudienceConditionalFields(formEl);
+        }
+        if (errorEl) {
+          errorEl.textContent = '';
+        }
+        setTicketModalVisibility('cms-ticket-register-modal', true);
+      });
+
+      registerWrap.appendChild(registerBtn);
+    }
+
+    if (registerWrap.parentElement !== listRoot) {
+      listRoot.appendChild(registerWrap);
+    }
+
+    const listHeight = Math.ceil(listRoot.getBoundingClientRect().height);
+    const requiredNoteHeight = Math.max(
+      noteGroup.offsetHeight || 0,
+      (listBlock.offsetTop || 0) + listHeight + 8
+    );
+
+    noteGroup.style.setProperty('height', `${requiredNoteHeight}px`, 'important');
+    const noteInner = noteGroup.querySelector('.ladi-group');
+    if (noteInner) {
+      noteInner.style.setProperty('height', `${requiredNoteHeight}px`, 'important');
+    }
+
+    const sectionBaseHeight = Number(sectionEl.dataset.cmsBaseHeight || sectionEl.offsetHeight || 0);
+    const requiredSectionHeight = (noteGroup.offsetTop || 0) + requiredNoteHeight + 20;
+    sectionEl.style.setProperty('height', `${Math.max(sectionBaseHeight, requiredSectionHeight)}px`, 'important');
   }
 
   function ensureFooterLogoMarqueeStyles() {
@@ -1200,6 +1797,10 @@
       if (noteEl && data.ticket.note) {
         const lines = data.ticket.note.split('\n').filter(l => l.trim());
         noteEl.innerHTML = lines.map(l => `<li>${l}</li>`).join('');
+      }
+
+      if (sectionEl && noteGroup) {
+        ensureTicketRegistrationUi(sectionEl, noteGroup);
       }
     }
 
