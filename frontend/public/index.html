@@ -96,6 +96,40 @@
       display: none !important;
     }
 
+    /* --- Journey Section: Reduce gap between title and content (both desktop & mobile) --- */
+    /* --- Journey Section: Force title and content reorder --- */
+    #SECTION23 #GROUP277 .ladi-group,
+    #SECTION23 #GROUP276 .ladi-group,
+    #SECTION23 #GROUP280 .ladi-group,
+    #SECTION23 #GROUP282 .ladi-group,
+    #SECTION23 #GROUP284 .ladi-group {
+      display: flex !important;
+      flex-direction: column !important;
+      height: auto !important;
+    }
+
+    #SECTION23 #HEADLINE193, #SECTION23 #HEADLINE192, #SECTION23 #HEADLINE195, #SECTION23 #HEADLINE196, #SECTION23 #HEADLINE197 {
+      order: 1 !important;
+      top: 0 !important;
+      position: relative !important;
+      margin-bottom: 2px !important;
+      height: auto !important;
+    }
+    #SECTION23 #PARAGRAPH154, #SECTION23 #PARAGRAPH153, #SECTION23 #PARAGRAPH156, #SECTION23 #PARAGRAPH157, #SECTION23 #PARAGRAPH158 {
+      order: 2 !important;
+      top: 0 !important;
+      position: relative !important;
+      margin-top: 0 !important;
+    }
+    /* Set specific top for the whole group on Desktop */
+    @media (min-width: 992px) {
+      #SECTION23 #GROUP277 {
+        top: 458px !important;
+        height: auto !important;
+      }
+    }
+    /* End Journey Section gap fix */
+
     @media (max-width: 767px) {
       #HEADLINE222 {
         width: 417px !important;
@@ -1299,6 +1333,17 @@
 
       #IMAGE271 {
         top: 160px !important;
+      }
+
+      /* Journey desktop refinement: increase gap under image 1 and align text-2 with image-1 left edge */
+      #SECTION23 #GROUP277 {
+        top: 458px !important;
+        left: 110px !important; /* Shifted from 88px to 110px */
+      }
+      
+      /* Shift other journey text groups slightly to the right for better visual alignment */
+      #SECTION23 #GROUP276, #SECTION23 #GROUP280, #SECTION23 #GROUP282, #SECTION23 #GROUP284 {
+        padding-left: 20px !important;
       }
     }
 
