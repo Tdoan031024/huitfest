@@ -1337,6 +1337,15 @@
       overflow: hidden !important;
     }
 
+    #SECTION18 .timeline-side-image-frame,
+    #SECTION18 .timeline-side-image-frame > .ladi-image,
+    #SECTION18 .timeline-side-image-frame > .ladi-image > .ladi-image-background,
+    #SECTION18 #IMAGE264,
+    #SECTION18 #IMAGE264 * {
+      overflow-x: hidden !important;
+      overflow-y: hidden !important;
+    }
+
     #SECTION18 #IMAGE264,
     #SECTION18 #IMAGE264 > .ladi-image {
       scrollbar-width: none;
@@ -1348,6 +1357,20 @@
       width: 0 !important;
       height: 0 !important;
       display: none !important;
+    }
+
+    #SECTION18,
+    #SECTION18 * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    #SECTION18::-webkit-scrollbar,
+    #SECTION18 *::-webkit-scrollbar {
+      width: 0 !important;
+      height: 0 !important;
+      display: none !important;
+      background: transparent !important;
     }
 
     #SECTION18 #GROUP344 .ladi-paragraph {
@@ -1696,7 +1719,7 @@
       }
     }
   </style>
-  <script src="/assets/js/cms-bridge.js?v=20260329-25"></script>
+  <script src="/assets/js/cms-bridge.js?v=20260329-26"></script>
 </body>
 
 </html>
