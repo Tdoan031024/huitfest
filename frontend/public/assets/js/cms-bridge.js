@@ -349,6 +349,13 @@
         padding: 9px 18px;
         box-shadow: 0 8px 18px rgba(18, 28, 74, 0.45);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        z-index: 100;
+        pointer-events: auto !important;
+      }
+
+      .cms-ticket-register-btn:active {
+        transform: scale(0.96);
       }
 
       .cms-ticket-register-btn:hover {
@@ -359,11 +366,12 @@
       .cms-ticket-modal {
         position: fixed;
         inset: 0;
-        z-index: 100000;
+        z-index: 200000;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 24px;
+        pointer-events: auto !important;
       }
 
       .cms-ticket-modal[hidden] {
@@ -549,6 +557,7 @@
       return;
     }
     modal.hidden = !visible;
+    modal.style.setProperty('display', visible ? 'flex' : 'none', 'important');
     updateTicketModalLockState();
   }
 
@@ -864,7 +873,10 @@ Trân trọng.</p>
       registerBtn.type = 'button';
       registerBtn.className = 'cms-ticket-register-btn';
       registerBtn.textContent = 'Đăng ký vé';
-      registerBtn.addEventListener('click', () => {
+      registerBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
         const formEl = document.getElementById('cms-ticket-register-form');
         const errorEl = document.getElementById('cms-ticket-register-error');
         if (formEl instanceof HTMLFormElement) {
