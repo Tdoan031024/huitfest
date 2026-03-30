@@ -1090,8 +1090,10 @@
                     <option value="">Tất cả</option>
                     <option value="Học sinh THPT">Học sinh THPT</option>
                     <option value="Sinh viên HUIT">Sinh viên HUIT</option>
-                    <option value="Sinh viên trường đại học khác">Sinh viên trường đại học khác</option>
-                    <option value="Người đi làm">Người đi làm</option>
+                    <option value="Thầy cô">Thầy cô</option>
+                    <option value="Cán bộ HUIT">Cán bộ HUIT</option>
+                    <option value="Cựu sinh viên HUIT">Cựu sinh viên HUIT</option>
+                    <option value="Khán giả tự do">Khán giả tự do</option>
                     <option value="Khác">Khác</option>
                   </select>
                 </div>
@@ -1864,9 +1866,8 @@
                   <div class="huit-artist-field">
                     <label>Trạng thái</label>
                     <select data-role="status" style="background:rgba(20,14,48,0.4); cursor:pointer;">
-                      <option value="revealed" ${artist.status === 'revealed' ? 'selected' : ''}>revealed</option>
-                      <option value="hidden" ${artist.status === 'hidden' ? 'selected' : ''}>hidden</option>
-                      <option value="coming_soon" ${artist.status === 'coming_soon' ? 'selected' : ''}>coming_soon</option>
+                      <option value="revealed" ${artist.status === 'revealed' ? 'selected' : ''}>Đã công bố</option>
+                      <option value="hidden" ${artist.status === 'hidden' ? 'selected' : ''}>Chưa công bố</option>
                     </select>
                   </div>
                    <div class="huit-artist-field">
@@ -2268,6 +2269,12 @@
         
         if (regsOpen && typeof ensureRegistrationsInlineCard === 'function') ensureRegistrationsInlineCard();
         if (artistsOpen && typeof ensureArtistsExtraInlineCard === 'function') ensureArtistsExtraInlineCard();
+      }
+
+      // Update Header Title
+      const headerH2 = document.querySelector('header h2');
+      if (headerH2 && (headerH2.textContent === 'Landing Page Editor' || headerH2.textContent === 'Landing Page EditorZ')) {
+        headerH2.textContent = 'Chào mừng bạn đến với Trang Quản trị HUIT Fest';
       }
     };
 

@@ -28,7 +28,7 @@ export class AdminAuthController {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Login</title>
+    <title>Đăng nhập Admin</title>
     <style>
       :root {
         --bg-1: #090617;
@@ -203,19 +203,19 @@ export class AdminAuthController {
         <div class="logo-wrap">
           <img class="logo" src="/assets/images/logo/logomedia.jpg" alt="HUIT Media" />
         </div>
-        <h1 class="title">Sign in</h1>
-        <p class="sub">Enter your admin credentials to continue.</p>
+        <h1 class="title">Đăng nhập</h1>
+        <p class="sub">Nhập thông tin quản trị viên để tiếp tục.</p>
 
-        <label for="username">Username</label>
-        <input class="field" id="username" name="username" placeholder="Enter username" required />
+        <label for="username">Tên đăng nhập</label>
+        <input class="field" id="username" name="username" placeholder="Nhập tên đăng nhập" required />
 
-        <label for="password">Password</label>
+        <label for="password">Mật khẩu</label>
         <div class="password-wrap">
-          <input class="field" id="password" name="password" type="password" placeholder="Enter password" required />
-          <button type="button" class="toggle" id="toggle-password">Show</button>
+          <input class="field" id="password" name="password" type="password" placeholder="Nhập mật khẩu" required />
+          <button type="button" class="toggle" id="toggle-password">Hiện</button>
         </div>
 
-        <button class="submit" id="submit-btn" type="submit">Sign in</button>
+        <button class="submit" id="submit-btn" type="submit">Đăng nhập</button>
         <div id="msg" aria-live="polite"></div>
       </form>
     </main>
@@ -229,14 +229,14 @@ export class AdminAuthController {
       togglePassword.addEventListener('click', () => {
         const isHidden = passwordInput.type === 'password';
         passwordInput.type = isHidden ? 'text' : 'password';
-        togglePassword.textContent = isHidden ? 'Hide' : 'Show';
+        togglePassword.textContent = isHidden ? 'Ẩn' : 'Hiện';
       });
 
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         msg.textContent = '';
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Signing in...';
+        submitBtn.textContent = 'Đang đăng nhập...';
 
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -249,16 +249,16 @@ export class AdminAuthController {
           });
 
           if (!response.ok) {
-            msg.textContent = 'Invalid username or password.';
+            msg.textContent = 'Sai tên đăng nhập hoặc mật khẩu.';
             return;
           }
 
           window.location.href = '/admin/index.html';
         } catch (error) {
-          msg.textContent = 'Network error. Please try again.';
+          msg.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
         } finally {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Sign in';
+          submitBtn.textContent = 'Đăng nhập';
         }
       });
     </script>
