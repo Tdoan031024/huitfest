@@ -13,8 +13,8 @@
   let ticketRegistrationBound = false;
 
   // Set to true to completely hide/disable the ticket registration button and modal.
-  // Toggle this flag to `false` when you want the button/modal available again.
-  const DISABLE_TICKET_REGISTRATION = true;
+  // Toggle this flag dynamically based on CMS data or set manually for maintenance.
+  let DISABLE_TICKET_REGISTRATION = true;
 
   const TICKET_AUDIENCE_OPTIONS = [
     'Học sinh THPT',
@@ -1857,6 +1857,9 @@ Trân trọng.</p>
       if (noteEl && data.ticket.note) {
         const lines = data.ticket.note.split('\n').filter(l => l.trim());
         noteEl.innerHTML = lines.map(l => `<li>${l}</li>`).join('');
+      }
+      if (typeof data.registrationOpen !== 'undefined') {
+        DISABLE_TICKET_REGISTRATION = !data.registrationOpen;
       }
 
       if (sectionEl && noteGroup) {

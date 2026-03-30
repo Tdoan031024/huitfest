@@ -157,7 +157,7 @@ export class EventService {
   async getEventConfig(slug: string) {
     const event = await this.prisma.event.findUnique({
       where: { slug },
-      select: { id: true, pageConfig: true },
+      select: { id: true, pageConfig: true, registrationOpen: true },
     });
     if (!event) throw new NotFoundException('Event not found');
 
@@ -328,6 +328,7 @@ export class EventService {
       journey: finalJourney,
       footer: finalFooter,
       rules: finalRules,
+      registrationOpen: event.registrationOpen,
     };
   }
 
@@ -362,7 +363,10 @@ export class EventService {
       // 1. Update the JSON config
       const updatedEvent = await tx.event.update({
         where: { id: target.id },
-        data: { pageConfig: config },
+        data: { 
+          pageConfig: config,
+          registrationOpen: config.registrationOpen !== undefined ? !!config.registrationOpen : undefined
+        },
       });
 
       // 2. Sync with TimelineItem table
@@ -493,6 +497,19 @@ export class EventService {
       }
 
       return updatedEvent;
+    });
+  }
+  
+  async toggleRegistration(slug: string, open: boolean) {
+    const target = await this.prisma.event.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (!target) throw new NotFoundException('Event not found');
+    
+    return this.prisma.event.update({
+      where: { id: target.id },
+      data: { registrationOpen: !!open },
     });
   }
 }

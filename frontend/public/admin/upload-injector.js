@@ -4,9 +4,9 @@
  * Thêm vào head của admin/index.html
  */
 
-(function() {
+(function () {
   'use strict';
-  
+
   console.log('🚀 Admin Upload Injector loaded');
 
   const normalizeLooseText = (value) => String(value || '')
@@ -120,7 +120,7 @@
       storageKeys.forEach((key) => {
         try {
           localStorage.setItem(key, raw);
-        } catch (error) {}
+        } catch (error) { }
       });
     };
 
@@ -135,13 +135,13 @@
     const setReloadGuard = () => {
       try {
         sessionStorage.setItem(reloadGuardKey, '1');
-      } catch (error) {}
+      } catch (error) { }
     };
 
     const clearReloadGuard = () => {
       try {
         sessionStorage.removeItem(reloadGuardKey);
-      } catch (error) {}
+      } catch (error) { }
     };
 
     const fetchLatestConfig = async () => {
@@ -419,7 +419,7 @@
       });
     });
   };
-  
+
   // Chờ DOM load
   function init() {
     const injectResponsiveStyles = () => {
@@ -467,6 +467,125 @@
           background: linear-gradient(135deg, rgba(124, 58, 237, 0.92), rgba(6, 182, 212, 0.82));
           border-color: rgba(103, 232, 249, 0.42);
           box-shadow: 0 8px 20px rgba(76, 29, 149, 0.3);
+        }
+
+        .huit-artist-card {
+          border: 1px solid rgba(139, 92, 246, 0.2);
+          border-radius: 16px;
+          background: rgba(20, 14, 48, 0.4);
+          padding: 24px;
+          margin-bottom: 24px;
+          position: relative;
+          transition: all 0.3s ease;
+        }
+
+        .huit-artist-card:hover {
+          background: rgba(20, 14, 48, 0.6);
+          border-color: rgba(139, 92, 246, 0.4);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .huit-artist-card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .huit-artist-card-title {
+          font-size: 11px;
+          font-weight: 800;
+          color: #a78bfa;
+          text-transform: uppercase;
+          letter-spacing: 1.5px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .huit-artist-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 32px;
+        }
+
+        .huit-artist-field {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .huit-artist-field label {
+          color: rgba(167, 139, 250, 0.6);
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          padding-left: 4px;
+        }
+
+        .huit-artist-field input,
+        .huit-artist-field textarea,
+        .huit-artist-field select {
+          border-radius: 12px;
+          border: 1px solid rgba(139, 92, 246, 0.2);
+          background: rgba(12, 7, 33, 0.6);
+          color: #ffffff;
+          padding: 10px 16px;
+          font-size: 14px;
+          outline: none;
+          transition: all 0.2s ease;
+          width: 100%;
+        }
+
+        .huit-artist-field input:focus,
+        .huit-artist-field textarea:focus,
+        .huit-artist-field select:focus {
+          border-color: rgba(167, 139, 250, 0.6);
+          background: rgba(12, 7, 33, 0.8);
+          box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+        }
+        
+        .huit-artist-preview-block {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 12px;
+          background: rgba(139, 92, 246, 0.08);
+          border: 1px solid rgba(139, 92, 246, 0.15);
+          border-radius: 14px;
+          margin-top: 12px;
+        }
+
+        .huit-artist-preview-img {
+          width: 64px;
+          height: 64px;
+          border-radius: 10px;
+          object-fit: cover;
+          border: 1px solid rgba(139, 92, 246, 0.3);
+          background: #000;
+        }
+
+        .huit-artist-preview-label {
+          font-size: 10px;
+          font-weight: 800;
+          color: #22d3ee;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 2px;
+        }
+
+        .huit-artist-preview-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #ffffff;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 180px;
         }
 
         @media (max-width: 1024px) {
@@ -540,6 +659,19 @@
             text-align: center;
           }
         }
+
+        /* Hide sidebar scrollbar but keep functionality */
+        aside .overflow-y-auto::-webkit-scrollbar,
+        aside nav::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        aside .overflow-y-auto,
+        aside nav {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
       `;
 
       document.head.appendChild(responsiveStyle);
@@ -551,7 +683,7 @@
     const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
     const apiBase = `${basePrefix}/api`;
 
-    const REG_SIDEBAR_INACTIVE_CLASS = 'w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors border-l-[3px] border-transparent text-purple-300/55 hover:text-white hover:bg-purple-600/10 hover:border-l-purple-500/50';
+    const REG_SIDEBAR_INACTIVE_CLASS = 'w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors border-l-[3px] border-transparent text-muted-foreground hover:text-white hover:bg-white/5';
     const REG_SIDEBAR_ACTIVE_CLASS = 'w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors border-l-[3px] border-transparent text-white bg-purple-600/20 border-l-purple-500';
     const registrationsUiState = window.__huitRegistrationsUiState || { isOpen: false };
     window.__huitRegistrationsUiState = registrationsUiState;
@@ -603,6 +735,34 @@
           font-size: 12px;
           font-weight: 700;
           padding: 8px 12px;
+          transition: all 0.2s ease;
+        }
+
+        .huit-reg-toggle-btn {
+          border: 1px solid rgba(124, 58, 237, 0.45);
+          border-radius: 10px;
+          background: rgba(124, 58, 237, 0.12);
+          color: #e9d5ff;
+          cursor: pointer;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 6px 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.2s ease;
+        }
+
+        .huit-reg-toggle-btn.is-active {
+          background: rgba(16, 185, 129, 0.22);
+          border-color: rgba(16, 185, 129, 0.45);
+          color: #86efac;
+        }
+
+        .huit-reg-toggle-btn.is-disabled {
+          background: rgba(239, 68, 68, 0.15);
+          border-color: rgba(239, 68, 68, 0.45);
+          color: #fca5a5;
         }
 
         .huit-reg-btn.success {
@@ -817,38 +977,74 @@
     };
 
     const setRegistrationsSidebarActive = (active) => {
-      const sidebarBtn = document.querySelector('[data-sidebar-registrations-btn="1"]');
+      const sidebarBtn = document.querySelector('[data-registrations-manage-sidebar="1"]');
       if (!sidebarBtn) return;
       sidebarBtn.className = active ? REG_SIDEBAR_ACTIVE_CLASS : REG_SIDEBAR_INACTIVE_CLASS;
+      if (active) clearAllNativeSidebarActive();
     };
 
-    const hideNativeCardsForRegistrations = () => {
-      const cards = Array.from(document.querySelectorAll('main [data-slot="card"]'));
-      cards.forEach((card) => {
-        if (!(card instanceof HTMLElement)) return;
-        if (card.id === 'huit-admin-registrations-card') return;
-        if (card.style.display !== 'none') {
-          card.dataset.huitRegHidden = '1';
-          card.style.display = 'none';
+    const clearAllNativeSidebarActive = () => {
+      const sidebarNav = document.querySelector('aside nav');
+      if (!sidebarNav) return;
+      Array.from(sidebarNav.querySelectorAll('button, a')).forEach(item => {
+        if (!item.dataset.sidebarArtistsExtraBtn && !item.dataset.registrationsManageSidebar) {
+          // Standard shadcn/tailwind active classes
+          item.classList.remove('bg-muted', 'text-primary', 'bg-accent', 'text-accent-foreground', 'bg-purple-600/20', 'text-purple-100');
+          // Inline styles if any
+          if (typeof item.className === 'string') {
+             if (item.className.includes('bg-muted')) item.className = item.className.replace('bg-muted', '');
+             if (item.className.includes('bg-accent')) item.className = item.className.replace('bg-accent', '');
+          }
         }
       });
     };
 
+    const hideNativeCardsForRegistrations = () => {
+      const main = document.querySelector('main');
+      if (main) {
+        const container = main.querySelector('div:first-child') === main.firstElementChild ? main : (main.querySelector('div:first-child') || main);
+        
+        const anyCustomOpen = (window.__huitRegistrationsUiState && window.__huitRegistrationsUiState.isOpen) || 
+                             (window.__huitArtistsExtraUiState && window.__huitArtistsExtraUiState.isOpen);
+
+        Array.from(container.children).forEach(child => {
+          if (child.id === 'huit-admin-registrations-card') {
+            child.style.display = (window.__huitRegistrationsUiState && window.__huitRegistrationsUiState.isOpen) ? 'flex' : 'none';
+          } else if (child.id === 'huit-admin-artists-extra-card') {
+            child.style.display = (window.__huitArtistsExtraUiState && window.__huitArtistsExtraUiState.isOpen) ? 'flex' : 'none';
+          } else {
+            // Hide native card ONLY if any custom card is open
+            child.style.display = anyCustomOpen ? 'none' : '';
+          }
+        });
+      }
+    };
+
     const restoreNativeCardsFromRegistrations = () => {
-      const hiddenCards = Array.from(document.querySelectorAll('main [data-huit-reg-hidden="1"]'));
-      hiddenCards.forEach((card) => {
-        if (!(card instanceof HTMLElement)) return;
-        card.style.display = '';
-        delete card.dataset.huitRegHidden;
-      });
+      const main = document.querySelector('main');
+      if (main) {
+        const container = main.querySelector('div:first-child') === main.firstElementChild ? main : (main.querySelector('div:first-child') || main);
+        Array.from(container.children).forEach(child => {
+          if (child.id === 'huit-admin-registrations-card' || child.id === 'huit-admin-artists-extra-card') {
+            child.style.display = 'none';
+          } else {
+            child.style.display = '';
+          }
+        });
+      }
     };
 
     const ensureRegistrationsInlineCard = () => {
       let card = document.getElementById('huit-admin-registrations-card');
-      if (card) return card;
-
       const main = document.querySelector('main');
       if (!main) return null;
+
+      if (card) {
+        if (card.parentElement !== main) {
+          main.appendChild(card);
+        }
+        return card;
+      }
 
       ensureRegistrationsPanelStyles();
 
@@ -869,6 +1065,12 @@
               <div>
                 <h3>Danh sách đăng ký</h3>
                 <p data-role="event-label">Đang tải dữ liệu sự kiện...</p>
+                <div style="margin-top: 8px;">
+                  <button type="button" class="huit-reg-toggle-btn" data-role="toggle-visibility-btn" title="Hiện/Ản nút đăng ký trên Landing Page">
+                    <span class="indicator" style="width:8px;height:8px;border-radius:50%;background:currentColor;"></span>
+                    <span class="label">Đang kiểm tra...</span>
+                  </button>
+                </div>
               </div>
               <div class="huit-reg-actions">
                 <button type="button" class="huit-reg-btn" data-role="refresh-btn">Làm mới</button>
@@ -980,6 +1182,7 @@
       const stApproved = card.querySelector('[data-role="st-approved"]');
       const stRejected = card.querySelector('[data-role="st-rejected"]');
       const stPriority = card.querySelector('[data-role="st-priority"]');
+      const toggleVisibilityBtn = card.querySelector('[data-role="toggle-visibility-btn"]');
 
       const setMessage = (text, type) => {
         if (!messageBox) return;
@@ -1094,6 +1297,9 @@
               ? `${payload.eventTitle} - quản lý đăng ký vé`
               : 'Quản lý đăng ký vé';
           }
+          if (payload.registrationOpen !== undefined) {
+            updateToggleVisibilityBtn(payload.registrationOpen);
+          }
           setCounters(payload.counters || {});
         } catch (error) {
           regState.items = [];
@@ -1104,6 +1310,53 @@
           renderTable();
         }
       };
+
+      const updateToggleVisibilityBtn = (isOpen) => {
+        if (!toggleVisibilityBtn) return;
+        toggleVisibilityBtn.disabled = false;
+        toggleVisibilityBtn.dataset.isOpen = isOpen ? 'true' : 'false';
+        toggleVisibilityBtn.classList.remove('is-active', 'is-disabled');
+        toggleVisibilityBtn.classList.add(isOpen ? 'is-active' : 'is-disabled');
+
+        const label = toggleVisibilityBtn.querySelector('.label');
+        if (label) {
+          label.textContent = isOpen ? 'Nút đăng ký: ĐANG HIỆN' : 'Nút đăng ký: ĐANG ẨN';
+        }
+      };
+
+      if (toggleVisibilityBtn) {
+        if (!toggleVisibilityBtn.dataset.boundToggle) {
+          toggleVisibilityBtn.dataset.boundToggle = '1';
+          toggleVisibilityBtn.addEventListener('click', async () => {
+            const isOpen = toggleVisibilityBtn.dataset.isOpen === 'true';
+            const nextState = !isOpen;
+
+            toggleVisibilityBtn.disabled = true;
+            const label = toggleVisibilityBtn.querySelector('.label');
+            if (label) label.textContent = 'Đang xử lý...';
+
+            try {
+              const slug = 'huit-fest-2026';
+              const response = await fetch(`${apiBase}/events/${encodeURIComponent(slug)}/toggle-registration`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ open: nextState }),
+              });
+
+              if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+              updateToggleVisibilityBtn(nextState);
+              showNotification(`✅ Đã ${nextState ? 'HIỆN' : 'ẨN'} nút đăng ký thành công!`, 'success');
+            } catch (error) {
+              updateToggleVisibilityBtn(isOpen);
+              showNotification(`❌ Lỗi: ${error.message}`, 'error');
+            }
+          });
+        }
+      }
 
       const updateRegistration = async (id, data) => {
         setMessage('Đang cập nhật...', '');
@@ -1209,9 +1462,9 @@
       const card = ensureRegistrationsInlineCard();
       if (!card) return;
 
+      registrationsUiState.isOpen = true;
       hideNativeCardsForRegistrations();
       card.style.display = 'flex';
-      registrationsUiState.isOpen = true;
       setRegistrationsSidebarActive(true);
 
       if (typeof card.__huitRegistrationsLoad === 'function') {
@@ -1229,13 +1482,48 @@
       restoreNativeCardsFromRegistrations();
     };
 
+    const artistsExtraUiState = window.__huitArtistsExtraUiState || { isOpen: false };
+    window.__huitArtistsExtraUiState = artistsExtraUiState;
+
+    const setArtistsExtraSidebarActive = (active) => {
+      const sidebarBtn = document.querySelector('[data-sidebar-artists-extra-btn="1"]');
+      if (!sidebarBtn) return;
+      sidebarBtn.className = active ? REG_SIDEBAR_ACTIVE_CLASS : REG_SIDEBAR_INACTIVE_CLASS;
+      if (active) clearAllNativeSidebarActive();
+    };
+
+    const openArtistsExtraInlinePanel = async () => {
+      const card = ensureArtistsExtraInlineCard();
+      if (!card) return;
+
+      artistsExtraUiState.isOpen = true;
+      hideNativeCardsForRegistrations();
+      card.style.display = 'flex';
+      setArtistsExtraSidebarActive(true);
+
+      if (typeof card.__huitArtistsExtraLoad === 'function') {
+        await card.__huitArtistsExtraLoad();
+      }
+    };
+
+    const closeArtistsExtraInlinePanel = () => {
+      const card = document.getElementById('huit-admin-artists-extra-card');
+      if (card) {
+        card.style.display = 'none';
+      }
+      artistsExtraUiState.isOpen = false;
+      setArtistsExtraSidebarActive(false);
+      restoreNativeCardsFromRegistrations();
+    };
+
     const ensureRegistrationsSidebarButton = (sidebarNav) => {
       if (!sidebarNav) return;
 
-      if (!sidebarNav.querySelector('[data-sidebar-registrations-btn="1"]')) {
-        const sidebarBtn = document.createElement('button');
+      let sidebarBtn = sidebarNav.querySelector('[data-registrations-manage-sidebar="1"]');
+      if (!sidebarBtn) {
+        sidebarBtn = document.createElement('button');
         sidebarBtn.type = 'button';
-        sidebarBtn.setAttribute('data-sidebar-registrations-btn', '1');
+        sidebarBtn.setAttribute('data-registrations-manage-sidebar', '1');
         sidebarBtn.className = REG_SIDEBAR_INACTIVE_CLASS;
         sidebarBtn.innerHTML = `
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1246,7 +1534,20 @@
           </svg>
           Quản lý đăng ký
         `;
-        sidebarNav.appendChild(sidebarBtn);
+        sidebarNav.prepend(sidebarBtn);
+
+        // First timer: auto open
+        if (!window.__huitInitialRegOpenDone) {
+          window.__huitInitialRegOpenDone = true;
+          setTimeout(() => {
+            if (typeof openRegistrationsInlinePanel === 'function') openRegistrationsInlinePanel();
+          }, 800);
+        }
+      } else {
+        // Ensure always at the top (React might move it)
+        if (sidebarNav.firstChild !== sidebarBtn) {
+          sidebarNav.prepend(sidebarBtn);
+        }
       }
 
       setRegistrationsSidebarActive(registrationsUiState.isOpen);
@@ -1258,20 +1559,30 @@
         const target = event.target;
         if (!(target instanceof HTMLElement)) return;
 
-        const regButton = target.closest('[data-sidebar-registrations-btn="1"]');
-        if (regButton) {
+        const regBtn = target.closest('[data-registrations-manage-sidebar="1"]');
+        if (regBtn) {
           event.preventDefault();
           event.stopPropagation();
+          if (window.__huitArtistsExtraUiState && window.__huitArtistsExtraUiState.isOpen) closeArtistsExtraInlinePanel();
           openRegistrationsInlinePanel();
           return;
         }
 
-        if (!registrationsUiState.isOpen) return;
+        const artBtn = target.closest('[data-sidebar-artists-extra-btn="1"]');
+        if (artBtn) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (window.__huitRegistrationsUiState && window.__huitRegistrationsUiState.isOpen) closeRegistrationsInlinePanel();
+          openArtistsExtraInlinePanel();
+          return;
+        }
 
         const navControl = target.closest('button, a');
         if (!navControl) return;
 
-        closeRegistrationsInlinePanel();
+        // Close our panels if clicking any OTHER sidebar button
+        if (window.__huitRegistrationsUiState && window.__huitRegistrationsUiState.isOpen) closeRegistrationsInlinePanel();
+        if (window.__huitArtistsExtraUiState && window.__huitArtistsExtraUiState.isOpen) closeArtistsExtraInlinePanel();
       }, true);
     };
 
@@ -1282,7 +1593,6 @@
       const actionWrap = header.querySelector('div:last-child');
       if (!actionWrap) return;
 
-      // Hide default admin action buttons (Preview/Export/Import/Reset)
       actionWrap.querySelectorAll('button').forEach((btn) => {
         if (btn.getAttribute('data-admin-logout-btn') === '1') {
           btn.style.display = 'inline-flex';
@@ -1291,7 +1601,6 @@
         btn.style.display = 'none';
       });
 
-      // Keep only one button to open the main site
       if (!actionWrap.querySelector('[data-main-site-btn="1"]')) {
         const mainBtn = document.createElement('a');
         mainBtn.setAttribute('data-main-site-btn', '1');
@@ -1337,7 +1646,6 @@
         legacyArtistsExtraBtn.remove();
       }
 
-      // Add logout button
       if (!actionWrap.querySelector('[data-admin-logout-btn="1"]')) {
         const logoutBtn = document.createElement('button');
         logoutBtn.type = 'button';
@@ -1399,473 +1707,344 @@
     };
 
     const ensureArtistSectionTabs = () => {
-      const artistCard = Array.from(document.querySelectorAll('[data-slot="card"]')).find(isSection3ArtistCard);
-      if (!artistCard) return;
+      const sidebarNav = document.querySelector('aside nav');
+      if (!sidebarNav) return;
 
-      const contentWrap = artistCard.querySelector('[data-slot="card-content"]');
-      if (!contentWrap) return;
+      const nativeArtistBtn = Array.from(sidebarNav.querySelectorAll('button, a'))
+        .find(b => !b.dataset.huitArtistsExtra && !b.dataset.registrationsManageSidebar && normalizeLooseText(b.textContent).includes('nghe si'));
 
-      const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
-      const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
+      if (nativeArtistBtn && !nativeArtistBtn.dataset.huitRenamed) {
+        const textEl = Array.from(nativeArtistBtn.querySelectorAll('*'))
+          .find(el => el.childNodes.length === 1 && normalizeLooseText(el.textContent).includes('nghe si')) || nativeArtistBtn;
+        textEl.textContent = 'Nghệ sĩ 1';
+        nativeArtistBtn.dataset.huitRenamed = '1';
+      }
 
-      const normalizeText = (value) => String(value || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .toLowerCase();
+      ensureArtistsExtraSidebarButton(sidebarNav, nativeArtistBtn);
+    };
 
-      const tabState = window.__huitArtistTabsState || {
-        activeTab: 'list1',
-        list1Snapshot: null,
-        list1Original: null,
-        list2Snapshot: null,
-        list2Original: null,
-        configUrl: '',
-        resolvedSlug: '',
-        isSwitching: false,
-      };
-      window.__huitArtistTabsState = tabState;
+    const ensureArtistsExtraSidebarButton = (sidebarNav, nativeBtn) => {
+      if (!sidebarNav || sidebarNav.querySelector('[data-sidebar-artists-extra-btn="1"]')) return;
 
-      const deepClone = (obj) => {
-        try {
-          return JSON.parse(JSON.stringify(obj));
-        } catch (error) {
-          return obj;
-        }
-      };
+      const baseBtn = nativeBtn || Array.from(sidebarNav.querySelectorAll('button, a'))
+        .find(b => normalizeLooseText(b.textContent).includes('nghe si'));
+      if (!baseBtn) return;
 
-      const wait = (ms) => new Promise((resolve) => {
-        setTimeout(resolve, ms);
+      const btn = baseBtn.cloneNode(true);
+      btn.setAttribute('data-sidebar-artists-extra-btn', '1');
+      btn.dataset.huitArtistsExtra = '1';
+      delete btn.dataset.huitRenamed;
+      btn.removeAttribute('href');
+      btn.style.marginTop = '4px';
+
+      const textEl = Array.from(btn.querySelectorAll('*'))
+        .find(el => el.childNodes.length === 1 && normalizeLooseText(el.textContent).includes('nghe si')) || btn;
+      textEl.textContent = 'Nghệ sĩ 2';
+
+      btn.className = REG_SIDEBAR_INACTIVE_CLASS;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openArtistsExtraInlinePanel();
       });
 
-      const findControlByLabel = (rootEl, pattern, selector = 'input,textarea,select') => {
-        if (!rootEl) return null;
-        const labels = Array.from(rootEl.querySelectorAll('label'));
-        const target = labels.find((label) => pattern.test(normalizeText(label.textContent || '')));
-        if (!target) return null;
+      baseBtn.parentNode.insertBefore(btn, baseBtn.nextSibling);
 
-        const parent = target.parentElement;
-        if (parent) {
-          const direct = parent.querySelector(selector);
-          if (direct) return direct;
-        }
-
-        let sibling = target.nextElementSibling;
-        while (sibling) {
-          if (sibling.matches(selector)) return sibling;
-          const nested = sibling.querySelector(selector);
-          if (nested) return nested;
-          sibling = sibling.nextElementSibling;
-        }
-        return null;
-      };
-
-      const getSectionTitleInput = () => {
-        return findControlByLabel(contentWrap, /tieu de section/, 'input');
-      };
-
-      const getAddArtistButton = () => {
-        return Array.from(contentWrap.querySelectorAll('button'))
-          .find((btn) => normalizeText(btn.textContent || '').includes('them nghe si')) || null;
-      };
-
-      const getArtistCardRoots = () => {
-        const pushUniqueRoot = (bucket, node) => {
-          if (!node || bucket.includes(node)) return;
-          bucket.push(node);
-        };
-
-        const rootsFromDeleteButtons = [];
-        const deleteButtons = Array.from(contentWrap.querySelectorAll('button'))
-          .filter((btn) => /text-red|red-/.test(btn.className || ''));
-
-        deleteButtons.forEach((btn) => {
-          let current = btn.parentElement;
-          while (current && current !== contentWrap) {
-            const text = normalizeText(current.textContent || '');
-            if (text.includes('ten nghe si') && text.includes('trang thai') && text.includes('mo ta')) {
-              pushUniqueRoot(rootsFromDeleteButtons, current);
-              break;
-            }
-            current = current.parentElement;
-          }
-        });
-
-        const rootsFromNameInputs = [];
-        const nameInputs = Array.from(contentWrap.querySelectorAll('input'))
-          .filter((input) => {
-            const fieldText = normalizeText(input.parentElement?.textContent || '');
-            return fieldText.includes('ten nghe si');
+      Array.from(sidebarNav.querySelectorAll('button, a')).forEach(navItem => {
+        if (!navItem.dataset.huitArtistsExtra && !navItem.dataset.registrationsManageSidebar && !navItem.dataset.huitBoundClose) {
+          navItem.dataset.huitBoundClose = '1';
+          navItem.addEventListener('click', () => {
+            if (artistsExtraUiState.isOpen) closeArtistsExtraInlinePanel();
+            if (registrationsUiState.isOpen) closeRegistrationsInlinePanel();
           });
-
-        nameInputs.forEach((input) => {
-          let current = input.parentElement;
-          while (current && current !== contentWrap) {
-            const text = normalizeText(current.textContent || '');
-            if (text.includes('ten nghe si') && text.includes('trang thai')) {
-              pushUniqueRoot(rootsFromNameInputs, current);
-              break;
-            }
-            current = current.parentElement;
-          }
-        });
-
-        const roots = rootsFromDeleteButtons.length > 0
-          ? rootsFromDeleteButtons
-          : rootsFromNameInputs;
-
-        return roots.sort((a, b) => {
-          if (a === b) return 0;
-          const pos = a.compareDocumentPosition(b);
-          return (pos & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
-        });
-      };
-
-      const getDeleteButtonFromCard = (cardRoot) => {
-        if (!cardRoot) return null;
-        const buttons = Array.from(cardRoot.querySelectorAll('button'));
-        const redBtn = buttons.find((btn) => /text-red|red-/.test(btn.className || ''));
-        if (redBtn) return redBtn;
-        return buttons.find((btn) => normalizeText(btn.textContent || '') === '') || null;
-      };
-
-      const extractArtistFormState = () => {
-        const sectionTitleInput = getSectionTitleInput();
-        const cards = getArtistCardRoots();
-
-        const artists = cards.map((cardRoot, index) => {
-          const nameInput = findControlByLabel(cardRoot, /ten nghe si/, 'input');
-          const imageInput = findControlByLabel(cardRoot, /anh dai dien|anh nghe si|image/, 'input');
-          const statusSelect = findControlByLabel(cardRoot, /trang thai/, 'select');
-          const descInput = findControlByLabel(cardRoot, /mo ta|tieu su/, 'textarea');
-
-          return {
-            id: `ax-${index + 1}`,
-            name: nameInput ? String(nameInput.value || '') : '',
-            image: imageInput ? String(imageInput.value || '') : '',
-            status: statusSelect ? String(statusSelect.value || 'revealed') : 'revealed',
-            description: descInput ? String(descInput.value || '') : '',
-          };
-        });
-
-        return {
-          sectionTitle: sectionTitleInput ? String(sectionTitleInput.value || '') : '',
-          artists,
-        };
-      };
-
-      const syncArtistCardCount = async (targetCount) => {
-        const safeCount = Math.max(0, Number(targetCount || 0));
-        const addBtn = getAddArtistButton();
-
-        if (addBtn) {
-          let guard = 0;
-          while (getArtistCardRoots().length < safeCount && guard < 20) {
-            addBtn.click();
-            guard += 1;
-            await wait(50);
-          }
         }
-
-        let removeGuard = 0;
-        while (getArtistCardRoots().length > safeCount && removeGuard < 40) {
-          const cards = getArtistCardRoots();
-          const lastCard = cards[cards.length - 1];
-          const deleteBtn = getDeleteButtonFromCard(lastCard);
-          if (!deleteBtn) break;
-          deleteBtn.click();
-          removeGuard += 1;
-          await wait(40);
-        }
-      };
-
-      const applyArtistFormState = async (state) => {
-        const nextState = state && typeof state === 'object'
-          ? state
-          : { sectionTitle: '', artists: [] };
-
-        const artists = Array.isArray(nextState.artists) ? nextState.artists : [];
-        await syncArtistCardCount(artists.length);
-
-        const sectionTitleInput = getSectionTitleInput();
-        if (sectionTitleInput) {
-          setInputValueAndDispatch(sectionTitleInput, String(nextState.sectionTitle || ''));
-        }
-
-        const cards = getArtistCardRoots();
-        cards.forEach((cardRoot, index) => {
-          const artist = artists[index] || {
-            name: '', image: '', description: '', status: 'revealed',
-          };
-
-          const nameInput = findControlByLabel(cardRoot, /ten nghe si/, 'input');
-          const imageInput = findControlByLabel(cardRoot, /anh dai dien|anh nghe si|image/, 'input');
-          const statusSelect = findControlByLabel(cardRoot, /trang thai/, 'select');
-          const descInput = findControlByLabel(cardRoot, /mo ta|tieu su/, 'textarea');
-
-          if (nameInput) {
-            setInputValueAndDispatch(nameInput, String(artist.name || ''));
-          }
-          if (imageInput) {
-            setInputValueAndDispatch(imageInput, String(artist.image || artist.imageUrl || ''));
-          }
-          if (statusSelect) {
-            setInputValueAndDispatch(statusSelect, String(artist.status || 'revealed'));
-          }
-          if (descInput) {
-            setInputValueAndDispatch(descInput, String(artist.description || ''));
-          }
-        });
-
-        await wait(20);
-      };
-
-      const normalizeArtistsExtra = (raw) => {
-        const source = raw && typeof raw === 'object' ? raw : {};
-        const items = Array.isArray(source.artists) ? source.artists : [];
-        return {
-          sectionTitle: String(source.sectionTitle || ''),
-          artists: items.map((artist, index) => ({
-            id: String(artist?.id || `ax2-${index + 1}`),
-            name: String(artist?.name || ''),
-            image: String(artist?.image || artist?.imageUrl || ''),
-            description: String(artist?.description || ''),
-            status: String(artist?.status || 'revealed'),
-          })),
-        };
-      };
-
-      const fetchArtistsExtraConfig = async () => {
-        const slugCandidates = ['huit-fest-2026', 'fptu-fest-2026', 'huitu-fest-2026'];
-        const candidates = tabState.resolvedSlug
-          ? [tabState.resolvedSlug, ...slugCandidates.filter((item) => item !== tabState.resolvedSlug)]
-          : slugCandidates;
-
-        for (let idx = 0; idx < candidates.length; idx += 1) {
-          const slug = candidates[idx];
-          const url = `${basePrefix}/api/events/${encodeURIComponent(slug)}/config`;
-
-          try {
-            const response = await fetch(`${url}?_ts=${Date.now()}`, {
-              method: 'GET',
-              credentials: 'include',
-              cache: 'no-store',
-            });
-            if (!response.ok) {
-              continue;
-            }
-
-            const json = await response.json();
-            tabState.configUrl = url;
-            tabState.resolvedSlug = slug;
-
-            const next = normalizeArtistsExtra(json?.artistsExtra);
-            tabState.list2Snapshot = deepClone(next);
-            tabState.list2Original = deepClone(next);
-            return true;
-          } catch (error) {
-            // Continue to next candidate slug.
-          }
-        }
-
-        return false;
-      };
-
-      const saveArtistsExtraFromForm = async () => {
-        if (!tabState.configUrl) {
-          const loaded = await fetchArtistsExtraConfig();
-          if (!loaded || !tabState.configUrl) {
-            showNotification('❌ Không tải được cấu hình artistsExtra để lưu.', 'error');
-            return false;
-          }
-        }
-
-        const latestResponse = await fetch(`${tabState.configUrl}?_ts=${Date.now()}`, {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
-        });
-
-        if (!latestResponse.ok) {
-          showNotification(`❌ Không đọc được config trước khi lưu (HTTP ${latestResponse.status}).`, 'error');
-          return false;
-        }
-
-        const latestConfig = await latestResponse.json();
-        const currentForm = extractArtistFormState();
-        const payload = {
-          ...latestConfig,
-          artistsExtra: {
-            sectionTitle: String(currentForm.sectionTitle || ''),
-            artists: currentForm.artists.map((artist, index) => ({
-              id: String(artist.id || `ax2-${index + 1}`),
-              name: String(artist.name || ''),
-              image: String(artist.image || ''),
-              description: String(artist.description || ''),
-              status: String(artist.status || 'revealed'),
-              hints: [],
-            })),
-          },
-        };
-
-        const putResponse = await fetch(tabState.configUrl, {
-          method: 'PUT',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!putResponse.ok) {
-          showNotification(`❌ Lưu artistsExtra thất bại (HTTP ${putResponse.status}).`, 'error');
-          return false;
-        }
-
-        tabState.list2Snapshot = deepClone(payload.artistsExtra);
-        tabState.list2Original = deepClone(payload.artistsExtra);
-        try {
-          localStorage.setItem('landingPageData.public.v2', JSON.stringify(payload));
-        } catch (error) {}
-
-        showNotification('✅ Đã lưu Danh sách nghệ sĩ 2.', 'success');
-        return true;
-      };
-
-      let tabsBar = contentWrap.querySelector('[data-artists-tabs-wrap="1"]');
-      if (!tabsBar) {
-        tabsBar = document.createElement('div');
-        tabsBar.className = 'huit-artist-tabs';
-        tabsBar.setAttribute('data-artists-tabs-wrap', '1');
-        tabsBar.innerHTML = `
-          <button type="button" class="huit-artist-tab-btn active" data-artist-tab="list1">Danh sách nghệ sĩ 1</button>
-          <button type="button" class="huit-artist-tab-btn" data-artist-tab="list2">Danh sách nghệ sĩ 2</button>
-        `;
-        contentWrap.insertBefore(tabsBar, contentWrap.firstChild);
-      }
-
-      const headerActions = artistCard.querySelector('[data-slot="card-header"] > div:last-child');
-      const actionButtons = headerActions ? Array.from(headerActions.querySelectorAll('button')) : [];
-      const resetBtn = actionButtons.find((btn) => normalizeText(btn.textContent || '').includes('reset'));
-      const saveBtn = actionButtons.find((btn) => normalizeText(btn.textContent || '').includes('save'));
-
-      if (saveBtn && saveBtn.dataset.huitTab2SaveBound !== '1') {
-        saveBtn.dataset.huitTab2SaveBound = '1';
-        saveBtn.addEventListener('click', async (event) => {
-          if (tabState.activeTab !== 'list2') {
-            return;
-          }
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          saveBtn.disabled = true;
-          try {
-            await saveArtistsExtraFromForm();
-          } finally {
-            saveBtn.disabled = false;
-          }
-        }, true);
-      }
-
-      if (resetBtn && resetBtn.dataset.huitTab2ResetBound !== '1') {
-        resetBtn.dataset.huitTab2ResetBound = '1';
-        resetBtn.addEventListener('click', async (event) => {
-          if (tabState.activeTab !== 'list2') {
-            return;
-          }
-          event.preventDefault();
-          event.stopImmediatePropagation();
-
-          const source = tabState.list2Original || { sectionTitle: '', artists: [] };
-          tabState.list2Snapshot = deepClone(source);
-          await applyArtistFormStateWithRetry(source);
-          showNotification('✅ Đã reset Danh sách nghệ sĩ 2.', 'success');
-        }, true);
-      }
-
-      const updateTabButtonState = (activeTab) => {
-        tabsBar.querySelectorAll('[data-artist-tab]').forEach((btn) => {
-          const isActive = btn.getAttribute('data-artist-tab') === activeTab;
-          btn.classList.toggle('active', isActive);
-          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-      };
-
-      const applyArtistFormStateWithRetry = async (state) => {
-        await applyArtistFormState(state);
-        // Some React-controlled inputs render late after section switch; apply again to prevent mixed tab data.
-        await wait(120);
-        await applyArtistFormState(state);
-      };
-
-      const setArtistTabState = async (activeTab) => {
-        const nextTab = activeTab === 'list2' ? 'list2' : 'list1';
-        const isInitialized = contentWrap.dataset.artistTabInitialized === '1';
-
-        if (!tabState.list1Snapshot) {
-          // Tab 1 binds to current section-3 form state (artists).
-          const currentArtists = extractArtistFormState();
-          tabState.list1Snapshot = deepClone(currentArtists);
-          tabState.list1Original = deepClone(currentArtists);
-        }
-
-        if (tabState.isSwitching) {
-          return;
-        }
-
-        const previousTab = tabState.activeTab || 'list1';
-        if (isInitialized && previousTab === nextTab) {
-          updateTabButtonState(nextTab);
-          contentWrap.dataset.artistActiveTab = nextTab;
-          return;
-        }
-
-        tabState.isSwitching = true;
-        try {
-          contentWrap.dataset.artistActiveTab = nextTab;
-
-          if (isInitialized) {
-            if (previousTab === 'list1') {
-              tabState.list1Snapshot = extractArtistFormState();
-            }
-            if (previousTab === 'list2') {
-              tabState.list2Snapshot = extractArtistFormState();
-            }
-          }
-
-          tabState.activeTab = nextTab;
-
-          if (nextTab === 'list2') {
-            if (!tabState.list2Snapshot) {
-              const loaded = await fetchArtistsExtraConfig();
-              if (!loaded) {
-                tabState.list2Snapshot = { sectionTitle: '', artists: [] };
-                tabState.list2Original = deepClone(tabState.list2Snapshot);
-              }
-            }
-            await applyArtistFormStateWithRetry(tabState.list2Snapshot || { sectionTitle: '', artists: [] });
-          } else {
-            await applyArtistFormStateWithRetry(tabState.list1Snapshot || { sectionTitle: '', artists: [] });
-          }
-
-          contentWrap.dataset.artistTabInitialized = '1';
-          updateTabButtonState(nextTab);
-        } finally {
-          tabState.isSwitching = false;
-        }
-      };
-
-      tabsBar.querySelectorAll('[data-artist-tab]').forEach((btn) => {
-        if (btn.dataset.boundClick === '1') return;
-        btn.dataset.boundClick = '1';
-        btn.addEventListener('click', async () => {
-          const tab = btn.getAttribute('data-artist-tab') || 'list1';
-          await setArtistTabState(tab);
-        });
       });
+    };
 
-      const activeTab = tabState.activeTab || contentWrap.dataset.artistActiveTab || 'list1';
-      setArtistTabState(activeTab);
+
+    const ensureArtistsExtraInlineCard = () => {
+      let card = document.getElementById('huit-admin-artists-extra-card');
+      const main = document.querySelector('main');
+      if (!main) return null;
+
+      if (card) {
+        // Essential: Re-append if orphaned by React re-render
+        if (card.parentElement !== main) {
+          main.appendChild(card);
+        }
+        return card;
+      }
+
+      if (!card) {
+        card = document.createElement('div');
+        card.id = 'huit-admin-artists-extra-card';
+        card.className = 'w-full rounded-xl border border-purple-800/30 bg-[#0f0929]/90 shadow-2xl p-6 mb-8';
+        card.style.display = 'none';
+        card.style.flexDirection = 'column';
+        card.style.width = '100%';
+        card.style.maxWidth = '100%';
+        card.innerHTML = `
+          <!-- Header Row -->
+          <div class="flex flex-row items-center justify-between border-b border-purple-900/25 pb-5 mb-8 w-full">
+            <div class="flex flex-col">
+              <div class="text-xl font-bold text-white flex items-center gap-3">
+                 <span class="w-1.5 h-6 bg-gradient-to-b from-purple-500 to-cyan-500 rounded-full"></span>
+                 Section 3: Danh sách Nghệ sĩ
+              </div>
+              <p class="text-purple-300/40 text-[11px] mt-1.5 uppercase tracking-widest font-bold ml-4">Cấu hình danh sách nghệ sĩ 2 (Vùng phụ)</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <button type="button" class="huit-reg-btn" data-role="refresh-btn" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:#9ca3af; font-size:11px; padding:9px 18px; border-radius:10px; font-weight:600;">
+                Reset
+              </button>
+              <button type="button" class="huit-reg-btn success" data-role="save-btn" style="background:linear-gradient(135deg, #7c3aed, #0891b2); border:none; padding:11px 26px; font-weight:700; color:white; border-radius:12px; font-size:12.5px; box-shadow: 0 10px 25px -10px rgba(124, 58, 237, 0.6);">
+                Save Changes
+              </button>
+            </div>
+          </div>
+
+          <!-- Content Part -->
+          <div class="w-full">
+            <div class="huit-artist-field" style="margin-bottom: 36px; max-width: 100%;">
+              <label>Tiêu đề Section (Nghệ sĩ 2)</label>
+              <input type="text" data-role="section-title-input" placeholder="Ví dụ: Sự Xuất Hiện Của Các Ngôi Sao" style="background:rgba(15,9,41,0.5); border:1px solid rgba(139,92,246,0.3); width: 100%;">
+            </div>
+
+            <div id="huit-artists-extra-list" class="space-y-8">
+               <!-- Artist items will be injected here -->
+            </div>
+
+            <button type="button" data-role="add-btn" class="w-full py-7 mt-8 border-2 border-dashed border-purple-800/30 rounded-2xl text-purple-400 hover:text-purple-200 hover:border-purple-500/50 hover:bg-purple-600/5 transition-all flex items-center justify-center gap-2 font-bold text-sm bg-purple-900/10">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Thêm nghệ sĩ mới vào danh sách
+            </button>
+          </div>
+        `;
+        main.appendChild(card);
+
+        const listWrap = card.querySelector('#huit-artists-extra-list');
+        const sectionTitleInput = card.querySelector('[data-role="section-title-input"]');
+        let state = {
+          sectionTitle: '',
+          artists: [],
+          loading: false,
+          configUrl: '',
+          resolvedSlug: ''
+        };
+
+        const renderItems = () => {
+          listWrap.innerHTML = '';
+          if (state.artists.length === 0) {
+            listWrap.innerHTML = '<div style="text-align:center; padding:40px; color:rgba(139, 92, 246, 0.5);">Chưa có nghệ sĩ nào. Nhấn "+ Thêm nghệ sĩ" để bắt đầu.</div>';
+            return;
+          }
+
+          state.artists.forEach((artist, index) => {
+            const artistItem = document.createElement('div');
+            artistItem.className = 'huit-artist-card';
+            artistItem.innerHTML = `
+              <div class="huit-artist-card-header">
+                <div class="huit-artist-card-title">
+                  <div class="p-1 px-1.5 bg-purple-800/30 rounded-lg text-purple-400" style="display:inline-flex; border:1px solid rgba(139,92,246,0.1); margin-right:8px;">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                  </div>
+                  <span style="font-weight:700; color:#a78bfa; letter-spacing:1.5px; font-size:10px; opacity:0.8;">NGHỆ SĨ #${index + 1}</span>
+                </div>
+                <button type="button" class="p-1.5 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all" data-role="delete-btn" title="Xóa">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+              </div>
+              <div class="huit-artist-grid">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                  <div class="huit-artist-field">
+                    <label>Tên nghệ sĩ</label>
+                    <input type="text" data-role="name" value="${artist.name || ''}" placeholder="VD: LyHan" style="background:rgba(20,14,48,0.4);">
+                  </div>
+                  <div class="huit-artist-field">
+                    <label>Trạng thái</label>
+                    <select data-role="status" style="background:rgba(20,14,48,0.4); cursor:pointer;">
+                      <option value="revealed" ${artist.status === 'revealed' ? 'selected' : ''}>revealed</option>
+                      <option value="hidden" ${artist.status === 'hidden' ? 'selected' : ''}>hidden</option>
+                      <option value="coming_soon" ${artist.status === 'coming_soon' ? 'selected' : ''}>coming_soon</option>
+                    </select>
+                  </div>
+                   <div class="huit-artist-field">
+                    <label>Mô tả / Tiểu sử</label>
+                    <textarea data-role="description" rows="4" style="resize:none; background:rgba(20,14,48,0.4);" placeholder="Thảo Ly...">${artist.description || ''}</textarea>
+                  </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                   <div class="huit-artist-field">
+                    <label>Ảnh đại diện</label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                      <div class="relative flex-1">
+                         <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:rgba(139,92,246,0.3);">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </span>
+                        <input type="text" data-role="image" value="${artist.image || ''}" style="padding-left:40px; background:rgba(20,14,48,0.4); border-color:rgba(139,92,246,0.15); color:rgba(255,255,255,0.7); font-size:12px;" placeholder="URL ảnh...">
+                      </div>
+                      <button type="button" class="huit-reg-btn" data-role="upload-btn" style="padding:10px 16px; display:flex; gap:6px; align-items:center; background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.3); color:#e9d5ff; font-weight:700; border-radius:10px; font-size:11px;">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Upload
+                      </button>
+                    </div>
+                    <p style="font-size:10.5px; color:rgba(167,139,250,0.3); font-style:normal; margin-top:4px;">Khuyến nghị: ảnh tỉ lệ 3:4, kích thước 1200x1600 px, dung lượng <= 500KB (ưu tiên WebP).</p>
+                  </div>
+
+                  <!-- Preview Block Cloned Exactly -->
+                  <div style="margin-top:16px; display:flex; gap:16px; padding:12px; background:rgba(0,0,0,0.2); border:1px solid rgba(139,92,246,0.1); border-radius:12px;">
+                    <div style="position:relative; width:80px; height:80px; border-radius:10px; overflow:hidden; border:1px solid rgba(139,92,246,0.2);">
+                       <img src="${artist.image || '/assets/images/placeholder-artist.webp'}" style="width:100%; height:100%; object-fit:cover;" alt="Preview" data-role="preview-img">
+                    </div>
+                    <div style="display:flex; flex-direction:column; justify-content:center;">
+                      <div style="font-size:10px; font-weight:800; color:rgba(255,255,255,0.9); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px;">XEM TRƯỚC</div>
+                      <div style="font-size:14px; font-weight:600; color:#ffffff; opacity:0.9;" data-role="preview-name">${artist.name || 'Tên nghệ sĩ'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+
+            // Bind inputs back to state and update preview
+            const previewImg = artistItem.querySelector('[data-role="preview-img"]');
+            const previewName = artistItem.querySelector('[data-role="preview-name"]');
+
+            artistItem.querySelectorAll('input, select, textarea').forEach(input => {
+              input.addEventListener('input', () => {
+                const role = input.dataset.role;
+                if (role) {
+                  artist[role] = input.value;
+                  if (role === 'name' && previewName) previewName.textContent = input.value || 'Tên nghệ sĩ';
+                  if (role === 'image' && previewImg) previewImg.src = input.value || '/assets/images/placeholder-artist.webp';
+                }
+              });
+            });
+
+            // Delete item
+            artistItem.querySelector('[data-role="delete-btn"]').addEventListener('click', () => {
+              state.artists.splice(index, 1);
+              renderItems();
+            });
+
+            // Upload image
+            const imageInput = artistItem.querySelector('[data-role="image"]');
+            artistItem.querySelector('[data-role="upload-btn"]').addEventListener('click', () => {
+              const fileInput = document.createElement('input');
+              fileInput.type = 'file';
+              fileInput.accept = 'image/*';
+              fileInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('folder', 'assets/images/khachmoi');
+                  const res = await fetch('/api/upload/image', { method: 'POST', body: formData });
+                  const data = await res.json();
+                  if (data && data.url) {
+                    imageInput.value = data.url;
+                    artist.image = data.url;
+                    if (previewImg) previewImg.src = data.url;
+                    showNotification('✅ Đã tải ảnh lên.', 'success');
+                  }
+                } catch (err) {
+                  showNotification('❌ Lỗi tải ảnh.', 'error');
+                }
+              };
+              fileInput.click();
+            });
+
+            listWrap.appendChild(artistItem);
+          });
+        };
+
+        const loadData = async () => {
+          if (state.loading) return;
+          state.loading = true;
+          const slugCandidates = ['huit-fest-2026', 'fptu-fest-2026', 'huitu-fest-2026'];
+          for (const slug of slugCandidates) {
+            try {
+              const res = await fetch(`/api/events/${slug}/config?_ts=${Date.now()}`, { credentials: 'include' });
+              if (res.ok) {
+                const json = await res.json();
+                state.configUrl = `/api/events/${slug}/config`;
+                state.resolvedSlug = slug;
+                const raw = json.artistsExtra || { sectionTitle: '', artists: [] };
+                state.sectionTitle = raw.sectionTitle || '';
+                state.artists = Array.isArray(raw.artists) ? JSON.parse(JSON.stringify(raw.artists)) : [];
+                sectionTitleInput.value = state.sectionTitle;
+                renderItems();
+                break;
+              }
+            } catch (e) { }
+          }
+          state.loading = false;
+        };
+
+        sectionTitleInput.addEventListener('change', () => {
+          state.sectionTitle = sectionTitleInput.value;
+        });
+
+        card.querySelector('[data-role="add-btn"]').addEventListener('click', () => {
+          state.artists.push({ id: `ax2-${Date.now()}`, name: '', image: '', status: 'revealed', description: '' });
+          renderItems();
+        });
+
+        card.querySelector('[data-role="refresh-btn"]').addEventListener('click', loadData);
+
+        card.querySelector('[data-role="save-btn"]').addEventListener('click', async () => {
+          if (!state.configUrl) return;
+          const btn = card.querySelector('[data-role="save-btn"]');
+          btn.disabled = true;
+          btn.textContent = 'Đang lưu...';
+
+          try {
+            const configRes = await fetch(state.configUrl, { credentials: 'include' });
+            const currentConfig = await configRes.json();
+
+            const payload = {
+              ...currentConfig,
+              artistsExtra: {
+                sectionTitle: state.sectionTitle,
+                artists: state.artists.map(a => ({
+                  id: a.id,
+                  name: a.name,
+                  image: a.image,
+                  status: a.status,
+                  description: a.description,
+                  hints: []
+                }))
+              }
+            };
+
+            const putRes = await fetch(state.configUrl, {
+              method: 'PUT',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (putRes.ok) {
+              showNotification('✅ Đã lưu Danh sách nghệ sĩ 2.', 'success');
+            } else {
+              throw new Error('Save failed');
+            }
+          } catch (e) {
+            showNotification('❌ Lỗi khi lưu dữ liệu.', 'error');
+          } finally {
+            btn.disabled = false;
+            btn.textContent = 'Lưu thay đổi';
+          }
+        });
+
+        card.__huitArtistsExtraLoad = loadData;
+      } else if (card.parentElement !== mainContent) {
+        mainContent.appendChild(card);
+      }
+      return card;
     };
 
     const setInputValueAndDispatch = (inputEl, nextValue) => {
@@ -1902,19 +2081,19 @@
       const logoInputs = Array.from(document.querySelectorAll('input'))
         .filter(input => {
           const label = input.previousElementSibling;
-          return label && label.textContent && 
-                 (label.textContent.includes('Logo URL') || 
-                  label.textContent.includes('Logo url') ||
-                  label.textContent.toLowerCase().includes('logo'));
+          return label && label.textContent &&
+            (label.textContent.includes('Logo URL') ||
+              label.textContent.includes('Logo url') ||
+              label.textContent.toLowerCase().includes('logo'));
         });
-      
+
       console.log(`Found ${logoInputs.length} logo URL inputs`);
-      
+
       logoInputs.forEach(input => {
         // Kiểm tra xem đã có nút upload chưa
         if (input.dataset.uploadInjected) return;
         input.dataset.uploadInjected = 'true';
-        
+
         // Tạo nút chọn file (icon thư mục)
         const uploadBtn = document.createElement('button');
         uploadBtn.type = 'button';
@@ -1932,61 +2111,61 @@
           transition: all 0.2s;
           white-space: nowrap;
         `;
-        
+
         uploadBtn.addEventListener('mouseenter', () => {
           uploadBtn.style.transform = 'translateY(-2px)';
           uploadBtn.style.boxShadow = '0 4px 12px rgba(147, 51, 234, 0.25)';
           uploadBtn.style.background = 'rgba(124, 58, 237, 0.24)';
         });
-        
+
         uploadBtn.addEventListener('mouseleave', () => {
           uploadBtn.style.transform = 'translateY(0)';
           uploadBtn.style.boxShadow = 'none';
           uploadBtn.style.background = 'rgba(124, 58, 237, 0.16)';
         });
-        
+
         // Tạo input file ẩn
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.accept = 'image/*';
         fileInput.style.display = 'none';
-        
+
         // Xử lý upload
         fileInput.addEventListener('change', async (e) => {
           const file = e.target.files[0];
           if (!file) return;
-          
+
           uploadBtn.disabled = true;
           uploadBtn.innerHTML = '⏳ Đang tải...';
-          
+
           try {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('folder', resolveUploadFolderForInput(input));
-            
+
             const response = await fetch('/api/upload/image', {
               method: 'POST',
               body: formData,
             });
-            
+
             if (!response.ok) {
               throw new Error(`Upload failed: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             // Set URL vào input theo cách React có thể bắt được state update.
             setInputValueAndDispatch(input, data.url);
-            
+
             // Success feedback
             uploadBtn.innerHTML = '✅ Đã chọn';
             setTimeout(() => {
               uploadBtn.innerHTML = '📁 Chọn file';
             }, 2000);
-            
+
             // Show notification
             showNotification('✅ Upload thành công!', 'success');
-            
+
           } catch (error) {
             console.error('Upload error:', error);
             uploadBtn.innerHTML = '❌ Lỗi';
@@ -1999,22 +2178,22 @@
             fileInput.value = ''; // Reset
           }
         });
-        
+
         uploadBtn.addEventListener('click', () => {
           fileInput.click();
         });
-        
+
         // Chèn nút và file input
         input.parentNode.style.position = 'relative';
         input.parentNode.style.display = 'flex';
         input.parentNode.style.alignItems = 'center';
         input.style.flex = '1';
-        
+
         input.after(uploadBtn);
         uploadBtn.after(fileInput);
       });
     };
-    
+
     // Notification helper
     function showNotification(message, type = 'info') {
       const notification = document.createElement('div');
@@ -2032,15 +2211,15 @@
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         ${type === 'success' ? 'background: #4caf50;' : 'background: #f44336;'}
       `;
-      
+
       document.body.appendChild(notification);
-      
+
       setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
       }, 3000);
     }
-    
+
     // Add animations
     if (!document.getElementById('upload-injector-styles')) {
       const style = document.createElement('style');
@@ -2069,7 +2248,7 @@
       `;
       document.head.appendChild(style);
     }
-    
+
     const runEnhancements = () => {
       injectUploadButtons();
       simplifyHeaderActions();
@@ -2078,6 +2257,18 @@
       normalizeExistingPreviewUrls();
       syncJourneyPreview();
       enforceSingleSectionPreview();
+
+      // Ensure panels stay visible/hidden if React re-renders main content
+      const regsOpen = window.__huitRegistrationsUiState && window.__huitRegistrationsUiState.isOpen;
+      const artistsOpen = window.__huitArtistsExtraUiState && window.__huitArtistsExtraUiState.isOpen;
+
+      if (regsOpen || artistsOpen) {
+        if (typeof hideNativeCardsForRegistrations === 'function') hideNativeCardsForRegistrations();
+        if (typeof clearAllNativeSidebarActive === 'function') clearAllNativeSidebarActive();
+        
+        if (regsOpen && typeof ensureRegistrationsInlineCard === 'function') ensureRegistrationsInlineCard();
+        if (artistsOpen && typeof ensureArtistsExtraInlineCard === 'function') ensureArtistsExtraInlineCard();
+      }
     };
 
     let refreshTimer = null;
@@ -2091,12 +2282,12 @@
 
     // Run once after the current render cycle.
     scheduleEnhancements();
-    
+
     // Re-inject khi có thay đổi DOM (cho dynamic content)
     const observer = new MutationObserver(() => {
       scheduleEnhancements();
     });
-    
+
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -2112,10 +2303,10 @@
       if (!target) return;
       scheduleEnhancements();
     }, true);
-    
+
     console.log('✅ Upload buttons injected');
   }
-  
+
   // Init khi DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

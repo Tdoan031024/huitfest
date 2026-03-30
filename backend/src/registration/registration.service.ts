@@ -462,6 +462,7 @@ export class RegistrationService {
     return {
       eventId: event.id,
       eventTitle: event.title,
+      registrationOpen: !!event.registrationOpen,
       counters,
       items: pagedItems,
       pagination: {
