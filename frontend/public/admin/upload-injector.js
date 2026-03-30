@@ -1778,6 +1778,76 @@
       }
 
       if (!card) {
+        // Inject CSS for Artist Cards
+        const style = document.createElement('style');
+        style.id = 'huit-artists-extra-styles';
+        style.innerHTML = `
+          .huit-artist-card {
+            background: rgba(13, 9, 36, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+          }
+          .huit-artist-card:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            background: rgba(13, 9, 36, 0.8);
+            box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.5);
+          }
+          .huit-artist-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+          }
+          .huit-artist-card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .huit-artist-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+          }
+          .huit-artist-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+          .huit-artist-field label {
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(167, 139, 250, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .huit-artist-field input, .huit-artist-field select, .huit-artist-field textarea {
+            background: rgba(20, 14, 48, 0.4);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s ease;
+          }
+          .huit-artist-field input:focus, .huit-artist-field select:focus, .huit-artist-field textarea:focus {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(20, 14, 48, 0.6);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+          }
+          @media (max-width: 768px) {
+            .huit-artist-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+
         card = document.createElement('div');
         card.id = 'huit-admin-artists-extra-card';
         card.className = 'w-full rounded-xl border border-purple-800/30 bg-[#0f0929]/90 shadow-2xl p-6 mb-8';
@@ -1852,8 +1922,8 @@
                   </div>
                   <span style="font-weight:700; color:#a78bfa; letter-spacing:1.5px; font-size:10px; opacity:0.8;">NGHỆ SĨ #${index + 1}</span>
                 </div>
-                <button type="button" class="p-1.5 text-red-500/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all" data-role="delete-btn" title="Xóa">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <button type="button" data-role="delete-btn" title="Xóa" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#f87171; border-radius:8px; cursor:pointer; transition:all 0.2s; flex-shrink:0;">
+                  <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
               </div>
               <div class="huit-artist-grid">
@@ -1925,10 +1995,17 @@
             });
 
             // Delete item
-            artistItem.querySelector('[data-role="delete-btn"]').addEventListener('click', () => {
-              state.artists.splice(index, 1);
-              renderItems();
-            });
+            const deleteBtn = artistItem.querySelector('[data-role="delete-btn"]');
+            if (deleteBtn) {
+              deleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm(`Bạn có chắc muốn xóa nghệ sĩ "${artist.name || 'này'}" khỏi danh sách không?`)) {
+                  state.artists.splice(index, 1);
+                  renderItems();
+                }
+              });
+            }
 
             // Upload image
             const imageInput = artistItem.querySelector('[data-role="image"]');

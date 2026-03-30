@@ -346,11 +346,11 @@
         background: linear-gradient(120deg, rgba(48, 108, 255, 0.8), rgba(149, 79, 255, 0.78));
         color: #f4f8ff;
         font-family: Montserrat, sans-serif;
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 0.2px;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
         cursor: pointer;
-        padding: 10px 24px;
+        padding: 14px 42px;
         box-shadow: 0 8px 18px rgba(18, 28, 74, 0.45);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         position: relative;
@@ -522,8 +522,8 @@
         }
 
         .cms-ticket-register-btn {
-          font-size: 13px;
-          padding: 8px 16px;
+          font-size: 16px;
+          padding: 12px 28px;
         }
 
         .cms-ticket-modal {
@@ -942,7 +942,7 @@ Trân trọng.</p>
     // Position it at the bottom of the note group
     const noteTop = noteGroup.offsetTop || 0;
     const noteHeight = noteGroup.offsetHeight || 0;
-    const wrapTop = noteTop + noteHeight + 12;
+    const wrapTop = noteTop + noteHeight + 36;
 
     registerWrap.style.setProperty('position', 'absolute', 'important');
     registerWrap.style.setProperty('top', `${wrapTop}px`, 'important');
