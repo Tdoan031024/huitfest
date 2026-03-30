@@ -679,14 +679,9 @@
 
     injectResponsiveStyles();
 
-    const detectApiBase = () => {
-      const path = window.location.pathname;
-      if (path.includes('/nodeapi/')) return '/nodeapi/api';
-      if (path.startsWith('/nodeapi')) return '/nodeapi/api';
-      return '/api';
-    };
-    
-    const apiBase = detectApiBase();
+    const runningUnderNodeApi = window.location.pathname === '/nodeapi' || window.location.pathname.startsWith('/nodeapi/');
+    const basePrefix = runningUnderNodeApi ? '/nodeapi' : '';
+    const apiBase = `${basePrefix}/api`;
 
     const REG_SIDEBAR_INACTIVE_CLASS = 'w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors border-l-[3px] border-transparent text-muted-foreground hover:text-white hover:bg-white/5';
     const REG_SIDEBAR_ACTIVE_CLASS = 'w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors border-l-[3px] border-transparent text-white bg-purple-600/20 border-l-purple-500';
@@ -1312,15 +1307,6 @@
           regState.items = [];
           setCounters({});
           setMessage(`Không thể tải dữ liệu đăng ký. ${error && error.message ? error.message : ''}`, 'error');
-          
-          // UI Feedback for the toggle button
-          if (toggleVisibilityBtn) {
-            const label = toggleVisibilityBtn.querySelector('.label');
-            if (label) {
-              label.textContent = 'Lỗi kết nối (Thử lại)';
-              label.style.color = '#f87171';
-            }
-          }
         } finally {
           regState.loading = false;
           renderTable();
