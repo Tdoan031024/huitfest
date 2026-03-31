@@ -219,9 +219,16 @@ export class EventService {
       ) as any[];
     }
 
-    const pageConfig = event.pageConfig && typeof event.pageConfig === 'object'
-      ? (event.pageConfig as Record<string, any>)
-      : {};
+    let pageConfig: Record<string, any> = {};
+    if (event.pageConfig) {
+      try {
+        pageConfig = typeof event.pageConfig === 'string'
+          ? JSON.parse(event.pageConfig)
+          : (event.pageConfig as any);
+      } catch (e) {
+        console.error('Failed to parse pageConfig', e);
+      }
+    }
 
     const pageArtists = Array.isArray(pageConfig?.artists?.artists)
       ? pageConfig.artists.artists
@@ -364,7 +371,7 @@ export class EventService {
       const updatedEvent = await tx.event.update({
         where: { id: target.id },
         data: { 
-          pageConfig: config,
+          pageConfig: JSON.stringify(config),
           registrationOpen: config.registrationOpen !== undefined ? !!config.registrationOpen : undefined
         },
       });
