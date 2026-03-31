@@ -26,8 +26,8 @@
       if (typeof url !== 'string' || !url) return url;
 
       let nextUrl = url;
-      if (nextUrl.startsWith('http://localhost:3000/api/')) {
-        nextUrl = `${window.location.origin}${nextUrl.replace('http://localhost:3000', '')}`;
+      if (nextUrl.startsWith('http://localhost:3001/api/')) {
+        nextUrl = `${window.location.origin}${nextUrl.replace('http://localhost:3001', '')}`;
       }
 
       if (runningUnderNodeApi && nextUrl.startsWith('/api/')) {
@@ -224,8 +224,8 @@
     const value = rawUrl.trim();
     if (!value) return '';
 
-    if (value.startsWith('http://localhost:3000/')) {
-      return value.replace('http://localhost:3000', window.location.origin);
+    if (value.startsWith('http://localhost:3001/')) {
+      return value.replace('http://localhost:3001', window.location.origin);
     }
 
     if (value.startsWith('/')) return value;
@@ -330,7 +330,7 @@
   };
 
   const normalizeExistingPreviewUrls = () => {
-    const imgs = Array.from(document.querySelectorAll('img[src^="http://localhost:3000/"]'));
+    const imgs = Array.from(document.querySelectorAll('img[src^="http://localhost:3001/"]'));
     imgs.forEach((img) => {
       img.src = normalizeImageUrl(img.getAttribute('src') || '');
     });
