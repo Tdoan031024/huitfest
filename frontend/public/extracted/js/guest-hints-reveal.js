@@ -167,21 +167,30 @@
       card.__guestRevealBound = true;
       card.dataset.guestRevealBound = '1';
       card.addEventListener('click', () => {
-        const isSameCard = card.classList.contains('is-active');
+        const guestId = card.getAttribute('data-guest-id');
+        if (!guestId) return;
+
+        const activeCard = section.querySelector('.music-guest-card.is-active');
+        const activeGuestId = activeCard ? activeCard.getAttribute('data-guest-id') : null;
         const isPanelOpen = !detailEl.classList.contains('is-hidden');
 
-        if (isSameCard && isPanelOpen) {
-          card.classList.remove('is-active');
+        if (activeGuestId === guestId && isPanelOpen) {
+          cards.forEach((item) => {
+            if (item.getAttribute('data-guest-id') === guestId) {
+              item.classList.remove('is-active');
+            }
+          });
           detailEl.classList.remove('is-open');
           detailEl.classList.add('is-hidden');
           return;
         }
 
         cards.forEach((item) => item.classList.remove('is-active'));
-        card.classList.add('is-active');
-
-        const guestId = card.getAttribute('data-guest-id');
-        if (!guestId) return;
+        cards.forEach((item) => {
+          if (item.getAttribute('data-guest-id') === guestId) {
+            item.classList.add('is-active');
+          }
+        });
         renderGuestDetail(guestId, detailElements, card);
       });
     });

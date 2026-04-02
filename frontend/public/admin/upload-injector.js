@@ -852,8 +852,8 @@
         .huit-reg-table th,
         .huit-reg-table td {
           border-bottom: 1px solid rgba(77, 51, 138, 0.45);
-          text-align: left;
-          vertical-align: top;
+          text-align: center;
+          vertical-align: middle;
           padding: 10px;
           font-size: 13px;
         }
@@ -914,6 +914,7 @@
           display: flex;
           flex-wrap: wrap;
           gap: 6px;
+          justify-content: center;
         }
 
         .huit-reg-mini-btn {
@@ -1220,6 +1221,71 @@
         stPriority.textContent = counters && counters.priority ? String(counters.priority) : '0';
       };
 
+      const sortRegistrationItems = (items) => items.sort((a, b) => {
+        if (Boolean(a?.priority) !== Boolean(b?.priority)) {
+          return a?.priority ? -1 : 1;
+        }
+
+        const aTime = new Date(a?.createdAt || 0).getTime();
+        const bTime = new Date(b?.createdAt || 0).getTime();
+        return bTime - aTime;
+      });
+
+      const calcCountersFromItems = (items) => ({
+        total: items.length,
+        pending: items.filter((item) => item && item.status === 'pending').length,
+        approved: items.filter((item) => item && item.status === 'approved').length,
+        rejected: items.filter((item) => item && item.status === 'rejected').length,
+        priority: items.filter((item) => item && item.priority).length,
+      });
+
+      const matchCurrentFilters = (item) => {
+        if (!item) return false;
+
+        const search = String(searchInput?.value || '').trim().toLowerCase();
+        const role = String(roleFilter?.value || '').trim();
+        const status = String(statusFilter?.value || '').trim();
+        const priority = String(priorityFilter?.value || '').trim();
+
+        if (search) {
+          const haystack = [item.fullName, item.email, item.phone]
+            .map((value) => String(value || '').toLowerCase())
+            .join(' ');
+          if (!haystack.includes(search)) return false;
+        }
+
+        if (role && String(item.audience || '') !== role) return false;
+        if (status && String(item.status || '') !== status) return false;
+        if (priority === 'true' && !item.priority) return false;
+        if (priority === 'false' && item.priority) return false;
+
+        return true;
+      };
+
+      const applyLocalRegistrationUpdate = (updated) => {
+        if (!updated || !Number.isFinite(Number(updated.id))) return false;
+
+        const id = Number(updated.id);
+        const currentIndex = regState.items.findIndex((entry) => Number(entry && entry.id) === id);
+        if (currentIndex < 0) return false;
+
+        const nextItem = {
+          ...regState.items[currentIndex],
+          ...updated,
+        };
+
+        if (matchCurrentFilters(nextItem)) {
+          regState.items[currentIndex] = nextItem;
+        } else {
+          regState.items.splice(currentIndex, 1);
+        }
+
+        regState.items = sortRegistrationItems(regState.items);
+        setCounters(calcCountersFromItems(regState.items));
+        renderTable();
+        return true;
+      };
+
       const buildQueryParams = () => {
         const params = new URLSearchParams();
         const search = String(searchInput?.value || '').trim();
@@ -1294,6 +1360,7 @@
 
           const payload = await response.json();
           regState.items = Array.isArray(payload.items) ? payload.items : [];
+          regState.items = sortRegistrationItems(regState.items);
           if (eventLabel) {
             eventLabel.textContent = payload.eventTitle
               ? `${payload.eventTitle} - quản lý đăng ký vé`
@@ -1378,12 +1445,17 @@
           }
 
           const updated = await response.json();
-          await loadData();
+          const { emailResult, ...updatedRow } = updated || {};
+          const applied = applyLocalRegistrationUpdate(updatedRow);
 
-          if (updated && updated.emailResult && updated.emailResult.sent === false) {
-            setMessage(updated.emailResult.message || 'Cập nhật thành công nhưng gửi email thất bại.', 'error');
-          } else if (updated && updated.emailResult && updated.emailResult.sent === true) {
-            setMessage(updated.emailResult.message || 'Cập nhật thành công và đã gửi email.', 'success');
+          if (!applied) {
+            await loadData();
+          }
+
+          if (emailResult && emailResult.sent === false) {
+            setMessage(emailResult.message || 'Cập nhật thành công nhưng gửi email thất bại.', 'error');
+          } else if (emailResult && emailResult.sent === true) {
+            setMessage(emailResult.message || 'Cập nhật thành công và đã gửi email.', 'success');
           } else {
             setMessage('Cập nhật thành công.', 'success');
           }

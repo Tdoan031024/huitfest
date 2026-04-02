@@ -740,7 +740,7 @@
         <button type="button" class="cms-ticket-modal-close" data-ticket-action="close-success" aria-label="Đóng">&times;</button>
         <h3 id="cms-ticket-success-title" class="cms-ticket-modal-title">Thông báo</h3>
         <p class="cms-ticket-success-text">Bạn đã đăng ký thành công!.
-Sau đó Ban tổ chức sẽ xem xét và cấp vé theo diện ưu tiên trước. Vé điện tử sẽ được gửi qua email trong thời gian tới. Ngoài ra, bạn có thể tham dự ngoài khu vực fanzone vào công tự do.
+Ban tổ chức sẽ xem xét và cấp vé theo diện ưu tiên trước. Vé điện tử sẽ được gửi qua email trong thời gian tới. Ngoài ra, bạn có thể tham dự ngoài khu vực fanzone vào cổng tự do.
 Trân trọng.</p>
         <div class="cms-ticket-form-actions">
           <button type="button" class="cms-ticket-submit-btn" data-ticket-action="close-success">Đã hiểu</button>
