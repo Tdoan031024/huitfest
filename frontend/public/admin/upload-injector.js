@@ -917,6 +917,44 @@
           justify-content: center;
         }
 
+        .huit-reg-pagination {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 10px 12px;
+          border-top: 1px solid rgba(77, 51, 138, 0.45);
+          background: rgba(19, 10, 45, 0.7);
+          flex-wrap: wrap;
+        }
+
+        .huit-reg-pagination-left,
+        .huit-reg-pagination-right {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: #c4b5fd;
+          font-size: 12px;
+        }
+
+        .huit-reg-pagination select {
+          height: 32px;
+          border-radius: 8px;
+          border: 1px solid rgba(125, 95, 191, 0.5);
+          background: rgba(16, 11, 36, 0.88);
+          color: #f3ecff;
+          padding: 0 8px;
+          font-size: 12px;
+          outline: none;
+        }
+
+        .huit-reg-page-info {
+          min-width: 170px;
+          text-align: center;
+          color: #e9d5ff;
+          font-weight: 600;
+        }
+
         .huit-reg-mini-btn {
           border: 1px solid rgba(96, 70, 163, 0.65);
           border-radius: 8px;
@@ -1153,6 +1191,23 @@
                   </tbody>
                 </table>
               </div>
+              <div class="huit-reg-pagination">
+                <div class="huit-reg-pagination-left">
+                  <span>Hiển thị</span>
+                  <select data-role="page-size-select" aria-label="Số dòng mỗi trang">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                  <span>dòng/trang</span>
+                </div>
+                <div class="huit-reg-pagination-right">
+                  <button type="button" class="huit-reg-btn" data-role="page-prev-btn">Trước</button>
+                  <span class="huit-reg-page-info" data-role="page-info">Trang 1 / 1</span>
+                  <button type="button" class="huit-reg-btn" data-role="page-next-btn">Sau</button>
+                </div>
+              </div>
             </div>
 
             <div class="huit-reg-message" data-role="message"></div>
@@ -1168,7 +1223,14 @@
 
       card.dataset.regBound = '1';
 
-      const regState = { items: [], loading: false };
+      const regState = {
+        items: [],
+        loading: false,
+        page: 1,
+        pageSize: 20,
+        totalItems: 0,
+        totalPages: 1,
+      };
       const eventLabel = card.querySelector('[data-role="event-label"]');
       const searchInput = card.querySelector('[data-role="search-input"]');
       const roleFilter = card.querySelector('[data-role="role-filter"]');
@@ -1180,6 +1242,10 @@
       const exportBtn = card.querySelector('[data-role="export-btn"]');
       const applyFilterBtn = card.querySelector('[data-role="apply-filter-btn"]');
       const clearFilterBtn = card.querySelector('[data-role="clear-filter-btn"]');
+      const pageInfo = card.querySelector('[data-role="page-info"]');
+      const pagePrevBtn = card.querySelector('[data-role="page-prev-btn"]');
+      const pageNextBtn = card.querySelector('[data-role="page-next-btn"]');
+      const pageSizeSelect = card.querySelector('[data-role="page-size-select"]');
       const stTotal = card.querySelector('[data-role="st-total"]');
       const stPending = card.querySelector('[data-role="st-pending"]');
       const stApproved = card.querySelector('[data-role="st-approved"]');
@@ -1239,6 +1305,33 @@
         priority: items.filter((item) => item && item.priority).length,
       });
 
+      const renderPagination = () => {
+        const totalPages = Math.max(1, Number(regState.totalPages) || 1);
+        const totalItems = Math.max(0, Number(regState.totalItems) || 0);
+        const page = Math.min(totalPages, Math.max(1, Number(regState.page) || 1));
+
+        if (pageInfo) {
+          pageInfo.textContent = `Trang ${page} / ${totalPages} - ${totalItems} bản ghi`;
+        }
+
+        if (pagePrevBtn) {
+          pagePrevBtn.disabled = regState.loading || page <= 1;
+          pagePrevBtn.style.opacity = pagePrevBtn.disabled ? '0.55' : '1';
+          pagePrevBtn.style.cursor = pagePrevBtn.disabled ? 'not-allowed' : 'pointer';
+        }
+
+        if (pageNextBtn) {
+          pageNextBtn.disabled = regState.loading || page >= totalPages;
+          pageNextBtn.style.opacity = pageNextBtn.disabled ? '0.55' : '1';
+          pageNextBtn.style.cursor = pageNextBtn.disabled ? 'not-allowed' : 'pointer';
+        }
+
+        if (pageSizeSelect) {
+          pageSizeSelect.value = String(regState.pageSize || 20);
+          pageSizeSelect.disabled = regState.loading;
+        }
+      };
+
       const matchCurrentFilters = (item) => {
         if (!item) return false;
 
@@ -1297,6 +1390,8 @@
         if (role) params.set('role', role);
         if (status) params.set('status', status);
         if (priority) params.set('priority', priority);
+        params.set('page', String(regState.page));
+        params.set('pageSize', String(regState.pageSize));
 
         return params;
       };
@@ -1336,6 +1431,7 @@
       const loadData = async () => {
         regState.loading = true;
         renderTable();
+        renderPagination();
         setMessage('');
 
         const params = buildQueryParams();
@@ -1361,6 +1457,17 @@
           const payload = await response.json();
           regState.items = Array.isArray(payload.items) ? payload.items : [];
           regState.items = sortRegistrationItems(regState.items);
+          const pagination = payload && typeof payload.pagination === 'object' ? payload.pagination : null;
+          regState.page = pagination && Number.isFinite(Number(pagination.page)) ? Number(pagination.page) : regState.page;
+          regState.pageSize = pagination && Number.isFinite(Number(pagination.pageSize))
+            ? Number(pagination.pageSize)
+            : regState.pageSize;
+          regState.totalItems = pagination && Number.isFinite(Number(pagination.totalItems))
+            ? Number(pagination.totalItems)
+            : regState.items.length;
+          regState.totalPages = pagination && Number.isFinite(Number(pagination.totalPages))
+            ? Math.max(1, Number(pagination.totalPages))
+            : 1;
           if (eventLabel) {
             eventLabel.textContent = payload.eventTitle
               ? `${payload.eventTitle} - quản lý đăng ký vé`
@@ -1372,11 +1479,14 @@
           setCounters(payload.counters || {});
         } catch (error) {
           regState.items = [];
+          regState.totalItems = 0;
+          regState.totalPages = 1;
           setCounters({});
           setMessage(`Không thể tải dữ liệu đăng ký. ${error && error.message ? error.message : ''}`, 'error');
         } finally {
           regState.loading = false;
           renderTable();
+          renderPagination();
         }
       };
 
@@ -1504,6 +1614,7 @@
       });
 
       applyFilterBtn.addEventListener('click', () => {
+        regState.page = 1;
         loadData();
       });
 
@@ -1512,6 +1623,7 @@
         if (roleFilter) roleFilter.value = '';
         if (statusFilter) statusFilter.value = '';
         if (priorityFilter) priorityFilter.value = '';
+        regState.page = 1;
         loadData();
       });
 
@@ -1524,9 +1636,39 @@
 
       searchInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
+          regState.page = 1;
           loadData();
         }
       });
+
+      if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', () => {
+          const nextPageSize = Number(pageSizeSelect.value);
+          if (Number.isFinite(nextPageSize) && nextPageSize > 0) {
+            regState.pageSize = nextPageSize;
+          }
+          regState.page = 1;
+          loadData();
+        });
+      }
+
+      if (pagePrevBtn) {
+        pagePrevBtn.addEventListener('click', () => {
+          if (regState.loading || regState.page <= 1) return;
+          regState.page -= 1;
+          loadData();
+        });
+      }
+
+      if (pageNextBtn) {
+        pageNextBtn.addEventListener('click', () => {
+          if (regState.loading || regState.page >= regState.totalPages) return;
+          regState.page += 1;
+          loadData();
+        });
+      }
+
+      renderPagination();
 
       card.__huitRegistrationsLoad = loadData;
       return card;
