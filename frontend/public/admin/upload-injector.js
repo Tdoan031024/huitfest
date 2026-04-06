@@ -783,6 +783,100 @@
           padding: 12px;
         }
 
+        .huit-checkin-panel {
+          border: 1px solid rgba(59, 130, 246, 0.35);
+          border-radius: 12px;
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.82));
+          padding: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .huit-checkin-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .huit-checkin-head h4 {
+          margin: 0;
+          font-size: 16px;
+          color: #eff6ff;
+        }
+
+        .huit-checkin-head p {
+          margin: 2px 0 0;
+          font-size: 12px;
+          color: #bfdbfe;
+        }
+
+        .huit-checkin-input-row {
+          display: grid;
+          grid-template-columns: 1fr auto auto auto;
+          gap: 8px;
+        }
+
+        .huit-checkin-input-row input {
+          height: 38px;
+          border-radius: 9px;
+          border: 1px solid rgba(96, 165, 250, 0.45);
+          background: rgba(15, 23, 42, 0.86);
+          color: #eff6ff;
+          padding: 0 10px;
+          font-size: 13px;
+          outline: none;
+        }
+
+        .huit-checkin-result {
+          border: 1px solid rgba(99, 102, 241, 0.35);
+          background: rgba(15, 23, 42, 0.75);
+          border-radius: 10px;
+          padding: 10px;
+          color: #dbeafe;
+          font-size: 13px;
+          line-height: 1.5;
+          min-height: 48px;
+        }
+
+        .huit-checkin-result.success {
+          border-color: rgba(16, 185, 129, 0.45);
+          color: #bbf7d0;
+        }
+
+        .huit-checkin-result.warn {
+          border-color: rgba(245, 158, 11, 0.45);
+          color: #fde68a;
+        }
+
+        .huit-checkin-result.error {
+          border-color: rgba(239, 68, 68, 0.45);
+          color: #fecaca;
+        }
+
+        .huit-checkin-video-wrap {
+          display: none;
+          border: 1px solid rgba(59, 130, 246, 0.4);
+          border-radius: 10px;
+          overflow: hidden;
+          max-width: 320px;
+          background: #020617;
+        }
+
+        .huit-checkin-video-wrap video {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        .huit-checkin-meta {
+          margin-top: 6px;
+          font-size: 12px;
+          color: #bfdbfe;
+        }
+
         .huit-reg-filter-grid {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -971,6 +1065,109 @@
           .huit-reg-stats {
             grid-template-columns: 1fr;
           }
+
+          .huit-reg-title {
+            align-items: flex-start;
+          }
+
+          .huit-reg-actions {
+            width: 100%;
+          }
+
+          .huit-reg-actions .huit-reg-btn,
+          .huit-checkin-input-row .huit-reg-btn,
+          .huit-checkin-input-row input {
+            width: 100%;
+          }
+
+          .huit-checkin-input-row {
+            grid-template-columns: 1fr;
+          }
+
+          .huit-checkin-video-wrap {
+            max-width: 100%;
+          }
+
+          .huit-reg-pagination {
+            justify-content: center;
+          }
+
+          .huit-reg-pagination-left,
+          .huit-reg-pagination-right {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .huit-reg-table-wrap {
+            overflow: visible;
+          }
+
+          .huit-reg-table table,
+          .huit-reg-table thead,
+          .huit-reg-table tbody,
+          .huit-reg-table tr,
+          .huit-reg-table td {
+            display: block;
+            width: 100%;
+            min-width: 0;
+          }
+
+          .huit-reg-table thead {
+            display: none;
+          }
+
+          .huit-reg-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 8px;
+          }
+
+          .huit-reg-table tr {
+            border: 1px solid rgba(77, 51, 138, 0.45);
+            border-radius: 10px;
+            background: rgba(12, 7, 28, 0.85);
+            padding: 10px;
+          }
+
+          .huit-reg-table td {
+            border-bottom: 1px dashed rgba(99, 70, 165, 0.45);
+            text-align: left;
+            padding: 8px 0;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+          }
+
+          .huit-reg-table td:last-child {
+            border-bottom: none;
+            display: block;
+            padding-bottom: 0;
+          }
+
+          .huit-reg-table td::before {
+            content: attr(data-label);
+            color: #b8a9ea;
+            font-weight: 700;
+            min-width: 92px;
+            text-align: left;
+            flex-shrink: 0;
+          }
+
+          .huit-reg-table td:last-child::before {
+            display: block;
+            margin-bottom: 8px;
+          }
+
+          .huit-reg-row-actions {
+            justify-content: flex-start;
+          }
+
+          .huit-reg-mini-btn {
+            min-height: 32px;
+          }
         }
       `;
       document.head.appendChild(style);
@@ -1121,6 +1318,25 @@
               </div>
             </div>
 
+            <div class="huit-checkin-panel">
+              <div class="huit-checkin-head">
+                <div>
+                  <h4>Check-in vé tại cổng</h4>
+                  <p>Quét QR hoặc dán mã vé/đường dẫn từ email để xác nhận vào cổng.</p>
+                </div>
+              </div>
+              <div class="huit-checkin-input-row">
+                <input type="text" data-role="checkin-input" placeholder="Dán mã vé hoặc URL có ticketToken..." />
+                <button type="button" class="huit-reg-btn" data-role="checkin-scan-btn">Dùng camera</button>
+                <button type="button" class="huit-reg-btn" data-role="checkin-verify-btn">Xác thực</button>
+                <button type="button" class="huit-reg-btn success" data-role="checkin-confirm-btn" disabled>Xác nhận vào cổng</button>
+              </div>
+              <div class="huit-checkin-video-wrap" data-role="checkin-video-wrap">
+                <video data-role="checkin-video" playsinline muted autoplay></video>
+              </div>
+              <div class="huit-checkin-result" data-role="checkin-result">Sẵn sàng check-in.</div>
+            </div>
+
             <div class="huit-reg-stats">
               <div class="huit-reg-stat"><div class="huit-reg-stat-key">Tổng</div><div class="huit-reg-stat-value" data-role="st-total">0</div></div>
               <div class="huit-reg-stat"><div class="huit-reg-stat-key">Chờ duyệt</div><div class="huit-reg-stat-value" data-role="st-pending">0</div></div>
@@ -1154,6 +1370,23 @@
               </div>
             </div>
 
+            <div class="huit-reg-actions" style="justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="color:#b8a9ea;font-size:12px;">Số dòng/trang</span>
+                <select data-role="page-size-select" class="huit-reg-btn" style="height:34px;padding:4px 10px;">
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button type="button" class="huit-reg-btn" data-role="page-prev-btn">Trang trước</button>
+                <span data-role="page-info" style="color:#ddd6fe;font-size:12px;min-width:120px;text-align:center;">Trang 1 / 1</span>
+                <button type="button" class="huit-reg-btn" data-role="page-next-btn">Trang sau</button>
+              </div>
+            </div>
+
             <div class="huit-reg-message" data-role="message"></div>
           </div>
         </div>
@@ -1167,7 +1400,14 @@
 
       card.dataset.regBound = '1';
 
-      const regState = { items: [], loading: false };
+      const regState = {
+        items: [],
+        loading: false,
+        page: 1,
+        pageSize: 10,
+        totalItems: 0,
+        totalPages: 1,
+      };
       const eventLabel = card.querySelector('[data-role="event-label"]');
       const searchInput = card.querySelector('[data-role="search-input"]');
       const roleFilter = card.querySelector('[data-role="role-filter"]');
@@ -1179,12 +1419,29 @@
       const exportBtn = card.querySelector('[data-role="export-btn"]');
       const applyFilterBtn = card.querySelector('[data-role="apply-filter-btn"]');
       const clearFilterBtn = card.querySelector('[data-role="clear-filter-btn"]');
+      const pageInfo = card.querySelector('[data-role="page-info"]');
+      const pagePrevBtn = card.querySelector('[data-role="page-prev-btn"]');
+      const pageNextBtn = card.querySelector('[data-role="page-next-btn"]');
+      const pageSizeSelect = card.querySelector('[data-role="page-size-select"]');
+      const checkinInput = card.querySelector('[data-role="checkin-input"]');
+      const checkinScanBtn = card.querySelector('[data-role="checkin-scan-btn"]');
+      const checkinVerifyBtn = card.querySelector('[data-role="checkin-verify-btn"]');
+      const checkinConfirmBtn = card.querySelector('[data-role="checkin-confirm-btn"]');
+      const checkinResult = card.querySelector('[data-role="checkin-result"]');
+      const checkinVideoWrap = card.querySelector('[data-role="checkin-video-wrap"]');
+      const checkinVideo = card.querySelector('[data-role="checkin-video"]');
       const stTotal = card.querySelector('[data-role="st-total"]');
       const stPending = card.querySelector('[data-role="st-pending"]');
       const stApproved = card.querySelector('[data-role="st-approved"]');
       const stRejected = card.querySelector('[data-role="st-rejected"]');
       const stPriority = card.querySelector('[data-role="st-priority"]');
       const toggleVisibilityBtn = card.querySelector('[data-role="toggle-visibility-btn"]');
+      const checkinState = {
+        verification: null,
+        scannerStream: null,
+        scannerFrameId: 0,
+        scannerBusy: false,
+      };
 
       const setMessage = (text, type) => {
         if (!messageBox) return;
@@ -1198,6 +1455,231 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+
+      const setCheckinResult = (message, type, registration) => {
+        if (!checkinResult) return;
+
+        const safeMessage = escapeHtml(message || '');
+        const safeName = escapeHtml(registration?.fullName || '');
+        const safePhone = escapeHtml(registration?.phone || '');
+        const safeTicketCode = escapeHtml(registration?.ticketCode || '');
+        const safeCheckinAt = escapeHtml(registration?.checkedInAt || '');
+
+        let detail = '';
+        if (registration) {
+          detail = `
+            <div class="huit-checkin-meta">
+              <strong>${safeName}</strong> - ${safePhone || 'Khong co SDT'}<br />
+              Ma ve: ${safeTicketCode || 'N/A'}${safeCheckinAt ? `<br />Da check-in luc: ${safeCheckinAt}` : ''}
+            </div>
+          `;
+        }
+
+        checkinResult.className = `huit-checkin-result${type ? ` ${type}` : ''}`;
+        checkinResult.innerHTML = `<div>${safeMessage}</div>${detail}`;
+      };
+
+      const stopCheckinScanner = () => {
+        if (checkinState.scannerFrameId) {
+          window.cancelAnimationFrame(checkinState.scannerFrameId);
+          checkinState.scannerFrameId = 0;
+        }
+
+        if (checkinState.scannerStream) {
+          checkinState.scannerStream.getTracks().forEach((track) => track.stop());
+          checkinState.scannerStream = null;
+        }
+
+        checkinState.scannerBusy = false;
+        if (checkinVideo) {
+          checkinVideo.pause();
+          checkinVideo.srcObject = null;
+        }
+        if (checkinVideoWrap) {
+          checkinVideoWrap.style.display = 'none';
+        }
+        if (checkinScanBtn) {
+          checkinScanBtn.textContent = 'Dùng camera';
+        }
+      };
+
+      const callTicketApi = async (path, body) => {
+        const response = await fetch(`${apiBase}/registrations/admin/tickets/${path}`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body || {}),
+        });
+
+        if (response.status === 401) {
+          window.location.href = `${apiBase}/admin/auth/login-page`;
+          return null;
+        }
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        return response.json();
+      };
+
+      const getTicketInputValue = () => String(checkinInput?.value || '').trim();
+
+      const updateCheckinConfirmButton = () => {
+        if (!checkinConfirmBtn) return;
+        const status = String(checkinState.verification?.status || '');
+        checkinConfirmBtn.disabled = status !== 'valid_pending_checkin';
+      };
+
+      const verifyTicketForCheckin = async (valueFromScanner) => {
+        const ticketValue = String(valueFromScanner || getTicketInputValue()).trim();
+        if (!ticketValue) {
+          setCheckinResult('Vui lòng nhập mã vé hoặc URL từ QR.', 'warn');
+          checkinState.verification = null;
+          updateCheckinConfirmButton();
+          return;
+        }
+
+        if (checkinInput) {
+          checkinInput.value = ticketValue;
+        }
+
+        if (checkinVerifyBtn) checkinVerifyBtn.disabled = true;
+        setCheckinResult('Đang xác thực vé...', '');
+
+        try {
+          const payload = await callTicketApi('verify', { code: ticketValue });
+          if (!payload) return;
+
+          checkinState.verification = payload;
+          if (payload.status === 'valid_pending_checkin') {
+            setCheckinResult(payload.message || 'Vé hợp lệ, sẵn sàng check-in.', 'success', payload.registration);
+          } else if (payload.status === 'already_checked_in') {
+            setCheckinResult(payload.message || 'Vé đã check-in trước đó.', 'warn', payload.registration);
+          } else {
+            setCheckinResult(payload.message || 'Không thể xác thực vé.', 'error');
+          }
+        } catch (error) {
+          checkinState.verification = null;
+          setCheckinResult(
+            `Xác thực vé thất bại. ${error && error.message ? error.message : ''}`,
+            'error',
+          );
+        } finally {
+          if (checkinVerifyBtn) checkinVerifyBtn.disabled = false;
+          updateCheckinConfirmButton();
+        }
+      };
+
+      const confirmTicketCheckin = async () => {
+        const ticketValue = getTicketInputValue();
+        if (!ticketValue) {
+          setCheckinResult('Không tìm thấy mã vé để check-in.', 'warn');
+          return;
+        }
+
+        if (checkinConfirmBtn) checkinConfirmBtn.disabled = true;
+        setCheckinResult('Đang ghi nhận check-in...', '');
+
+        try {
+          const payload = await callTicketApi('checkin', {
+            code: ticketValue,
+            checkedInBy: 'Admin Gate',
+            gateId: 'Gate-1',
+          });
+          if (!payload) return;
+
+          checkinState.verification = payload;
+          if (payload.status === 'checked_in') {
+            setCheckinResult(payload.message || 'Check-in thành công.', 'success', payload.registration);
+            loadData();
+          } else if (payload.status === 'already_checked_in') {
+            setCheckinResult(payload.message || 'Vé này đã check-in trước đó.', 'warn', payload.registration);
+          } else {
+            setCheckinResult(payload.message || 'Không thể check-in vé.', 'error');
+          }
+        } catch (error) {
+          setCheckinResult(
+            `Check-in thất bại. ${error && error.message ? error.message : ''}`,
+            'error',
+          );
+        } finally {
+          updateCheckinConfirmButton();
+        }
+      };
+
+      const startCheckinScanner = async () => {
+        if (!checkinScanBtn) return;
+
+        if (checkinState.scannerStream) {
+          stopCheckinScanner();
+          return;
+        }
+
+        if (!window.BarcodeDetector) {
+          setCheckinResult('Trình duyệt chưa hỗ trợ quét camera. Hãy dán mã/URL vé thủ công.', 'warn');
+          return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setCheckinResult('Thiết bị không hỗ trợ camera trong trình duyệt hiện tại.', 'warn');
+          return;
+        }
+
+        try {
+          const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: 'environment' },
+            },
+            audio: false,
+          });
+
+          checkinState.scannerStream = stream;
+          if (checkinVideo) {
+            checkinVideo.srcObject = stream;
+            await checkinVideo.play();
+          }
+          if (checkinVideoWrap) {
+            checkinVideoWrap.style.display = 'block';
+          }
+          checkinScanBtn.textContent = 'Dừng camera';
+          setCheckinResult('Đang quét QR... đưa mã vào khung camera.', '');
+
+          const loop = async () => {
+            if (!checkinState.scannerStream || !checkinVideo) return;
+            if (!checkinState.scannerBusy) {
+              checkinState.scannerBusy = true;
+              try {
+                const detections = await detector.detect(checkinVideo);
+                const firstValue = Array.isArray(detections) && detections[0] ? detections[0].rawValue : '';
+                if (firstValue) {
+                  stopCheckinScanner();
+                  await verifyTicketForCheckin(String(firstValue));
+                  return;
+                }
+              } catch {
+                // Continue scanning frame-by-frame.
+              } finally {
+                checkinState.scannerBusy = false;
+              }
+            }
+
+            checkinState.scannerFrameId = window.requestAnimationFrame(loop);
+          };
+
+          checkinState.scannerFrameId = window.requestAnimationFrame(loop);
+        } catch (error) {
+          stopCheckinScanner();
+          setCheckinResult(
+            `Không thể mở camera. ${error && error.message ? error.message : ''}`,
+            'error',
+          );
+        }
+      };
 
       const statusLabel = (status) => {
         if (status === 'approved') return 'Đã duyệt';
@@ -1231,8 +1713,29 @@
         if (role) params.set('role', role);
         if (status) params.set('status', status);
         if (priority) params.set('priority', priority);
+        if (Number.isFinite(regState.page) && regState.page > 0) params.set('page', String(regState.page));
+        if (Number.isFinite(regState.pageSize) && regState.pageSize > 0) params.set('pageSize', String(regState.pageSize));
 
         return params;
+      };
+
+      const renderPagination = () => {
+        if (pageInfo) {
+          pageInfo.textContent = `Trang ${regState.page} / ${regState.totalPages}`;
+        }
+
+        if (pagePrevBtn) {
+          pagePrevBtn.disabled = regState.loading || regState.page <= 1;
+        }
+
+        if (pageNextBtn) {
+          pageNextBtn.disabled = regState.loading || regState.page >= regState.totalPages;
+        }
+
+        if (pageSizeSelect) {
+          pageSizeSelect.value = String(regState.pageSize || 10);
+          pageSizeSelect.disabled = regState.loading;
+        }
       };
 
       const renderTable = () => {
@@ -1250,17 +1753,17 @@
 
         const rows = regState.items.map((item) => [
           '<tr>',
-          `<td>${item.id}</td>`,
-          `<td>${escapeHtml(item.fullName)}</td>`,
-          `<td><div>${escapeHtml(item.email)}</div><div>${escapeHtml(item.phone)}</div><div style="color:#a392da;font-size:12px;">${escapeHtml(formatDate(item.createdAt))}</div></td>`,
-          `<td>${escapeHtml(item.audience || '')}</td>`,
-          `<td>${escapeHtml(item.schoolOrStudentId || '')}</td>`,
-          `<td>${escapeHtml(item.birthDate || '')}</td>`,
-          `<td>${escapeHtml(item.referralCode || '')}</td>`,
-          `<td><span class="huit-reg-status ${item.status}">${statusLabel(item.status)}</span></td>`,
-          `<td>${item.priority ? '<span class="huit-reg-priority">Ưu tiên</span>' : ''}</td>`,
-          `<td>${escapeHtml(item.ticketCode || '')}</td>`,
-          `<td><div class="huit-reg-row-actions"><button class="huit-reg-mini-btn success" data-action="approve" data-id="${item.id}">Duyệt</button><button class="huit-reg-mini-btn success" data-action="approve-email" data-id="${item.id}">Duyệt + Email</button><button class="huit-reg-mini-btn danger" data-action="reject" data-id="${item.id}">Từ chối</button><button class="huit-reg-mini-btn warn" data-action="priority" data-id="${item.id}">${item.priority ? 'Bỏ ưu tiên' : 'Ưu tiên'}</button></div>${item.rejectedReason ? `<div style="margin-top:6px;color:#fca5a5;">Lý do: ${escapeHtml(item.rejectedReason)}</div>` : ''}</td>`,
+          `<td data-label="ID">${item.id}</td>`,
+          `<td data-label="Họ tên">${escapeHtml(item.fullName)}</td>`,
+          `<td data-label="Liên hệ"><div>${escapeHtml(item.email)}</div><div>${escapeHtml(item.phone)}</div><div style="color:#a392da;font-size:12px;">${escapeHtml(formatDate(item.createdAt))}</div></td>`,
+          `<td data-label="Đối tượng">${escapeHtml(item.audience || '')}</td>`,
+          `<td data-label="THPT / MSSV">${escapeHtml(item.schoolOrStudentId || '')}</td>`,
+          `<td data-label="Ngày sinh">${escapeHtml(item.birthDate || '')}</td>`,
+          `<td data-label="Mã giới thiệu">${escapeHtml(item.referralCode || '')}</td>`,
+          `<td data-label="Trạng thái"><span class="huit-reg-status ${item.status}">${statusLabel(item.status)}</span></td>`,
+          `<td data-label="Ưu tiên">${item.priority ? '<span class="huit-reg-priority">Ưu tiên</span>' : ''}</td>`,
+          `<td data-label="Mã vé">${escapeHtml(item.ticketCode || '')}</td>`,
+          `<td data-label="Hành động"><div class="huit-reg-row-actions"><button class="huit-reg-mini-btn success" data-action="approve" data-id="${item.id}">Duyệt</button><button class="huit-reg-mini-btn success" data-action="approve-email" data-id="${item.id}">Duyệt + Email</button><button class="huit-reg-mini-btn danger" data-action="reject" data-id="${item.id}">Từ chối</button><button class="huit-reg-mini-btn warn" data-action="priority" data-id="${item.id}">${item.priority ? 'Bỏ ưu tiên' : 'Ưu tiên'}</button></div>${item.rejectedReason ? `<div style="margin-top:6px;color:#fca5a5;">Lý do: ${escapeHtml(item.rejectedReason)}</div>` : ''}</td>`,
           '</tr>',
         ].join('')).join('');
 
@@ -1294,6 +1797,13 @@
 
           const payload = await response.json();
           regState.items = Array.isArray(payload.items) ? payload.items : [];
+          regState.totalItems = Number(payload?.pagination?.totalItems) || regState.items.length;
+          regState.totalPages = Math.max(1, Number(payload?.pagination?.totalPages) || 1);
+          regState.page = Math.min(
+            Math.max(1, Number(payload?.pagination?.page) || regState.page || 1),
+            regState.totalPages,
+          );
+          regState.pageSize = Math.max(1, Number(payload?.pagination?.pageSize) || regState.pageSize || 10);
           if (eventLabel) {
             eventLabel.textContent = payload.eventTitle
               ? `${payload.eventTitle} - quản lý đăng ký vé`
@@ -1305,11 +1815,14 @@
           setCounters(payload.counters || {});
         } catch (error) {
           regState.items = [];
+          regState.totalItems = 0;
+          regState.totalPages = 1;
           setCounters({});
           setMessage(`Không thể tải dữ liệu đăng ký. ${error && error.message ? error.message : ''}`, 'error');
         } finally {
           regState.loading = false;
           renderTable();
+          renderPagination();
         }
       };
 
@@ -1456,7 +1969,63 @@
         }
       });
 
+      if (checkinInput) {
+        checkinInput.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') {
+            verifyTicketForCheckin();
+          }
+        });
+      }
+
+      if (checkinVerifyBtn) {
+        checkinVerifyBtn.addEventListener('click', () => {
+          verifyTicketForCheckin();
+        });
+      }
+
+      if (checkinConfirmBtn) {
+        checkinConfirmBtn.addEventListener('click', () => {
+          confirmTicketCheckin();
+        });
+      }
+
+      if (checkinScanBtn) {
+        checkinScanBtn.addEventListener('click', () => {
+          startCheckinScanner();
+        });
+      }
+
+      if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', () => {
+          const nextPageSize = Number(pageSizeSelect.value);
+          if (Number.isFinite(nextPageSize) && nextPageSize > 0) {
+            regState.pageSize = nextPageSize;
+          }
+          regState.page = 1;
+          loadData();
+        });
+      }
+
+      updateCheckinConfirmButton();
+      if (pagePrevBtn) {
+        pagePrevBtn.addEventListener('click', () => {
+          if (regState.loading || regState.page <= 1) return;
+          regState.page -= 1;
+          loadData();
+        });
+      }
+
+      if (pageNextBtn) {
+        pageNextBtn.addEventListener('click', () => {
+          if (regState.loading || regState.page >= regState.totalPages) return;
+          regState.page += 1;
+          loadData();
+        });
+      }
+
+      renderPagination();
       card.__huitRegistrationsLoad = loadData;
+      card.__huitRegistrationsStopScanner = stopCheckinScanner;
       return card;
     };
 
@@ -1477,6 +2046,9 @@
     const closeRegistrationsInlinePanel = () => {
       const card = document.getElementById('huit-admin-registrations-card');
       if (card) {
+        if (typeof card.__huitRegistrationsStopScanner === 'function') {
+          card.__huitRegistrationsStopScanner();
+        }
         card.style.display = 'none';
       }
       registrationsUiState.isOpen = false;

@@ -5,8 +5,10 @@ import { AdminGuard } from '../auth/admin.guard';
 
 import { AdminRegistrationQueryDto } from './dto/admin-registration-query.dto';
 import { BulkUpdateAdminRegistrationDto } from './dto/bulk-update-admin-registration.dto';
+import { CheckinTicketDto } from './dto/checkin-ticket.dto';
 import { CreateRegistrationDto } from './dto/create-registration.dto';
 import { UpdateAdminRegistrationDto } from './dto/update-admin-registration.dto';
+import { VerifyTicketDto } from './dto/verify-ticket.dto';
 import { RegistrationService } from './registration.service';
 
 @Controller('registrations')
@@ -40,6 +42,41 @@ export class RegistrationController {
     );
     response.setHeader('Content-Disposition', `attachment; filename="${file.fileName}"`);
     response.send(file.buffer);
+  }
+
+  @Get('admin/:id/preview-ticket-email')
+  @UseGuards(AdminGuard)
+  async previewAdminTicketEmail(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() response: Response,
+  ) {
+    const preview = await this.registrationService.previewTicketEmailForAdmin(id);
+    response.setHeader('Content-Type', 'text/html; charset=utf-8');
+    response.send(preview.html);
+  }
+
+  @Get('admin/:id/preview-ticket-pdf')
+  @UseGuards(AdminGuard)
+  async previewAdminTicketPdf(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() response: Response,
+  ) {
+    const file = await this.registrationService.previewTicketPdfForAdmin(id);
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader('Content-Disposition', `inline; filename="${file.fileName}"`);
+    response.send(file.buffer);
+  }
+
+  @Post('admin/tickets/verify')
+  @UseGuards(AdminGuard)
+  verifyAdminTicket(@Body() payload: VerifyTicketDto) {
+    return this.registrationService.verifyTicketForAdmin(payload);
+  }
+
+  @Post('admin/tickets/checkin')
+  @UseGuards(AdminGuard)
+  checkinAdminTicket(@Body() payload: CheckinTicketDto) {
+    return this.registrationService.checkInTicketForAdmin(payload);
   }
 
   @Get('admin/:id')
