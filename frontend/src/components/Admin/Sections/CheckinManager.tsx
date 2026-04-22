@@ -6,6 +6,7 @@ import styles from './CheckinManager.module.css';
 
 interface CheckinResult {
   kind: 'ok' | 'invalid' | 'wrong_event';
+  status?: string;
   message?: string;
   ticketCode?: string;
   registration?: {
@@ -360,36 +361,36 @@ export default function CheckinManager() {
       {/* Result Modal Overlay */}
       {result && (
         <div className={styles.modalOverlay} onClick={(e) => {
-          if (e.target === e.currentTarget && result.status !== 'valid_pending_checkin') resetScannerUI();
+          if (e.target === e.currentTarget && (result as any).status !== 'valid_pending_checkin') resetScannerUI();
         }}>
           <div className={`${styles.modalContent} ${styles.animateIn}`}>
             <button className={styles.closeModal} onClick={resetScannerUI}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
 
-            <div className={`${styles.resultSection} ${(result.status === 'valid_pending_checkin' || result.status === 'checked_in') ? styles.valid : styles.invalid}`}>
+            <div className={`${styles.resultSection} ${((result as any).status === 'valid_pending_checkin' || (result as any).status === 'checked_in') ? styles.valid : styles.invalid}`}>
               <div className={styles.statusHeader}>
-                <div className={`${styles.statusIcon} ${(result.status === 'valid_pending_checkin' || result.status === 'checked_in') ? styles.valid : styles.invalid}`}>
-                  {(result.status === 'valid_pending_checkin' || result.status === 'checked_in') ? (
+                <div className={`${styles.statusIcon} ${((result as any).status === 'valid_pending_checkin' || (result as any).status === 'checked_in') ? styles.valid : styles.invalid}`}>
+                  {((result as any).status === 'valid_pending_checkin' || (result as any).status === 'checked_in') ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                   )}
                 </div>
                 <div className={styles.statusContent}>
-                  <h2 className={`${styles.statusTitle} ${(result.status === 'valid_pending_checkin' || result.status === 'checked_in') ? styles.valid : styles.invalid}`}>
-                    {(result.status === 'valid_pending_checkin' || result.status === 'checked_in') ? 'VÉ HỢP LỆ' : 'KHÔNG HỢP LỆ'}
+                  <h2 className={`${styles.statusTitle} ${((result as any).status === 'valid_pending_checkin' || (result as any).status === 'checked_in') ? styles.valid : styles.invalid}`}>
+                    {((result as any).status === 'valid_pending_checkin' || (result as any).status === 'checked_in') ? 'VÉ HỢP LỆ' : 'KHÔNG HỢP LỆ'}
                   </h2>
                   <p className={styles.statusSub}>
-                    {(result.status === 'valid_pending_checkin' || result.status === 'checked_in')
-                      ? (result.status === 'already_checked_in' ? 'Vé này đã được sử dụng trước đó' : 'Vé sẵn sàng để vào cổng')
+                    {((result as any).status === 'valid_pending_checkin' || (result as any).status === 'checked_in')
+                      ? ((result as any).status === 'already_checked_in' ? 'Vé này đã được sử dụng trước đó' : 'Vé sẵn sàng để vào cổng')
                       : (result.message || 'Mã vé không tồn tại hoặc đã bị huỷ')
                     }
                   </p>
                 </div>
               </div>
 
-              {(result.status === 'valid_pending_checkin' || result.status === 'checked_in') && (
+              {((result as any).status === 'valid_pending_checkin' || (result as any).status === 'checked_in') && (
                 <>
                   <div className={styles.grid}>
                     <div className={styles.gridItem}>

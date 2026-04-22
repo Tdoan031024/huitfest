@@ -471,6 +471,9 @@ export interface SiteSettings {
   smtpUser?: string | null;
   smtpPass?: string | null;
   smtpFrom?: string | null;
+  ticketLogoUrl?: string | null;
+  ticketBannerUrl?: string | null;
+  ticketPortalUrl?: string | null;
 }
 
 export async function getSiteSettings(): Promise<SiteSettings | null> {
