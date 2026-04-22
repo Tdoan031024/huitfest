@@ -4,12 +4,12 @@ import * as nodemailer from 'nodemailer';
 import PDFDocument = require('pdfkit');
 import * as QRCode from 'qrcode';
 import * as sharpModule from 'sharp';
-import { createHmac, timingSafeEqual } from 'node:crypto';
-import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import * as http from 'node:http';
-import * as https from 'node:https';
-import { join } from 'node:path';
+import { createHmac, timingSafeEqual } from 'crypto';
+import { existsSync } from 'fs';
+import { readFile } from 'fs/promises';
+import * as http from 'http';
+import * as https from 'https';
+import { join } from 'path';
 
 import { EventService } from '../event/event.service';
 import { PrismaService } from '../prisma.service';
@@ -1361,7 +1361,7 @@ export class RegistrationService {
     console.log('[Checkin] Verify request body:', JSON.stringify(payload));
     const event = await this.eventService.getCurrentEvent();
     const resolved = await this.resolveTicketLookup(event.id, payload);
-    console.log('[Checkin] Resolved lookup verify:', JSON.stringify({ kind: resolved.kind, ticketCode: resolved.ticketCode }));
+    console.log('[Checkin] Resolved lookup verify:', JSON.stringify({ kind: resolved.kind, ticketCode: (resolved as any).ticketCode }));
 
     if (resolved.kind === 'wrong_event') {
       throw new BadRequestException(resolved.message);
@@ -1384,7 +1384,7 @@ export class RegistrationService {
       status: 'valid_pending_checkin',
       message: 'Ve hop le. Co the xac nhan vao cong.',
       registration: item,
-      ticketCode: resolved.ticketCode,
+      ticketCode: (resolved as any).ticketCode,
     };
   }
 
@@ -1392,7 +1392,7 @@ export class RegistrationService {
     console.log('[Checkin] Confirm request body:', JSON.stringify(payload));
     const event = await this.eventService.getCurrentEvent();
     const resolved = await this.resolveTicketLookup(event.id, payload);
-    console.log('[Checkin] Resolved lookup for confirm:', JSON.stringify({ kind: resolved.kind, ticketCode: resolved.ticketCode }));
+    console.log('[Checkin] Resolved lookup for confirm:', JSON.stringify({ kind: resolved.kind, ticketCode: (resolved as any).ticketCode }));
 
     if (resolved.kind === 'wrong_event') {
       throw new BadRequestException(resolved.message);
@@ -1439,7 +1439,7 @@ export class RegistrationService {
       status: 'checked_in',
       message: 'Check-in thanh cong.',
       registration: this.toAdminRegistrationRow(updated as RegistrationRecord),
-      ticketCode: resolved.ticketCode,
+      ticketCode: (resolved as any).ticketCode,
     };
   }
 

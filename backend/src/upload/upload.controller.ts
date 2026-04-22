@@ -20,7 +20,7 @@ export class UploadController {
   @UseGuards(AdminGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
     @Body('folder') folder?: string,
   ) {
     if (!file) {

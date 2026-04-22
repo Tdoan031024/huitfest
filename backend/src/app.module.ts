@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'node:path';
+import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AdminAuthModule } from './auth/admin-auth.module';
@@ -20,7 +20,7 @@ const frontendPath = (() => {
     join(process.cwd(), '..', 'fe', 'public'),
   ];
   for (const c of candidates) {
-    if (require('node:fs').existsSync(c)) return c;
+    if (require('fs').existsSync(c)) return c;
   }
   return join(process.cwd(), '..', 'fe', 'public');
 })();

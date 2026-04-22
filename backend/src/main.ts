@@ -2,7 +2,7 @@ import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as express from 'express';
 import { NextFunction, Request, Response } from 'express';
-import { join } from 'node:path';
+import { join } from 'path';
 
 import { AppModule } from './app.module';
 import { AdminAuthService } from './auth/admin-auth.service';
@@ -25,7 +25,7 @@ function getFrontendPublicPath(): string {
   ];
 
   for (const candidate of candidates) {
-    if (require('node:fs').existsSync(candidate)) {
+    if (require('fs').existsSync(candidate)) {
       return candidate;
     }
   }

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { compare } from 'bcryptjs';
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 import { PrismaService } from '../prisma.service';
 

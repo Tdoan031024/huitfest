@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { join } from 'node:path';
-import * as fs from 'node:fs';
+import { join } from 'path';
+import * as fs from 'fs';
 import * as sharp from 'sharp';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class UploadService {
       join(process.cwd(), '..', 'fe', 'public'),
     ];
     for (const c of candidates) {
-      if (require('node:fs').existsSync(c)) return c;
+      if (require('fs').existsSync(c)) return c;
     }
     return join(process.cwd(), '..', 'fe', 'public');
   })();
@@ -56,7 +56,7 @@ export class UploadService {
     return normalized;
   }
 
-  async processImage(file: Express.Multer.File, folder?: string) {
+  async processImage(file: any, folder?: string) {
     if (!file.mimetype.startsWith('image/')) {
        throw new BadRequestException('Only image files are allowed');
     }
