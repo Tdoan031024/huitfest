@@ -1,0 +1,552 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.statCard {
+  background: rgba(141, 74, 255, 0.05);
+  border: 1px solid rgba(141, 74, 255, 0.2);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(216, 180, 254, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #c084fc;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.filters {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filterSelect {
+  background: rgba(141, 74, 255, 0.1);
+  border: 1px solid rgba(141, 74, 255, 0.2);
+  color: #c084fc;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  height: 2.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.filterSelect:hover {
+  background: rgba(141, 74, 255, 0.2);
+  border-color: #c084fc;
+}
+
+.filterSelect option {
+  background: #1a1033;
+  color: #ffffff;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(141, 74, 255, 0.1);
+  border: 1px solid rgba(141, 74, 255, 0.2);
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+  height: 2.25rem;
+  color: rgba(216, 180, 254, 0.5);
+}
+
+.refreshBtn {
+  background: rgba(141, 74, 255, 0.1);
+  border: 1px solid rgba(141, 74, 255, 0.2);
+  color: #c084fc;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: rgba(141, 74, 255, 0.2);
+  border-color: #c084fc;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  font-size: 0.8125rem;
+  color: #ffffff;
+  width: 100%;
+  outline: none;
+}
+
+.tableWrapper {
+  background: rgba(141, 74, 255, 0.03);
+  border: 1px solid rgba(141, 74, 255, 0.1);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 1rem;
+  background: rgba(141, 74, 255, 0.1);
+  color: rgba(216, 180, 254, 0.8);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(141, 74, 255, 0.2);
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(141, 74, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.table tr:hover td {
+  background: rgba(141, 74, 255, 0.05);
+}
+
+.nameCell {
+  font-weight: 600;
+  color: #ffffff !important;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.statusBadge.approved {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.statusBadge.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.statusBadge.pending {
+  background: rgba(234, 179, 8, 0.1);
+  color: #fde047;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.actionBtn {
+  background: transparent;
+  border: none;
+  color: rgba(216, 180, 254, 0.4);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  color: #c084fc;
+  background: rgba(141, 74, 255, 0.1);
+}
+
+.actionBtn.deleteBtn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbarLeft {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .filters {
+    flex-wrap: wrap;
+  }
+  .filterSelect {
+    flex: 1;
+    min-width: 120px;
+  }
+  .searchBox {
+    max-width: 100%;
+  }
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .bulkActions {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.35rem 0.5rem;
+  }
+  .bulkActions button {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0.5rem;
+  }
+  .table {
+    min-width: 650px;
+    font-size: 0.75rem;
+  }
+  .table th, .table td {
+    padding: 0.6rem 0.75rem;
+  }
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.statusLabel {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.openCard .statusLabel {
+  color: #4ade80;
+}
+
+.closedCard .statusLabel {
+  color: #f87171;
+}
+
+.openCard {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.closedCard {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/* Switch styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(141, 74, 255, 0.2);
+  transition: .4s;
+  border-radius: 34px;
+  border: 1px solid rgba(141, 74, 255, 0.3);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .slider {
+  background-color: #4ade80;
+  border-color: #22c55e;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #4ade80;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.statusSelect {
+  background: rgba(141, 74, 255, 0.1);
+  border: 1px solid rgba(141, 74, 255, 0.2);
+  color: #ffffff;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.statusSelect:hover {
+  background: rgba(141, 74, 255, 0.2);
+}
+
+.statusSelect.pending {
+  border-color: rgba(234, 179, 8, 0.4);
+  color: #fde047;
+}
+
+.statusSelect.approved {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+}
+
+.statusSelect.rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.statusSelect.checkedIn {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.3);
+  font-weight: bold;
+}
+
+.statusSelect.isPriority {
+  background: #1a1033;
+  color: #ffffff;
+}
+
+.statusSelect option {
+  background: #1a1033;
+  color: #ffffff;
+}
+
+.changedRow {
+  background: rgba(192, 132, 252, 0.05) !important;
+}
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #c084fc;
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+  box-shadow: 0 0 8px #c084fc;
+}
+
+.statusCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prioritySelect {
+  background: rgba(141, 74, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.2s;
+  min-width: 90px;
+}
+
+.prioritySelect:hover {
+  background: rgba(141, 74, 255, 0.1);
+  border-color: rgba(141, 74, 255, 0.3);
+}
+
+.prioritySelect.isPriority {
+  border-color: rgba(250, 204, 21, 0.4);
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.05);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.1);
+}
+
+.prioritySelect.isPriority:hover {
+  background: rgba(250, 204, 21, 0.1);
+}
+
+.prioritySelect option {
+  background: #1a1033;
+  color: #ffffff;
+}
+
+.bulkActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(192, 132, 252, 0.15);
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bulkCount {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-right: 0.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  padding-right: 0.75rem;
+}
+
+.bulkActions button {
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bulkBtnApprove {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.bulkBtnReject {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.bulkBtnPriority {
+  background: #facc15;
+  color: #000000;
+}
+
+.bulkActions button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.selectedRow td {
+  background: rgba(141, 74, 255, 0.1) !important;
+}
+
+.table td input[type="checkbox"],
+.table th input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #c084fc;
+  width: 16px;
+  height: 16px;
+}
+
+.sendEmailLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  margin-right: 0.25rem;
+  transition: all 0.2s;
+}
+
+.sendEmailLabel:hover {
+  color: #fbbf24;
+}
+
+.sendEmailLabel input {
+  cursor: pointer;
+  accent-color: #fbbf24;
+}

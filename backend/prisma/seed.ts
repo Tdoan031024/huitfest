@@ -1,80 +1,224 @@
 import { PrismaClient } from '@prisma/client';
+import { hash } from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // 0. Seed Admin User
+  const adminUsername = 'admin';
+  const adminPassword = 'admin123';
+  const adminPasswordHash = await hash(adminPassword, 12);
+
+  await prisma.adminuser.upsert({
+    where: { username: adminUsername },
+    update: {
+      passwordHash: adminPasswordHash,
+      isActive: true,
+      updatedAt: new Date(),
+    },
+    create: {
+      username: adminUsername,
+      passwordHash: adminPasswordHash,
+      isActive: true,
+      updatedAt: new Date(),
+    },
+  });
+
+  console.log(`Seeded admin user: ${adminUsername}`);
+
   const event = await prisma.event.upsert({
     where: { slug: 'huitu-fest-2026' },
     update: {
       title: 'HUITU Fest 2026',
-      subtitle: 'Dem nhac lon nhat thang 3',
+      subtitle: 'Đêm nhạc bùng nổ nhất tháng 3',
       description:
-        'Landing page dong cho HUITU Fest 2026 voi du lieu duoc quan ly tu he thong.',
+        'Với sự góp mặt của hàng loạt nghệ sĩ hàng đầu, HUITU Fest 2026 hứa hẹn sẽ là đêm nhạc không thể nào quên dành riêng cho các bạn sinh viên HUIT.',
       startAt: new Date('2026-03-22T08:30:00.000Z'),
       endAt: new Date('2026-03-22T15:00:00.000Z'),
-      registrationOpen: false,
+      registrationOpen: true,
       updatedAt: new Date(),
     },
     create: {
       slug: 'huitu-fest-2026',
       title: 'HUITU Fest 2026',
-      subtitle: 'Dem nhac lon nhat thang 3',
+      subtitle: 'Đêm nhạc bùng nổ nhất tháng 3',
       description:
-        'Landing page dong cho HUITU Fest 2026 voi du lieu duoc quan ly tu he thong.',
+        'Với sự góp mặt của hàng loạt nghệ sĩ hàng đầu, HUITU Fest 2026 hứa hẹn sẽ là đêm nhạc không thể nào quên dành riêng cho các bạn sinh viên HUIT.',
       heroImage:
-        '/w.ladicdn.com/s1100x950/6981a16d67d19e0012bf5d55/nui-ca-si-20260316083752-_dgqx.png',
+        '/assets/images/hero_image.png',
       startAt: new Date('2026-03-22T08:30:00.000Z'),
       endAt: new Date('2026-03-22T15:00:00.000Z'),
-      registrationOpen: false,
+      registrationOpen: true,
       updatedAt: new Date(),
     },
   });
 
+  // Clear old data
   await prisma.artist.deleteMany({ where: { eventId: event.id } });
-  await prisma.agendaitem.deleteMany({ where: { eventId: event.id } });
+  await prisma.timelineitem.deleteMany({ where: { eventId: event.id } });
+  await prisma.talent.deleteMany({ where: { eventId: event.id } });
+  await prisma.instruction.deleteMany({ where: { eventId: event.id } });
+  await prisma.rule.deleteMany({ where: { eventId: event.id } });
 
+  // 1. Artists
   await prisma.artist.createMany({
     data: [
-      { eventId: event.id, name: 'Noo Phuoc Thinh', sortOrder: 1 },
-      { eventId: event.id, name: 'Tang Duy Tan', sortOrder: 2 },
-      { eventId: event.id, name: 'Orange', sortOrder: 3 },
-      { eventId: event.id, name: 'MONO', sortOrder: 4 },
+      { eventId: event.id, name: 'Noo Phước Thịnh', imageUrl: '/assets/images/artists/noo.png', sortOrder: 1 },
+      { eventId: event.id, name: 'Tăng Duy Tân', imageUrl: '/assets/images/artists/tangduytan.png', sortOrder: 2 },
+      { eventId: event.id, name: 'Orange', imageUrl: '/assets/images/artists/orange.png', sortOrder: 3 },
+      { eventId: event.id, name: 'MONO', imageUrl: '/assets/images/artists/mono.png', sortOrder: 4 },
     ],
   });
 
-  await prisma.agendaitem.createMany({
+  // 2. Timeline
+  await prisma.timelineitem.createMany({
     data: [
       {
         eventId: event.id,
-        title: 'Don khach va check-in',
-        startTime: new Date('2026-03-22T08:30:00.000Z'),
-        endTime: new Date('2026-03-22T10:00:00.000Z'),
+        time: '14:00',
+        title: 'ĐÓN KHÁCH & CHECK-IN',
+        description: 'Cổng check-in fanzone mở cửa đón chào các bạn',
         sortOrder: 1,
       },
       {
         eventId: event.id,
-        title: 'Giao luu cung khan gia',
-        startTime: new Date('2026-03-22T10:00:00.000Z'),
-        endTime: new Date('2026-03-22T10:30:00.000Z'),
+        time: '17:00',
+        title: 'GIAO LƯU KHÁN GIẢ',
+        description: 'Các hoạt động mini-game nhận quà tại sân khấu chính',
         sortOrder: 2,
       },
       {
         eventId: event.id,
-        title: 'Chuong trinh nghe si khach moi',
-        startTime: new Date('2026-03-22T11:10:00.000Z'),
-        endTime: new Date('2026-03-22T13:00:00.000Z'),
+        time: '19:30',
+        title: 'BÙNG NỔ CÙNG BLACKJACK',
+        description: 'Bùng nổ cùng các nghệ sĩ hàng đầu Việt Nam',
         sortOrder: 3,
       },
     ],
   });
 
-  // eslint-disable-next-line no-console
-  console.log('Seed done for event:', event.slug);
+  // 3. Talents
+  await prisma.talent.createMany({
+    data: [
+      {
+        eventId: event.id,
+        name: 'CLB Âm Nhạc HUIT',
+        imageUrl: '/assets/images/talents/talent1.png',
+        description: 'Nơi hội tụ những giọng ca vàng của sinh viên HUIT.',
+        status: 'revealed',
+        sortOrder: 1,
+      },
+      {
+        eventId: event.id,
+        name: 'CLB Nhảy Hiện Đại',
+        imageUrl: '/assets/images/talents/talent2.png',
+        description: 'Những bước nhảy sôi động và đầy nhiệt huyết.',
+        status: 'revealed',
+        sortOrder: 2,
+      },
+      {
+        eventId: event.id,
+        name: 'Nhóm Rap HUIT',
+        imageUrl: '/assets/images/talents/talent3.png',
+        description: 'Phong cách rap cực chất từ các rapper GenZ.',
+        status: 'revealed',
+        sortOrder: 3,
+      },
+      {
+        eventId: event.id,
+        name: 'CLB Acoustic',
+        imageUrl: '/assets/images/talents/talent4.png',
+        description: 'Những giai điệu sâu lắng bên tiếng đàn guitar.',
+        status: 'revealed',
+        sortOrder: 4,
+      },
+    ],
+  });
+
+  // 4. Instructions
+  await prisma.instruction.createMany({
+    data: [
+      {
+        eventId: event.id,
+        title: 'Đăng ký vé trực tuyến',
+        content: 'Truy cập vào trang chủ, nhấn nút "Đăng ký nhận vé" và điền đầy đủ thông tin cá nhân theo yêu cầu.',
+        sortOrder: 1,
+      },
+      {
+        eventId: event.id,
+        title: 'Xác nhận qua Email',
+        content: 'Sau khi đăng ký thành công, bạn sẽ nhận được một email xác nhận kèm mã QR cá nhân.',
+        sortOrder: 2,
+      },
+      {
+        eventId: event.id,
+        title: 'Đổi vé tại sự kiện',
+        content: 'Mang theo mã QR và thẻ sinh viên đến cổng check-in vào ngày sự kiện để nhận vòng tay fanzone.',
+        sortOrder: 3,
+      },
+    ],
+  });
+
+  // 5. Rules
+  await prisma.rule.createMany({
+    data: [
+      {
+        eventId: event.id,
+        title: 'QUY ĐỊNH CHUNG',
+        content: '1. Mang theo thẻ sinh viên chính chủ.\n2. Không mang chất cấm, vật nhọn.\n3. Tuân thủ hướng dẫn của BTC.',
+        sortOrder: 1,
+      },
+    ],
+  });
+
+  // 6. Journey
+  await prisma.journeyitem.createMany({
+    data: [
+      {
+        eventId: event.id,
+        title: 'KHÔNG GIAN ÂM NHẠC HOÀNH TRÁNG',
+        content: 'Không gian âm nhạc ngoài trời với sức nóng của mùa hè và nhiệt huyết tuổi trẻ!',
+        imageUrl: '/assets/images/banner/hanhtrinfh14.jpg',
+        sortOrder: 1,
+      },
+      {
+        eventId: event.id,
+        title: 'GẶP GỠ LOẠT IDOLS ĐÌNH ĐÁM',
+        content: 'Cháy hết mình cùng dàn line-up xịn sò ngay tại sân khấu HUIT Fest: Noo Phước Thịnh, Tăng Duy Tân, MONO, Orange...',
+        imageUrl: '/assets/images/banner/banner.png',
+        sortOrder: 2,
+      },
+    ],
+  });
+
+  // Banners (Global)
+  await prisma.banner.deleteMany({});
+  await prisma.banner.createMany({
+    data: [
+      {
+        imageUrl: '/assets/images/banner/banner1.jpg',
+        title: 'HUIT FEST 2026',
+        subtitle: 'Lễ hội âm nhạc bùng nổ nhất năm',
+        linkUrl: '#',
+        sortOrder: 1,
+        isActive: true,
+      },
+      {
+        imageUrl: '/assets/images/banner/banner2.jpg',
+        title: 'ĐĂNG KÝ NGAY',
+        subtitle: 'Nhận vé tham gia miễn phí dành cho sinh viên',
+        linkUrl: '#',
+        sortOrder: 2,
+        isActive: true,
+      },
+    ],
+  });
+
+  console.log('Seed completed successfully for event HUITU Fest 2026');
 }
 
 main()
   .catch((error) => {
-    // eslint-disable-next-line no-console
     console.error(error);
     process.exit(1);
   })

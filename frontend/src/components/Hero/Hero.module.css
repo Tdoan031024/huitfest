@@ -1,0 +1,138 @@
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 400px;
+  overflow: hidden;
+  background: #000;
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.slideContent {
+  position: relative;
+  z-index: 20;
+  text-align: center;
+  max-width: 800px;
+  padding: 0 2rem;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.title {
+  font-size: 4rem;
+  font-weight: 900;
+  color: white;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(168, 85, 247, 0.3);
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.ctaButton {
+  display: inline-block;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+}
+
+.ctaButton:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.6);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(11, 4, 36, 0.2) 0%, transparent 50%, rgba(11, 4, 36, 0.8) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+@media (max-width: 767px) {
+  .hero {
+    height: 60vh;
+  }
+  .title {
+    font-size: 2.25rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* ADDED RESPONSIVE FIXES */
+@media (max-width: 1024px) {
+  .title { font-size: 3rem !important; }
+  .subtitle { font-size: 1.1rem !important; }
+}
+@media (max-width: 767px) {
+  .hero { 
+    height: auto !important; 
+    aspect-ratio: 16 / 9 !important;
+    min-height: unset !important;
+    display: block !important;
+  }
+  .slide { 
+    height: 100% !important;
+    background-size: cover !important; 
+    background-position: center !important; 
+  }
+  .slideContent {
+    background: none !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+    position: absolute !important;
+    bottom: 15px !important;
+    left: 0 !important;
+    transform: none !important;
+    animation: fadeInUp 1s ease-out !important;
+  }
+  .title { font-size: 1.2rem !important; line-height: 1.1 !important; margin-bottom: 0.3rem !important; }
+  .subtitle { font-size: 0.75rem !important; margin-bottom: 0.8rem !important; }
+  .ctaButton { padding: 0.5rem 1.2rem !important; font-size: 0.7rem !important; }
+}

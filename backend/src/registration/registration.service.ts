@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import * as nodemailer from 'nodemailer';
 import PDFDocument = require('pdfkit');
@@ -67,6 +67,9 @@ type RegistrationRecord = {
   fullName: string;
   email: string;
   phone: string;
+  birthDate: string | null;
+  referralCode: string | null;
+  userType: string | null;
   role: string | null;
   school: string | null;
   major: string | null;
@@ -194,8 +197,9 @@ export class RegistrationService {
       schoolOrStudentId,
       schoolName: registration.school || '',
       studentId: registration.major || '',
-      birthDate: registration.province || '',
-      referralCode: registration.campus || '',
+      birthDate: registration.birthDate || '',
+      referralCode: registration.referralCode || '',
+      userType: registration.userType || '',
       status,
       priority: Boolean(parsed.adminMeta.priority),
       rejectedReason: parsed.adminMeta.rejectedReason || '',
@@ -467,108 +471,151 @@ export class RegistrationService {
     logoBuffer = await this.normalizePdfImageBuffer(logoBuffer);
     bannerBuffer = await this.normalizePdfImageBuffer(bannerBuffer);
 
+    // ── HEADER: Logo left | FANZONE title right ──────────────────────────────
     if (logoBuffer) {
       try {
-        doc.image(logoBuffer, leftX, contentY + 2, { width: 94 });
+        doc.image(logoBuffer, leftX, contentY, { height: 40 });
       } catch {
-        setBold().fontSize(18).fillColor('#111827').text('HUIT FEST', leftX, contentY + 8);
+        setBold().fontSize(16).fillColor('#111827').text('HUIT FEST', leftX, contentY + 6);
       }
     } else {
-      setBold().fontSize(18).fillColor('#111827').text('HUIT FEST', leftX, contentY + 8);
+      setBold().fontSize(16).fillColor('#111827').text('HUIT FEST', leftX, contentY + 6);
     }
 
-    setBold().fontSize(30).fillColor('#111827').text('FANZONE', rightX, contentY + 2, { width: rightWidth });
-    doc.moveTo(leftX, contentY + 52).lineTo(contentX + contentWidth, contentY + 52).strokeColor('#e5e7eb').lineWidth(1).stroke();
-
-    setBold().fontSize(14).fillColor('#111827').text('VÉ THAM DỰ SỰ KIỆN', leftX, contentY + 62, { width: leftWidth });
-    setRegular().fontSize(10).fillColor('#4b5563').text('Vé của bạn đã sẵn sàng. Chúc bạn có trải nghiệm thật vui!', leftX, contentY + 80, { width: leftWidth });
-
-    setBold().fontSize(11).fillColor('#111827').text('Mã vé', rightX, contentY + 64);
-    setRegular().fontSize(11).fillColor('#111827').text(`#${truncate(payload.ticketCode, 28)}`, rightX + 78, contentY + 64, {
-      width: rightWidth - 78,
-      align: 'right',
-      lineBreak: false,
-    });
-    setBold().fontSize(11).fillColor('#111827').text('Thông tin vé', rightX, contentY + 84);
-    setRegular().fontSize(11).fillColor('#111827').text(truncate(payload.ticketInfo, 22), rightX + 78, contentY + 84, {
-      width: rightWidth - 78,
-      align: 'right',
+    // TICKET TYPE (top-right)
+    setBold().fontSize(26).fillColor('#111827').text(truncate(payload.ticketInfo, 20).toUpperCase(), rightX, contentY, {
+      width: rightWidth,
       lineBreak: false,
     });
 
+    // Divider
+    const dividerY = contentY + 48;
+    doc.moveTo(leftX, dividerY).lineTo(contentX + contentWidth, dividerY).strokeColor('#e5e7eb').lineWidth(1).stroke();
+
+    // ── GREETING ────────────────────────────────────────────────────────────
+    const greetY = dividerY + 10;
+    setBold().fontSize(13).fillColor('#111827').text('Chúc bạn có thật nhiều niềm vui nhé!', leftX, greetY, { width: leftWidth });
+    setRegular().fontSize(9).fillColor('#6b7280').text('Your ticket is ready. Have fun with the show!', leftX, greetY + 18, { width: leftWidth });
+
+    // ── Mã vé / Số ghế (top-right below title) ──────────────────────────────
+    const infoRightY = dividerY + 10;
+    const labelCol = 60;
+    // Mã vé
+    setBold().fontSize(9).fillColor('#111827').text('Mã vé', rightX, infoRightY);
+    setRegular().fontSize(8).fillColor('#9ca3af').text('Ticket code', rightX, infoRightY + 11);
+    setRegular().fontSize(10).fillColor('#111827').text(truncate(payload.ticketCode, 24), rightX + labelCol, infoRightY, {
+      width: rightWidth - labelCol,
+      align: 'right',
+      lineBreak: false,
+    });
+    doc.moveTo(rightX, infoRightY + 22).lineTo(rightX + rightWidth, infoRightY + 22).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+    // Số ghế
+    setBold().fontSize(9).fillColor('#111827').text('Số ghế', rightX, infoRightY + 28);
+    setRegular().fontSize(8).fillColor('#9ca3af').text('Seat code', rightX, infoRightY + 39);
+    setRegular().fontSize(10).fillColor('#111827').text(truncate(payload.ticketInfo, 24), rightX + labelCol, infoRightY + 28, {
+      width: rightWidth - labelCol,
+      align: 'right',
+      lineBreak: false,
+    });
+    doc.moveTo(rightX, infoRightY + 50).lineTo(rightX + rightWidth, infoRightY + 50).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+
+    // ── LEFT: Banner image ────────────────────────────────────────────────
+    const bannerY = greetY + 40;
+    const bannerH = 116;
     if (bannerBuffer) {
       try {
-        doc.image(bannerBuffer, leftX, contentY + 106, { width: leftWidth, height: 122 });
+        doc.image(bannerBuffer, leftX, bannerY, { width: leftWidth, height: bannerH });
       } catch {
-        doc.rect(leftX, contentY + 106, leftWidth, 122).fill('#e5e7eb');
+        doc.rect(leftX, bannerY, leftWidth, bannerH).fill('#e5e7eb');
       }
     } else {
-      doc.rect(leftX, contentY + 106, leftWidth, 122).fill('#e5e7eb');
+      doc.rect(leftX, bannerY, leftWidth, bannerH).fill('#e5e7eb');
     }
 
-    const titleY = contentY + 242;
-    setBold().fontSize(16).fillColor('#111827').text(truncate(payload.eventName, 34), leftX, titleY, {
+    // ── LEFT: Event name & info rows ─────────────────────────────────────
+    const titleY = bannerY + bannerH + 10;
+    setBold().fontSize(15).fillColor('#111827').text(truncate(payload.eventName, 32), leftX, titleY, {
       width: leftWidth,
       lineBreak: false,
     });
 
-    let rowY = titleY + 24;
-    const rowHeight = 21;
-    const drawRow = (label: string, value: string) => {
-      setBold().fontSize(10).fillColor('#111827').text(label, leftX, rowY + 5, { width: 98, lineBreak: false });
-      setRegular().fontSize(10).fillColor('#111827').text(value, leftX + 102, rowY + 5, {
-        width: leftWidth - 102,
+    // Date + Location (below event name, smaller)
+    setRegular().fontSize(9).fillColor('#4b5563')
+      .text(truncate(payload.eventDateTime, 38), leftX, titleY + 20, { width: leftWidth })
+      .text(truncate(payload.eventLocation, 60), leftX, titleY + 32, { width: leftWidth });
+
+    doc.moveTo(leftX, titleY + 52).lineTo(leftX + leftWidth, titleY + 52).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+
+    // Draw bilingual rows (label Viet / sub English / value right)
+    let rowY = titleY + 58;
+    const rowH = 28;
+
+    const drawBiRow = (labelVi: string, labelEn: string, value: string) => {
+      setBold().fontSize(9).fillColor('#111827').text(labelVi, leftX, rowY, { width: 110, lineBreak: false });
+      setRegular().fontSize(7.5).fillColor('#9ca3af').text(labelEn, leftX, rowY + 11, { width: 110, lineBreak: false });
+      setRegular().fontSize(9).fillColor('#111827').text(value, leftX + 114, rowY + 4, {
+        width: leftWidth - 114,
         align: 'right',
         lineBreak: false,
       });
-      doc.moveTo(leftX, rowY + rowHeight).lineTo(leftX + leftWidth, rowY + rowHeight).strokeColor('#e5e7eb').lineWidth(1).stroke();
-      rowY += rowHeight;
+      doc.moveTo(leftX, rowY + rowH).lineTo(leftX + leftWidth, rowY + rowH).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+      rowY += rowH;
     };
 
-    drawRow('Ngày giờ', truncate(payload.eventDateTime, 26));
-    drawRow('Địa điểm', truncate(payload.eventLocation, 36));
-    drawRow('Tên khách hàng', truncate(payload.fullName, 30));
-    drawRow('Email', truncate(payload.email, 36));
-    drawRow('Số điện thoại', truncate(payload.phone || '-', 20));
-    drawRow('Mã đặt chỗ', `#${truncate(payload.ticketCode, 24)}`);
-    drawRow('Loại vé', truncate(payload.ticketInfo, 24));
-    drawRow('Thời gian nhận vé', truncate(payload.sentAt, 26));
+    drawBiRow('Tên khách hàng', 'Customer', truncate(payload.fullName, 28));
+    drawBiRow('Địa chỉ thư điện tử', 'Email', truncate(payload.email, 32));
+    drawBiRow('Số điện thoại', 'Phone Number', truncate(payload.phone || '-', 18));
 
-    const noteY = rowY + 10;
-    doc.roundedRect(leftX, noteY, leftWidth, 76, 4).fill('#dbf4df');
-    setBold().fillColor('#166534').fontSize(11).text('Lưu ý của ban tổ chức', leftX + 10, noteY + 12);
-    setRegular().fillColor('#166534').fontSize(9).text('Không phải bản in vé. Vui lòng mở điện thoại để check-in tại cổng.', leftX + 10, noteY + 30, {
-      width: leftWidth - 20,
-    });
+    // ── LEFT: Note box ────────────────────────────────────────────────────
+    const noteY = rowY + 8;
+    const noteH = 58;
+    doc.roundedRect(leftX, noteY, leftWidth, noteH, 4).fill('#f0fdf4');
+    doc.roundedRect(leftX, noteY, leftWidth, noteH, 4).strokeColor('#86efac').lineWidth(0.8).stroke();
+    setBold().fontSize(9).fillColor('#166534').text('Lưu ý của ban tổ chức', leftX + 8, noteY + 8);
+    setRegular().fontSize(7.5).fillColor('#6b7280').text('Attention', leftX + 8, noteY + 19);
+    setRegular().fontSize(8.5).fillColor('#166534').text(
+      'Kh\u00f4ng ph\u00e2n bi\u1ec7t v\u1ecb tr\u00ed khi tham d\u1ef1 s\u1ef1 ki\u1ec7n',
+      leftX + 8, noteY + 30,
+      { width: leftWidth - 16 }
+    );
 
+    // ── RIGHT: QR Code (large) ─────────────────────────────────────────────
+    const qrStartY = infoRightY + 60;
+    const qrSize = rightWidth;
     if (qrBuffer) {
       try {
-        doc.image(qrBuffer, rightX, qrY, { width: rightWidth, height: rightWidth });
+        doc.image(qrBuffer, rightX, qrStartY, { width: qrSize, height: qrSize });
       } catch {
-        doc.rect(rightX, qrY, rightWidth, rightWidth).fill('#f3f4f6');
+        doc.rect(rightX, qrStartY, qrSize, qrSize).fill('#f3f4f6');
       }
     } else {
-      doc.rect(rightX, qrY, rightWidth, rightWidth).fill('#f3f4f6');
+      doc.rect(rightX, qrStartY, qrSize, qrSize).fill('#f3f4f6');
     }
 
-    setRegular().fontSize(9).fillColor('#6b7280').text('Mã QR chỉ được check-in một lần duy nhất.', rightX, qrY + rightWidth + 10, { width: rightWidth });
-    doc.text('Vui lòng bảo mật thông tin mã QR trên vé của mình.', rightX, qrY + rightWidth + 24, { width: rightWidth });
+    // QR note
+    const qrNoteY = qrStartY + qrSize + 8;
+    setRegular().fontSize(8).fillColor('#6b7280')
+      .text('M\u00e3 QR ch\u1ec9 \u0111\u01b0\u1ee3c check-in m\u1ed9t l\u1ea7n duy nh\u1ea5t. Vui l\u00f2ng b\u1ea3o m\u1eadt th\u00f4ng tin m\u00e3 QR tr\u00ean v\u00e9 c\u1ee7a m\u00ecnh.', rightX, qrNoteY, { width: rightWidth })
+      .text('Each QR code can only be checked in once. Please keep your QR code secure.', rightX, qrNoteY + 20, { width: rightWidth });
 
-    const supportY = qrY + rightWidth + 62;
-    doc.moveTo(rightX, supportY - 8).lineTo(rightX + rightWidth, supportY - 8).strokeColor('#e5e7eb').lineWidth(1).stroke();
-    const ticketPortalUrl = (process.env.TICKET_PORTAL_URL || 'https://huitfest.huitmedia.edu.vn/').trim();
-    setBold().fillColor('#111827').fontSize(12).text('Thông tin hỗ trợ', rightX, supportY);
-    setRegular().fillColor('#374151').fontSize(10)
-      .text(`Email: ${truncate(payload.supportEmail, 42)}`, rightX, supportY + 18, { width: rightWidth })
-      .text(`Hotline: ${truncate(payload.supportPhone, 24)}`, rightX, supportY + 34, { width: rightWidth })
-      .text(`Link vé: ${truncate(ticketPortalUrl, 92)}`, rightX, supportY + 50, { width: rightWidth, height: 56 });
+    // ── RIGHT: Ghi chú ────────────────────────────────────────────────────
+    const noteRightY = qrNoteY + 44;
+    doc.moveTo(rightX, noteRightY - 4).lineTo(rightX + rightWidth, noteRightY - 4).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+    setBold().fontSize(9).fillColor('#111827').text('Ghi ch\u00fa', rightX, noteRightY);
+    setRegular().fontSize(7.5).fillColor('#9ca3af').text('Note', rightX, noteRightY + 11);
+    setRegular().fontSize(8).fillColor('#6b7280').text(
+      'V\u00e9 \u0111i\u1ec7n t\u1eed. Vui l\u00f2ng d\u00f9ng \u0111i\u1ec7n tho\u1ea1i m\u1edf link n\u00e0y khi \u0111\u1ebfn s\u1ef1 ki\u1ec7n.',
+      rightX, noteRightY + 22, { width: rightWidth }
+    );
 
-    doc.rect(cardX, pageHeight - 56, cardWidth, 28).fill('#dc2626');
-    setBold().fillColor('#ffffff').fontSize(12).text('HƯỚNG DẪN SỬ DỤNG VÉ', cardX, pageHeight - 48, {
-      width: cardWidth,
-      align: 'center',
-      lineBreak: false,
-    });
+    // ── RIGHT: Thông tin hỗ trợ ───────────────────────────────────────────
+    const supportY = noteRightY + 52;
+    doc.moveTo(rightX, supportY - 4).lineTo(rightX + rightWidth, supportY - 4).strokeColor('#e5e7eb').lineWidth(0.5).stroke();
+    setBold().fontSize(9).fillColor('#111827').text('Th\u00f4ng tin h\u1ed7 tr\u1ee3', rightX, supportY);
+    setRegular().fontSize(7.5).fillColor('#9ca3af').text('Support', rightX, supportY + 11);
+    setRegular().fontSize(8.5).fillColor('#374151')
+      .text(`Email: ${truncate(payload.supportEmail, 38)}`, rightX, supportY + 22, { width: rightWidth })
+      .text(`Hotline: ${truncate(payload.supportPhone, 24)}`, rightX, supportY + 34, { width: rightWidth });
 
     doc.end();
     return done;
@@ -649,7 +696,7 @@ export class RegistrationService {
 
   private buildTicketVerifyUrl(token: string): string {
     const siteUrl = (process.env.PUBLIC_SITE_URL || 'https://huitfest.local').replace(/\/+$/, '');
-    return `${siteUrl}/admin/index.html?checkin=1&ticketToken=${encodeURIComponent(token)}`;
+    return `${siteUrl}/admin?checkin=1&ticketToken=${encodeURIComponent(token)}`;
   }
 
   private extractTokenFromText(raw: string | undefined): string {
@@ -677,14 +724,15 @@ export class RegistrationService {
     const raw = String(code || '').trim();
     if (!raw) return '';
 
-    try {
-      const asUrl = new URL(raw);
-      const fromQuery = asUrl.searchParams.get('ticketCode') || asUrl.searchParams.get('code');
-      if (fromQuery) return fromQuery.trim();
-      return '';
-    } catch {
-      return raw;
+    if (raw.toLowerCase().startsWith('http')) {
+      try {
+        const asUrl = new URL(raw);
+        const fromQuery = asUrl.searchParams.get('ticketCode') || asUrl.searchParams.get('code');
+        if (fromQuery) return fromQuery.trim().replace(/^#/, '');
+      } catch (e) {}
     }
+
+    return raw.replace(/^#/, '');
   }
 
   private async findApprovedRegistrationByTicketCode(
@@ -847,7 +895,7 @@ export class RegistrationService {
       const verifyUrl = this.buildTicketVerifyUrl(ticketToken);
 
       try {
-        const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
+        const qrCodeDataUrl = await QRCode.toDataURL(ticketCode, {
           errorCorrectionLevel: 'M',
           margin: 2,
           width: 260,
@@ -914,36 +962,111 @@ export class RegistrationService {
     };
   }
 
-  private async buildApprovalTicketEmailContent(payload: {
-    fullName: string;
-    email: string;
-    phone: string;
-    eventTitle: string;
-    ticketCode: string;
-    verifyUrl: string;
-    qrCodeDataUrl: string;
-  }) {
-    const smtpUser = process.env.SMTP_USER;
-    const fromAddress = process.env.SMTP_FROM || smtpUser || 'no-reply@huitfest.local';
+  private async buildApprovalTicketEmailContent(
+    payload: {
+      fullName: string;
+      email: string;
+      phone: string;
+      eventTitle: string;
+      ticketCode: string;
+      verifyUrl: string;
+      qrCodeDataUrl: string;
+    },
+    options: { isPreview?: boolean } = {},
+  ) {
+    const isPreview = options.isPreview || false;
+    const settings = await this.prisma.sitesettings.findFirst();
+    
+    const smtpUser = settings?.smtpUser || process.env.SMTP_USER;
+    const fromAddress = settings?.smtpFrom || process.env.SMTP_FROM || smtpUser || 'no-reply@huitfest.local';
     const siteUrl = process.env.PUBLIC_SITE_URL || 'https://huitfest.local';
     const cleanSiteUrl = siteUrl.replace(/\/+$/, '');
-    const ticketPortalUrl = process.env.TICKET_PORTAL_URL || 'https://huitfest.huitmedia.edu.vn/';
-    const assetBaseUrl = (process.env.EMAIL_ASSET_BASE_URL || ticketPortalUrl || cleanSiteUrl).replace(/\/+$/, '');
-    const logoUrl =
-      process.env.EMAIL_LOGO_URL || `${assetBaseUrl}/assets/images/sponsors/1774771329898-38204467.webp`;
-    const bannerUrl =
-      process.env.EMAIL_BANNER_URL || `${assetBaseUrl}/assets/images/banner/1774848130318-606733103.webp`;
-    const eventInfoUrl = process.env.EVENT_INFO_URL || ticketPortalUrl;
-    const supportEmail = process.env.EVENT_SUPPORT_EMAIL || 'dovantuyendoan14@gmail.com';
-    const supportPhone = process.env.EVENT_SUPPORT_PHONE || '0888854212';
+    const ticketPortalUrl = settings?.ticketPortalUrl || process.env.TICKET_PORTAL_URL || cleanSiteUrl;
+    // Helper: detect mime type from extension
+    const guessMime = (url: string): string => {
+      const ext = (url.split('?')[0].split('.').pop() || '').toLowerCase();
+      if (ext === 'png') return 'image/png';
+      if (ext === 'gif') return 'image/gif';
+      if (ext === 'webp') return 'image/webp';
+      if (ext === 'svg') return 'image/svg+xml';
+      return 'image/jpeg';
+    };
+
+    // Helper: read image buffer from relative path (e.g. /assets/images/...)
+    const readImageBuffer = async (relPath: string): Promise<Buffer | null> => {
+      const cleanPath = relPath.replace(/^[\/]+/, '');
+      const runtimeRoots = this.getRuntimeRoots();
+      const candidates = runtimeRoots.flatMap((root) => [
+        join(root, 'fe', 'public', cleanPath),
+        join(root, 'frontend', 'public', cleanPath),
+        join(root, 'public', cleanPath),
+        join(root, cleanPath),
+      ]);
+      return this.readFirstAvailableBuffer(candidates);
+    };
+
+    // Helper: resolve image buffer (disk first, then HTTP download)
+    const resolveImageBuffer = async (rawUrl: string | null | undefined): Promise<Buffer | null> => {
+      if (!rawUrl) return null;
+      if (rawUrl.startsWith('data:')) return null; // data URIs can't be downloaded
+
+      // Relative path → read from disk
+      if (!rawUrl.startsWith('http')) {
+        const buf = await readImageBuffer(rawUrl);
+        if (buf) return buf;
+        console.warn('[EMAIL IMAGE] Cannot read from disk:', rawUrl);
+        return null;
+      }
+
+      // Absolute URL → try pathname on disk first
+      try {
+        const parsed = new URL(rawUrl);
+        if (parsed.pathname && parsed.pathname !== '/') {
+          const diskBuf = await readImageBuffer(parsed.pathname);
+          if (diskBuf) {
+            console.log('[EMAIL IMAGE] Loaded from disk:', parsed.pathname);
+            return diskBuf;
+          }
+        }
+      } catch { /* ignore */ }
+
+      // Fallback: download
+      console.log('[EMAIL IMAGE] Downloading:', rawUrl);
+      const buf = await this.downloadBufferFromUrl(rawUrl);
+      if (buf) return buf;
+
+      console.warn('[EMAIL IMAGE] Failed to load:', rawUrl);
+      return null;
+    };
+
+    // Determine source URLs for logo and banner
+    const rawLogoUrl = settings?.ticketLogoUrl || process.env.EMAIL_LOGO_URL || `/assets/images/logo/logohuit.webp`;
+    const rawBannerUrl = settings?.ticketBannerUrl || process.env.EMAIL_BANNER_URL || `/assets/images/banner/banner.webp`;
+
+    // Load image buffers (will be attached as CID inline attachments in email)
+    const logoBuffer = await resolveImageBuffer(rawLogoUrl);
+    const bannerBuffer = await resolveImageBuffer(rawBannerUrl);
+
+    console.log('[EMAIL IMAGE] logo buffer:', logoBuffer ? `${logoBuffer.length} bytes` : 'EMPTY');
+    console.log('[EMAIL IMAGE] banner buffer:', bannerBuffer ? `${bannerBuffer.length} bytes` : 'EMPTY');
+
+    // For preview in browser: use data URIs (data: URIs work in iframe/browser)
+    const logoMime = guessMime(rawLogoUrl);
+    const bannerMime = guessMime(rawBannerUrl);
+    const logoDataUri = logoBuffer ? `data:${logoMime};base64,${logoBuffer.toString('base64')}` : '';
+    const bannerDataUri = bannerBuffer ? `data:${bannerMime};base64,${bannerBuffer.toString('base64')}` : '';
+
+    const eventInfoUrl = settings?.ticketInfoUrl || process.env.EVENT_INFO_URL || ticketPortalUrl;
+    const supportEmail = settings?.ticketSupportEmail || process.env.EVENT_SUPPORT_EMAIL || 'dovantuyendoan14@gmail.com';
+    const supportPhone = settings?.ticketSupportPhone || process.env.EVENT_SUPPORT_PHONE || '0888854212';
 
     const now = new Date();
     const pad = (value: number) => String(value).padStart(2, '0');
     const sentAt = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}, ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    const eventDateTime = process.env.EVENT_DATETIME || '23-04-2025, 14:44';
-    const eventLocation = process.env.EVENT_LOCATION || '1A PHOENIX';
-    const ticketInfo = process.env.EVENT_TICKET_INFO || 'LA FONDE';
-    const eventName = process.env.EVENT_DISPLAY_NAME || payload.eventTitle || 'HUFFEST 2025';
+    const eventDateTime = settings?.ticketEventDateTime || process.env.EVENT_DATETIME || '23-04-2025, 14:44';
+    const eventLocation = settings?.ticketEventLocation || process.env.EVENT_LOCATION || '1A PHOENIX';
+    const ticketInfo = settings?.ticketInfo || process.env.EVENT_TICKET_INFO || 'LA FONDE';
+    const eventName = settings?.ticketEventName || process.env.EVENT_DISPLAY_NAME || payload.eventTitle || 'HUFFEST 2025';
 
     // Keep this value read to preserve compatibility with previous call sites.
     const qrCodeDataUrl = payload.qrCodeDataUrl;
@@ -964,103 +1087,102 @@ export class RegistrationService {
     });
 
     const subject = `[HUIT Media] Vé điện tử tham dự - ${eventName}`;
+    const emailNoteMarkup = settings?.ticketEmailNote 
+      ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;padding:10px 12px;font-size:11px;color:#166534;line-height:1.5;margin-bottom:12px;">🔔 ${settings.ticketEmailNote}</div>`
+      : `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;padding:10px 12px;font-size:11px;color:#166534;line-height:1.5;margin-bottom:12px;">🔔 Không phân biệt vị trí khi tham dự sự kiện. Vui lòng dùng điện thoại mở link này khi đến sự kiện.</div>`;
+
+    const labels = {
+      bookingCode: ['Mã đặt chỗ', 'Booking Code'],
+      receivedAt: ['Thời gian nhận vé', 'Ticket collection time'],
+      recipient: ['Thông tin người nhận vé', 'Recipient Information'],
+      eventName: ['Tên sự kiện', 'Event Name'],
+      dateTime: ['Ngày & giờ', 'Date & Time'],
+      location: ['Địa điểm', 'Location'],
+      ticketInfo: ['Thông tin vé', 'Ticket Info'],
+    };
+
+    const rowStyle = 'border-bottom:1px solid #f1f1f1;padding:10px 0;';
+    const labelStyle = 'font-size:12px;font-weight:700;color:#111111;margin:0;line-height:1.2;';
+    const subLabelStyle = 'font-size:10px;color:#6b7280;margin:0;font-weight:normal;line-height:1;margin-top:2px;';
+    const valueStyle = 'font-size:12px;color:#111111;text-align:right;vertical-align:middle;padding-left:10px;';
+
+    const renderRow = (label: string[], value: string) => `
+      <tr>
+        <td style="${rowStyle}" valign="top">
+          <div style="${labelStyle}">${label[0]}</div>
+          <div style="${subLabelStyle}">${label[1]}</div>
+        </td>
+        <td style="${rowStyle}${valueStyle}" align="right">${value}</td>
+      </tr>
+    `;
+
     const html = `
-        <div style="margin:0;padding:0;background:#ececec;font-family:Arial,Helvetica,sans-serif;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#ececec;padding:18px 0;">
+        <div style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f3f4f6;padding:12px 0;">
             <tr>
-              <td align="center">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="420" style="width:420px;max-width:420px;background:#ffffff;color:#111827;">
+              <td align="center" style="padding:0 12px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;max-width:480px;background:#ffffff;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,0.1);color:#111827;border-radius:12px;overflow:hidden;">
                   <tr>
-                    <td style="padding:12px 16px 8px;border-bottom:1px solid #d5d5d5;">
-                      <img src="${logoUrl}" alt="HUIT Media" style="display:block;max-width:150px;height:auto;" />
+                    <td style="padding:20px;background:#ffffff;border-bottom:1px solid #f3f4f6;">
+                      ${(logoBuffer && !isPreview)
+                        ? `<img src="cid:ticket-logo@huitfest" alt="HUIT Media" style="display:block;max-width:160px;width:100%;height:auto;" />`
+                        : (logoDataUri
+                          ? `<img src="${logoDataUri}" alt="HUIT Media" style="display:block;max-width:160px;width:100%;height:auto;" />`
+                          : `<span style="font-size:18px;font-weight:bold;color:#111827;">HUIT MEDIA</span>`)}
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:10px 16px 0;">
-                      <div style="font-size:15px;font-weight:700;color:#111111;">Cảm ơn bạn, chúc bạn có nhiều niềm vui!</div>
-                      <div style="font-size:11px;color:#4b5563;margin-top:2px;">Thank you, I wish fun with the show!</div>
+                    <td style="padding:0;">
+                      ${(bannerBuffer && !isPreview)
+                        ? `<img src="cid:ticket-banner@huitfest" alt="Event Banner" style="display:block;width:100%;height:auto;border:0;" />`
+                        : (bannerDataUri
+                          ? `<img src="${bannerDataUri}" alt="Event Banner" style="display:block;width:100%;height:auto;border:0;" />`
+                          : '')}
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:10px 16px 0;">
-                      <img src="${bannerUrl}" alt="HUIT FEST Banner" style="display:block;width:100%;height:auto;border-radius:2px;" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:10px 16px 0;">
-                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-size:11px;color:#111111;line-height:1.6;">
-                        <tr>
-                          <td style="width:45%;padding:2px 0;"><strong>Mã đặt chỗ</strong></td>
-                          <td style="padding:2px 0;text-align:right;">#${payload.ticketCode}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:2px 0;"><strong>Thời gian nhận vé</strong></td>
-                          <td style="padding:2px 0;text-align:right;">${sentAt}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:2px 0;"><strong>Thông tin người nhận vé</strong></td>
-                          <td style="padding:2px 0;text-align:right;">${payload.fullName}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:2px 0;"><strong>Tên sự kiện</strong></td>
-                          <td style="padding:2px 0;text-align:right;">${eventName}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:2px 0;"><strong>Ngày &amp; giờ</strong></td>
-                          <td style="padding:2px 0;text-align:right;">${eventDateTime}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:2px 0;"><strong>Địa điểm</strong></td>
-                          <td style="padding:2px 0;text-align:right;">${eventLocation}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:2px 0;"><strong>Thông tin vé</strong></td>
-                          <td style="padding:2px 0;text-align:right;">${ticketInfo}</td>
-                        </tr>
+                    <td style="padding:24px 20px;">
+                      <div style="font-size:18px;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.2;">Thông tin vé điện tử của bạn</div>
+                      <div style="font-size:13px;color:#6b7280;margin-bottom:20px;">Your Electronic Ticket Information</div>
+                      
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                        ${renderRow(labels.bookingCode, `<strong style="color:#dc2626;font-size:14px;">#${payload.ticketCode}</strong>`)}
+                        ${renderRow(labels.receivedAt, sentAt)}
+                        ${renderRow(labels.recipient, payload.fullName)}
+                        ${renderRow(labels.eventName, eventName)}
+                        ${renderRow(labels.dateTime, eventDateTime)}
+                        ${renderRow(labels.location, eventLocation)}
+                        ${renderRow(labels.ticketInfo, ticketInfo)}
                       </table>
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:10px 16px 0;">
-                      <div style="background:#e7f8ed;border-left:4px solid #22c55e;padding:8px 10px;border-radius:4px;">
-                        <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:6px;">Thông tin vé của bạn</div>
-                        <div style="font-size:11px;color:#166534;line-height:1.55;">
-                          Ticket của bạn đã được gửi vào email này. Bạn đang cầm vé điện tử này khi đến tham gia sự kiện.<br />
-                          Ticket Information will be attached to this email. You can also view your ticket in the account section of Huit Media.
-                        </div>
+                    <td style="padding:0 20px 12px;">
+                       ${emailNoteMarkup}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:12px 20px 24px;">
+                      <a href="${eventInfoUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:12px;font-weight:700;padding:14px 28px;border-radius:8px;letter-spacing:0.5px;">XEM THÔNG TIN SỰ KIỆN</a>
+                      <div style="margin-top:16px;font-size:11px;line-height:1.5;color:#6b7280;">
+                        Nếu nút không hoạt động, bạn có thể sử dụng đường dẫn bên dưới:<br/>
+                        <a href="${eventInfoUrl}" style="color:#2563eb;text-decoration:none;word-break:break-all;">${eventInfoUrl}</a>
                       </div>
                     </td>
                   </tr>
                   <tr>
-                    <td align="center" style="padding:12px 16px 0;">
-                      <a href="${eventInfoUrl}" style="display:inline-block;background:#dc2626;color:#ffffff;text-decoration:none;font-size:12px;font-weight:700;padding:10px 16px;border-radius:5px;">Thông tin sự kiện</a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:12px 16px 0;">
-                      <div style="font-size:11px;color:#111111;line-height:1.5;">
-                        Nếu nút bị lỗi trong một số thiết bị, bạn có thể copy và mở link bên dưới:<br />
-                        <a href="${ticketPortalUrl}" style="color:#2563eb;word-break:break-all;">${ticketPortalUrl}</a>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:10px 16px 0;">
-                      <div style="background:#dff7e8;border:1px solid #9be3b7;border-radius:4px;padding:8px 10px;font-size:11px;color:#166534;line-height:1.5;">
-                        Không phải bản in vé! Vui lòng không in vé, hãy dùng điện thoại mở link này khi đến sự kiện.
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:14px 16px 16px;">
-                      <div style="font-size:12px;font-weight:700;color:#111827;">Hỗ trợ</div>
-                      <div style="font-size:11px;color:#374151;line-height:1.6;margin-top:5px;">
-                        Email: ${supportEmail}<br />
-                        SĐT: ${supportPhone}
+                    <td style="padding:20px;background:#f9fafb;border-top:1px solid #f3f4f6;">
+                      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">Hỗ trợ / Support</div>
+                      <div style="font-size:12px;color:#4b5563;line-height:1.6;">
+                        Email: <strong style="color:#111827;">${supportEmail}</strong><br />
+                        Hotline: <strong style="color:#111827;">${supportPhone}</strong>
                       </div>
                     </td>
                   </tr>
                 </table>
+                <div style="padding:20px;text-align:center;font-size:11px;color:#9ca3af;">
+                    &copy; 2026 HUIT Fest. All rights reserved.
+                </div>
               </td>
             </tr>
           </table>
@@ -1090,6 +1212,11 @@ export class RegistrationService {
       text,
       ticketPdfBuffer,
       attachmentFileName,
+      // Raw buffers for CID inline attachment when sending real email
+      logoBuffer,
+      bannerBuffer,
+      logoMime,
+      bannerMime,
     };
   }
 
@@ -1102,15 +1229,17 @@ export class RegistrationService {
     verifyUrl: string;
     qrCodeDataUrl: string;
   }) {
-    const smtpHost = process.env.SMTP_HOST;
+    const settings = await this.prisma.sitesettings.findFirst();
+
+    const smtpHost = settings?.smtpHost || process.env.SMTP_HOST;
     if (!smtpHost) {
-      throw new Error('SMTP_HOST is not configured');
+      throw new Error('SMTP_HOST is not configured in Settings or .env');
     }
 
-    const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const smtpSecure = String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = String(process.env.SMTP_PASS || '').replace(/\s+/g, '');
+    const smtpPort = settings?.smtpPort || Number(process.env.SMTP_PORT || 587);
+    const smtpSecure = settings?.smtpPort === 465 || String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
+    const smtpUser = settings?.smtpUser || process.env.SMTP_USER;
+    const smtpPass = (settings?.smtpPass || String(process.env.SMTP_PASS || '')).replace(/\s+/g, '');
 
     const transport = nodemailer.createTransport({
       host: smtpHost,
@@ -1120,6 +1249,32 @@ export class RegistrationService {
     });
 
     const rendered = await this.buildApprovalTicketEmailContent(payload);
+
+    // Build inline image attachments (CID) — the ONLY way to embed images that works in Gmail/Outlook
+    const inlineAttachments: Array<{
+      filename: string;
+      content: Buffer;
+      contentType: string;
+      cid: string;
+    }> = [];
+
+    if (rendered.logoBuffer) {
+      inlineAttachments.push({
+        filename: `logo.${rendered.logoMime.split('/')[1] || 'png'}`,
+        content: rendered.logoBuffer,
+        contentType: rendered.logoMime,
+        cid: 'ticket-logo@huitfest',
+      });
+    }
+
+    if (rendered.bannerBuffer) {
+      inlineAttachments.push({
+        filename: `banner.${rendered.bannerMime.split('/')[1] || 'png'}`,
+        content: rendered.bannerBuffer,
+        contentType: rendered.bannerMime,
+        cid: 'ticket-banner@huitfest',
+      });
+    }
 
     await transport.sendMail({
       from: rendered.fromAddress,
@@ -1131,6 +1286,7 @@ export class RegistrationService {
           content: rendered.ticketPdfBuffer,
           contentType: 'application/pdf',
         },
+        ...inlineAttachments,
       ],
       html: rendered.html,
       text: rendered.text,
@@ -1181,7 +1337,7 @@ export class RegistrationService {
 
   async previewTicketEmailForAdmin(id: number) {
     const prepared = await this.buildTicketEmailPayloadForAdmin(id);
-    const rendered = await this.buildApprovalTicketEmailContent(prepared.payload);
+    const rendered = await this.buildApprovalTicketEmailContent(prepared.payload, { isPreview: true });
     return {
       eventId: prepared.event.id,
       registrationId: prepared.registration.id,
@@ -1202,21 +1358,17 @@ export class RegistrationService {
   }
 
   async verifyTicketForAdmin(payload: VerifyTicketDto) {
+    console.log('[Checkin] Verify request body:', JSON.stringify(payload));
     const event = await this.eventService.getCurrentEvent();
     const resolved = await this.resolveTicketLookup(event.id, payload);
+    console.log('[Checkin] Resolved lookup verify:', JSON.stringify({ kind: resolved.kind, ticketCode: resolved.ticketCode }));
 
     if (resolved.kind === 'wrong_event') {
-      return {
-        status: 'wrong_event',
-        message: resolved.message,
-      };
+      throw new BadRequestException(resolved.message);
     }
 
     if (resolved.kind === 'invalid') {
-      return {
-        status: 'invalid',
-        message: resolved.message,
-      };
+      throw new BadRequestException(resolved.message);
     }
 
     const item = this.toAdminRegistrationRow(resolved.registration);
@@ -1232,25 +1384,22 @@ export class RegistrationService {
       status: 'valid_pending_checkin',
       message: 'Ve hop le. Co the xac nhan vao cong.',
       registration: item,
+      ticketCode: resolved.ticketCode,
     };
   }
 
   async checkInTicketForAdmin(payload: CheckinTicketDto) {
+    console.log('[Checkin] Confirm request body:', JSON.stringify(payload));
     const event = await this.eventService.getCurrentEvent();
     const resolved = await this.resolveTicketLookup(event.id, payload);
+    console.log('[Checkin] Resolved lookup for confirm:', JSON.stringify({ kind: resolved.kind, ticketCode: resolved.ticketCode }));
 
     if (resolved.kind === 'wrong_event') {
-      return {
-        status: 'wrong_event',
-        message: resolved.message,
-      };
+      throw new BadRequestException(resolved.message);
     }
 
     if (resolved.kind === 'invalid') {
-      return {
-        status: 'invalid',
-        message: resolved.message,
-      };
+      throw new BadRequestException(resolved.message);
     }
 
     const existingRow = this.toAdminRegistrationRow(resolved.registration);
@@ -1290,6 +1439,7 @@ export class RegistrationService {
       status: 'checked_in',
       message: 'Check-in thanh cong.',
       registration: this.toAdminRegistrationRow(updated as RegistrationRecord),
+      ticketCode: resolved.ticketCode,
     };
   }
 
@@ -1320,10 +1470,13 @@ export class RegistrationService {
         fullName: payload.fullName.trim(),
         email,
         phone,
+        birthDate: payload.birthDate?.trim(),
+        referralCode: payload.referralCode?.trim(),
+        userType: payload.userType?.trim(),
         school: payload.school?.trim(),
         province: payload.province?.trim(),
         role: payload.role?.trim(),
-        major: payload.major?.trim(),
+        major: (payload.studentId || payload.major)?.trim(),
         campus: payload.campus?.trim(),
         updatedAt: new Date(),
       },

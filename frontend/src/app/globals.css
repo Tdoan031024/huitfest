@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+
+:root {
+  --background-fallback: #0b0424;
+  --bg-gradient: linear-gradient(130deg, #110628 0%, #0b0424 34%, #041230 72%, #021527 100%);
+  --foreground: #eef2ff;
+  --accent-primary: #8a90ff;
+  --accent-secondary: #00a8d6;
+  --accent-purple: #ca8fff;
+  --glass-bg: rgba(23, 16, 48, 0.85);
+  --glass-border: rgba(153, 166, 255, 0.25);
+  --font-montserrat: 'Montserrat', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(130deg, #110628 0%, #0b0424 34%, #041230 72%, #021527 100%);
+  color: var(--foreground);
+  font-family: 'Montserrat', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ladi-wraper {
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at 18% 12%, rgba(105, 58, 212, 0.2), transparent 42%),
+    radial-gradient(circle at 78% 62%, rgba(0, 168, 214, 0.1), transparent 37%),
+    linear-gradient(130deg, #110628 0%, #0b0424 34%, #041230 72%, #021527 100%);
+  position: relative;
+}
+
+.ladi-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Typography from LadiPage */
+h1, h2, h3, h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #8a90ff, #ca8fff 48%, #f2a3ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 18px rgba(103, 165, 255, 0.28);
+}
+
+/* --- Recreated Original Animations --- */
+
+@keyframes section23NoteSweep {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes noteLightFloat {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-5px) scale(1.02); }
+}
+
+@keyframes guestQuestionPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.07); opacity: 1; }
+}
+
+@keyframes guestShine {
+  0% { transform: translateX(-60%) rotate(12deg); }
+  100% { transform: translateX(70%) rotate(12deg); }
+}
+
+/* --- Original Music Decor Layer Elements --- */
+.music-decor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 14px rgba(168, 122, 255, 0.5));
+  animation: section23NoteSweep 8s ease-in-out infinite;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.75;
+}
+
+.decor-la { background-image: url("/assets/images/mucsicnote/notela.png"); width: 120px; height: 120px; }
+.decor-pha { background-image: url("/assets/images/mucsicnote/notepha.png"); width: 125px; height: 125px; animation-delay: 1s; }
+.decor-si { background-image: url("/assets/images/mucsicnote/notesi.png"); width: 110px; height: 110px; animation-delay: 2s; }
+.decor-guitar { background-image: url("/assets/images/mucsicnote/dan_guitar.png"); width: 160px; height: 160px; animation-delay: 0.5s; }
+.decor-piano { background-image: url("/assets/images/mucsicnote/piano.png"); width: 150px; height: 150px; animation-delay: 1.5s; }
+
+/* Ẩn toàn bộ vật thể trang trí lơ lửng trên mobile để tránh che nội dung */
+@media (max-width: 767px) {
+  .music-decor {
+    display: none !important;
+  }
+}

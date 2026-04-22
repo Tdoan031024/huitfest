@@ -1,0 +1,101 @@
+const isServer = typeof window === 'undefined';
+
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3005/api';
+
+// Helper to get token from storage
+function getAuthToken(): string | null {
+  if (isServer) return null;
+  return localStorage.getItem('huit_admin_token');
+}
+
+// Helper for fetch with authentication fallback
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = getAuthToken();
+  const headers = {
+    ...(options.headers || {}),
+  } as Record<string, string>;
+
+  // Add Bearer token to headers if it exists
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
+    credentials: 'include', // Still keep cookies for dual-support
+  });
+}
+
+export async function adminLogin(username: string, password: string): Promise<{ ok: boolean; message?: string }> {
+  try {
+    console.log(`Attempting login at: ${BASE_URL}/admin/auth/login`);
+    const res = await fetch(`${BASE_URL}/admin/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include',
+    });
+    
+    console.log(`Login response status: ${res.status}`);
+    
+    if (res.ok) {
+      const data = await res.json();
+      if (data.accessToken && !isServer) {
+        localStorage.setItem('huit_admin_token', data.accessToken);
+      }
+      return { ok: true };
+    }
+    
+    const errorData = await res.json();
+    console.log('Login error details:', errorData);
+    return { ok: false, message: errorData.message || 'Sai tên đăng nhập hoặc mật khẩu.' };
+  } catch (error) {
+    console.error('Login connection error:', error);
+    return { ok: false, message: 'Lỗi kết nối máy chủ.' };
+  }
+}
+
+export async function getAdminMe(): Promise<any> {
+  try {
+    const url = `${BASE_URL}/admin/auth/me`;
+    console.log(`Checking session at: ${url}`);
+    const res = await authFetch(url, {
+      method: 'GET',
+    });
+    
+    console.log(`Session check status: ${res.status}`);
+    
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.log('Session check: Unauthorized');
+        if (!isServer) localStorage.removeItem('huit_admin_token');
+      }
+      return null;
+    }
+    
+    const data = await res.json();
+    console.log('Session data:', data);
+    return data;
+  } catch (error) {
+    console.error('Session check connection error:', error);
+    return null;
+  }
+}
+
+export async function adminLogout(): Promise<void> {
+  try {
+    await authFetch(`${BASE_URL}/admin/auth/logout`, {
+      method: 'POST',
+    });
+  } finally {
+    if (!isServer) {
+      localStorage.removeItem('huit_admin_token');
+    }
+  }
+}
+
+// ... existing SiteSettings interface and getSiteSettings if any
+// (I will keep the rest of the file or just the relevant parts)

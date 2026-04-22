@@ -10,13 +10,27 @@ import { EventModule } from './event/event.module';
 import { PrismaModule } from './prisma.module';
 import { RegistrationModule } from './registration/registration.module';
 import { UploadModule } from './upload/upload.module';
+import { BannerModule } from './banner/banner.module';
+import { AboutModule } from './about/about.module';
+import { SettingsModule } from './settings/settings.module';
+
+const frontendPath = (() => {
+  const candidates = [
+    join(process.cwd(), 'fe', 'public'),
+    join(process.cwd(), '..', 'fe', 'public'),
+  ];
+  for (const c of candidates) {
+    if (require('node:fs').existsSync(c)) return c;
+  }
+  return join(process.cwd(), '..', 'fe', 'public');
+})();
 
 @Module({
   controllers: [AppController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), '..', 'frontend', 'public'),
+      rootPath: frontendPath,
       serveRoot: '/',
       exclude: ['/admin*'],
     }),
@@ -26,6 +40,9 @@ import { UploadModule } from './upload/upload.module';
     EventModule,
     RegistrationModule,
     UploadModule,
+    BannerModule,
+    AboutModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}

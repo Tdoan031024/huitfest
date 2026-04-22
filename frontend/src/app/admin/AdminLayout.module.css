@@ -1,0 +1,31 @@
+.adminContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: #080416;
+  color: #eef2ff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.adminMain {
+  flex: 1;
+  margin-left: 260px; /* Độ rộng của Sidebar */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0; /* Prevent overflow */
+}
+
+.adminContent {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .adminMain {
+    margin-left: 0; /* Sidebar ẩn, content chiếm toàn bộ */
+  }
+  .adminContent {
+    padding: 1rem;
+  }
+}

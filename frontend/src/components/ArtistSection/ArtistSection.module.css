@@ -1,0 +1,282 @@
+.section {
+  background: transparent;
+  padding: 36px 0 60px; /* Increased from 20px */
+  position: relative;
+  overflow: visible;
+}
+
+.container {
+  max-width: 1320px;
+  width: calc(100% - 40px);
+  margin: 0 auto;
+  position: relative;
+}
+
+.head {
+  max-width: 840px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.heading {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: 0.3px;
+  color: rgb(238, 241, 255);
+  background: linear-gradient(95deg, #f6f7ff, #afd2ff 42%, #cab6ff 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 18px rgba(133, 117, 255, 0.35);
+}
+
+.subheading {
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(225, 229, 255, 0.9);
+}
+
+.stripWrapper {
+  margin-top: 34px;
+  position: relative;
+  width: 100%;
+}
+
+.swiper {
+  padding: 20px 6px 10px !important;
+  overflow: visible !important;
+}
+
+.swiperSlide {
+  width: auto !important;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.strip {
+  display: none; /* We use Swiper now */
+}
+
+.strip::before {
+  display: none;
+}
+
+.card {
+  position: relative;
+  overflow: visible;
+  width: clamp(220px, 20.5vw, 260px);
+  margin-inline: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  transform-origin: center bottom;
+  z-index: 1;
+  transition: transform 0.25s ease;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 14% 7% 20%;
+  clip-path: polygon(50% 0%, 96% 22%, 88% 100%, 12% 100%, 4% 22%);
+  background: linear-gradient(165deg, rgba(251, 122, 255, 0.58), rgba(122, 103, 255, 0.42));
+  filter: blur(8px);
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card:hover {
+  transform: translateY(-42px) scale(1.09);
+  z-index: 6;
+}
+
+.card:hover::after,
+.card.isActive::after,
+.isRevealed::after {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.isActive::after {
+  transform: translateY(0) scale(1.05) !important;
+  opacity: 1 !important;
+}
+
+.isActive .thumb {
+  border-color: #66d7ff !important;
+  box-shadow: 0 0 25px rgba(102, 215, 255, 0.4);
+}
+
+/* Detail Panel */
+.detail {
+  margin: 30px auto 0;
+  max-width: 700px; /* Reduced width */
+  padding: 30px;
+  border-radius: 18px;
+  border: 1px solid rgba(153, 166, 255, 0.32);
+  background: linear-gradient(150deg, rgba(23, 16, 48, 0.95), rgba(10, 8, 20, 0.95));
+  box-shadow: 0 14px 40px rgba(6, 3, 17, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: guestPanelFadeUp 0.4s ease-out;
+  position: relative;
+  z-index: 20;
+  text-align: center;
+}
+
+.detailHead {
+  display: flex;
+  flex-direction: column; /* Stack vertically for center alignment */
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.status {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 16px; /* Increased from 11px */
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #081024;
+  background: linear-gradient(100deg, #66d7ff, #c8b9ff);
+  box-shadow: 0 4px 15px rgba(102, 215, 255, 0.3);
+}
+
+.detailHead h4 {
+  margin: 0;
+  font-size: 28px;
+  color: rgba(238, 242, 255, 0.96);
+}
+
+.description {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(220, 230, 255, 0.9);
+  max-width: 900px;
+}
+
+@keyframes guestPanelFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 0;
+  border: 2px solid rgba(140, 231, 255, 0.7);
+  clip-path: polygon(50% 0%, 97% 23%, 89% 100%, 11% 100%, 3% 23%);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: #0f0a28;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: transform 0.28s ease;
+}
+
+.isRevealed .thumb {
+  border-color: rgba(126, 236, 255, 0.95);
+  filter: drop-shadow(0 10px 16px rgba(42, 233, 255, 0.32));
+}
+
+.card:hover .thumb {
+  transform: scale(1.07);
+  filter: drop-shadow(0 14px 22px rgba(42, 233, 255, 0.48));
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  color: rgba(200, 210, 255, 0.9);
+  background: radial-gradient(circle at 50% 30%, rgba(122, 92, 255, 0.35), rgba(10, 8, 19, 0.8));
+  animation: guestQuestionPulse 2.4s ease-in-out infinite;
+}
+
+.thumb::before {
+  display: none;
+}
+
+.name {
+  display: block;
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.45px;
+  color: rgba(246, 249, 255, 0.98);
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow: 0 3px 12px rgba(7, 11, 26, 0.82);
+}
+
+.isRevealed .name {
+  font-size: 16px;
+  text-shadow: 0 4px 16px rgba(84, 239, 255, 0.34), 0 3px 12px rgba(7, 11, 26, 0.82);
+}
+@media (max-width: 767px) {
+  .strip {
+    flex-wrap: wrap;
+    gap: 30px 10px;
+  }
+}
+
+/* ADDED RESPONSIVE FIXES */
+@media (max-width: 1024px) {
+  .swiperSlide { width: 100% !important; }
+  .heading { font-size: 30px !important; }
+  .card { width: clamp(160px, 30vw, 220px) !important; }
+}
+@media (max-width: 767px) {
+  .section { padding: 30px 0 !important; overflow: hidden; }
+  .heading { font-size: 26px !important; }
+  .swiper { padding: 40px 0 20px !important; }
+  .swiperSlide { 
+    width: 220px !important;
+    display: flex;
+    justify-content: center;
+  }
+  .card { 
+    width: 100% !important; 
+    max-width: 100% !important; 
+    transform: scale(0.85);
+    opacity: 0.5;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  :global(.swiper-slide-active) .card {
+    transform: scale(1.1) translateY(-10px);
+    opacity: 1;
+    z-index: 10;
+  }
+  :global(.swiper-slide-active) .card::after {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .detail { padding: 20px !important; margin-top: 15px !important; }
+  .detailHead h4 { font-size: 22px !important; }
+  .status { font-size: 12px !important; padding: 6px 15px !important; }
+  .name { font-size: 13px !important; }
+}
+@media (max-width: 480px) {
+  .swiperSlide { width: 190px !important; }
+}

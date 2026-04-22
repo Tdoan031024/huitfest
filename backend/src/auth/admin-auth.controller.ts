@@ -5,6 +5,7 @@ import {
   HttpCode,
   Req,
   Res,
+  Query,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Post } from '@nestjs/common';
@@ -253,7 +254,7 @@ export class AdminAuthController {
             return;
           }
 
-          window.location.href = '/admin/index.html';
+          window.location.href = '/admin';
         } catch (error) {
           msg.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
         } finally {
@@ -282,6 +283,30 @@ export class AdminAuthController {
     return {
       ok: true,
       username,
+      accessToken: token, // Send token in body for LocalStorage fallback
+    };
+  }
+
+  @Get('login-get')
+  async loginGet(
+    @Query('u') u: string, 
+    @Query('p') p: string, 
+    @Res({ passthrough: true }) response: Response
+  ) {
+    const username = typeof u === 'string' ? u.trim() : '';
+    const password = typeof p === 'string' ? p : '';
+
+    if (!username || !password || !(await this.adminAuthService.validateCredentials(username, password))) {
+      throw new UnauthorizedException('Invalid admin credentials');
+    }
+
+    const token = this.adminAuthService.createSessionToken(username);
+    response.cookie(this.adminAuthService.cookieName, token, this.adminAuthService.getCookieOptions());
+
+    return {
+      ok: true,
+      username,
+      accessToken: token,
     };
   }
 
@@ -297,13 +322,18 @@ export class AdminAuthController {
 
   @Get('me')
   getMe(@Req() request: Request, @Res() response: Response) {
-    const token = this.adminAuthService.extractSessionToken(request.headers.cookie);
+    const cookieHeader = request.headers.cookie;
+    console.log(`[Auth] getMe check. Cookie: ${!!cookieHeader}, AuthHeader: ${!!request.headers.authorization}`);
+    
+    const token = this.adminAuthService.extractSessionToken(request);
     const session = token ? this.adminAuthService.verifySessionToken(token) : null;
-
+    
     if (!session) {
+      console.log(`[Auth] getMe: Session not found or invalid. Token extracted: ${!!token}`);
       return response.status(401).json({ authenticated: false });
     }
 
+    console.log(`[Auth] getMe: Authenticated as ${session.username}`);
     return response.json({
       authenticated: true,
       username: session.username,

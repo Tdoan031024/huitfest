@@ -7,16 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model agendaitem {
-  id        Int      @id @default(autoincrement())
-  eventId   Int
-  title     String
-  startTime DateTime
-  endTime   DateTime
-  sortOrder Int      @default(0)
-  event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "AgendaItem_eventId_fkey")
+model timelineitem {
+  id          Int      @id @default(autoincrement())
+  eventId     Int
+  time        String
+  title       String
+  description String?  @db.Text
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  event       event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  @@index([eventId], map: "AgendaItem_eventId_idx")
+  @@index([eventId])
+  @@index([eventId, sortOrder])
 }
 
 model adminuser {
@@ -29,18 +32,33 @@ model adminuser {
   lastLoginAt  DateTime?
 }
 
-model artist {
-  id        Int     @id @default(autoincrement())
+model rule {
+  id        Int      @id @default(autoincrement())
   eventId   Int
-  name      String
-  imageUrl  String?
-  sortOrder Int     @default(0)
-  event     event   @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "Artist_eventId_fkey")
+  title     String?
+  content   String?  @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([eventId, sortOrder])
+}
+
+model artist {
+  id          Int     @id @default(autoincrement())
+  eventId     Int
+  name        String
+  description String? @db.Text
+  imageUrl    String?
+  sortOrder   Int     @default(0)
+  event       event   @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "Artist_eventId_fkey")
 
   @@index([eventId], map: "Artist_eventId_idx")
 }
 
-model artistextraitem {
+model talent {
   id          Int      @id @default(autoincrement())
   eventId     Int
   name        String
@@ -49,10 +67,11 @@ model artistextraitem {
   status      String   @default("revealed")
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
+  event       event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  @@index([eventId], map: "ArtistExtraItem_eventId_idx")
-  @@index([eventId, sortOrder], map: "ArtistExtraItem_eventId_sortOrder_idx")
+  @@index([eventId])
+  @@index([eventId, sortOrder])
 }
 
 model event {
@@ -63,69 +82,73 @@ model event {
   description      String         @db.Text
   heroImage        String?
   startAt          DateTime
-  endAt            DateTime
   registrationOpen Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime
   pageConfig       String?        @db.LongText
-  agendaitem       agendaitem[]
+  videoUrl         String?        @db.Text
   artist           artist[]
+  instruction      instruction[]
   journeyitem      journeyitem[]
   registration     registration[]
-  ruleitem         ruleitem[]
+  rule             rule[]
   sponsor          sponsor[]
+  talent           talent[]
   timelineitem     timelineitem[]
 }
 
-model journeyitem {
-  id          Int      @id @default(autoincrement())
-  eventId     Int
-  title       String?
-  description String?  @db.Text
-  imageUrl    String?  @db.Text
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  event       event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "JourneyItem_eventId_fkey")
-
-  @@index([eventId], map: "JourneyItem_eventId_idx")
-  @@index([eventId, sortOrder], map: "JourneyItem_eventId_sortOrder_idx")
-}
-
 model registration {
-  id        Int      @id @default(autoincrement())
-  eventId   Int
-  fullName  String
-  email     String
-  phone     String
-  school    String?
-  province  String?
-  role      String?
-  major     String?
-  campus    String?
-  checkedIn Boolean  @default(false)
-  note      String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "Registration_eventId_fkey")
+  id           Int      @id @default(autoincrement())
+  eventId      Int
+  fullName     String
+  email        String
+  phone        String
+  birthDate    String?
+  referralCode String?
+  userType     String?
+  school       String?
+  province     String?
+  role         String?
+  major        String?
+  campus       String?
+  checkedIn    Boolean  @default(false)
+  note         String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  event        event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "Registration_eventId_fkey")
 
   @@index([email], map: "Registration_email_idx")
   @@index([eventId], map: "Registration_eventId_idx")
   @@index([phone], map: "Registration_phone_idx")
 }
 
-model ruleitem {
+model instruction {
   id        Int      @id @default(autoincrement())
   eventId   Int
   title     String?
   content   String?  @db.Text
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
-  updatedAt DateTime
-  event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "RuleItem_eventId_fkey")
+  updatedAt DateTime @updatedAt
+  event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  @@index([eventId], map: "RuleItem_eventId_idx")
-  @@index([eventId, sortOrder], map: "RuleItem_eventId_sortOrder_idx")
+  @@index([eventId])
+  @@index([eventId, sortOrder])
+}
+
+model journeyitem {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  title     String
+  content   String?  @db.Text
+  imageUrl  String?  @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([eventId, sortOrder])
 }
 
 model sponsor {
@@ -137,23 +160,58 @@ model sponsor {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime
+  category  String?
   event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "Sponsor_eventId_fkey")
 
   @@index([eventId], map: "Sponsor_eventId_idx")
   @@index([eventId, sortOrder], map: "Sponsor_eventId_sortOrder_idx")
 }
 
-model timelineitem {
-  id          Int      @id @default(autoincrement())
-  eventId     Int
-  timeLabel   String?
-  title       String?
-  description String?  @db.Text
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  event       event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "TimelineItem_eventId_fkey")
+model banner {
+  id           Int      @id @default(autoincrement())
+  imageUrl     String   @db.Text
+  title        String?
+  subtitle     String?
+  linkUrl      String?
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  showLink     Boolean  @default(true)
+  showSubtitle Boolean  @default(true)
+  showTitle    Boolean  @default(true)
+}
 
-  @@index([eventId], map: "TimelineItem_eventId_idx")
-  @@index([eventId, sortOrder], map: "TimelineItem_eventId_sortOrder_idx")
+model aboutsection {
+  id        Int      @id @default(1)
+  title     String?
+  content   String?  @db.Text
+  imageUrl  String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model sitesettings {
+  id                  Int      @id @default(1)
+  siteName            String   @default("HUIT Fest 2026")
+  siteLogo            String?  @db.Text
+  siteBanner          String?  @db.Text
+  siteDescription     String?  @db.Text
+  ticketEventName     String?  @db.Text
+  ticketEventDateTime String?  @db.Text
+  ticketEventLocation String?  @db.Text
+  ticketInfo          String?  @db.Text
+  ticketLogoUrl       String?  @db.Text
+  ticketBannerUrl     String?  @db.Text
+  ticketSupportEmail  String?  @db.Text
+  ticketSupportPhone  String?  @db.Text
+  ticketInfoUrl       String?  @db.Text
+  ticketPortalUrl     String?  @db.Text
+  ticketEmailNote     String?  @db.Text
+  smtpHost            String?  @db.Text
+  smtpPort            Int?     @default(587)
+  smtpUser            String?  @db.Text
+  smtpPass            String?  @db.Text
+  smtpFrom            String?  @db.Text
+  updatedAt           DateTime @updatedAt
 }

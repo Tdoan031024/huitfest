@@ -5,7 +5,16 @@ import * as sharp from 'sharp';
 
 @Injectable()
 export class UploadService {
-  private readonly publicPath = join(process.cwd(), '..', 'frontend', 'public');
+  private readonly publicPath = (() => {
+    const candidates = [
+      join(process.cwd(), 'fe', 'public'),
+      join(process.cwd(), '..', 'fe', 'public'),
+    ];
+    for (const c of candidates) {
+      if (require('node:fs').existsSync(c)) return c;
+    }
+    return join(process.cwd(), '..', 'fe', 'public');
+  })();
   private readonly allowedFolders = new Set([
     'uploads',
     'assets/images/banner',
@@ -14,6 +23,9 @@ export class UploadService {
     'assets/images/hanhtrinh',
     'assets/images/logo',
     'assets/images/sponsors',
+    'assets/images/about',
+    'assets/images/artists',
+    'assets/images/tickets',
   ]);
 
   constructor() {
@@ -24,6 +36,9 @@ export class UploadService {
     this.ensureDir('assets/images/hanhtrinh');
     this.ensureDir('assets/images/logo');
     this.ensureDir('assets/images/sponsors');
+    this.ensureDir('assets/images/about');
+    this.ensureDir('assets/images/artists');
+    this.ensureDir('assets/images/tickets');
   }
 
   private ensureDir(relativePath: string) {
@@ -49,8 +64,11 @@ export class UploadService {
     const targetFolder = this.resolveFolder(folder);
     this.ensureDir(targetFolder);
 
-    const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const filename = `${uniqueId}.webp`;
+    const originalBasename = file.originalname 
+      ? file.originalname.split('.').slice(0, -1).join('.').replace(/[^a-z0-9_-]/gi, '_')
+      : 'image';
+    // Add unique suffix to prevent collisions and caching issues
+    const filename = `${originalBasename}_${Date.now()}.webp`;
     const outputPath = join(this.publicPath, targetFolder, filename);
     const isWebpInput = file.mimetype === 'image/webp' || /\.webp$/i.test(file.originalname || '');
 

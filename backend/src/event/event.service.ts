@@ -8,8 +8,15 @@ export class EventService {
   constructor(private readonly prisma: PrismaService) {}
 
   private normalizeArtistItems(config: any): Array<{ name: string; imageUrl: string; status: string; description: string; hints: any[] }> {
-    const section = config && config.artists && typeof config.artists === 'object' ? config.artists : null;
-    const rawItems = section && Array.isArray(section.artists) ? section.artists : [];
+    const section = config?.artists;
+    if (!section) return [];
+
+    let rawItems = [];
+    if (Array.isArray(section)) {
+      rawItems = section;
+    } else if (typeof section === 'object' && Array.isArray(section.artists)) {
+      rawItems = section.artists;
+    }
 
     if (rawItems.length === 0) return [];
 
@@ -25,8 +32,15 @@ export class EventService {
   }
 
   private normalizeArtistsExtraItems(config: any): Array<{ name: string; imageUrl: string; status: string; description: string; hints: any[] }> {
-    const section = config && config.artistsExtra && typeof config.artistsExtra === 'object' ? config.artistsExtra : null;
-    const rawItems = section && Array.isArray(section.artists) ? section.artists : [];
+    const section = config?.artistsExtra;
+    if (!section) return [];
+
+    let rawItems = [];
+    if (Array.isArray(section)) {
+      rawItems = section;
+    } else if (typeof section === 'object' && Array.isArray(section.artists)) {
+      rawItems = section.artists;
+    }
 
     if (rawItems.length === 0) return [];
 
@@ -75,7 +89,7 @@ export class EventService {
       }));
   }
 
-  private normalizeSponsorItems(config: any): Array<{ name: string; imageUrl: string }> {
+  private normalizeSponsorItems(config: any): Array<{ name: string; imageUrl: string; category: string }> {
     if (!config || !config.footer) return [];
     
     // Support multiple aliases for logos list
@@ -90,6 +104,7 @@ export class EventService {
       .map((item: any) => ({
         name: String(item.name ?? ''),
         imageUrl: String(item.image ?? item.imageUrl ?? ''),
+        category: String(item.category ?? 'GOLD'),
       }));
   }
 
@@ -122,46 +137,68 @@ export class EventService {
     return [];
   }
 
+  private normalizeInstructionItems(config: any): Array<{ title: string; content: string }> {
+    if (!config || !config.instructions) return [];
+    
+    const rawItems = Array.isArray(config.instructions.items) ? config.instructions.items : 
+                   (Array.isArray(config.instructions.cards) ? config.instructions.cards : null);
+
+    if (rawItems) {
+      return rawItems
+        .filter((item: any) => item && typeof item === 'object')
+        .map((item: any) => ({
+          title: String(item.title ?? ''),
+          content: String(item.content ?? ''),
+        }));
+    }
+    
+    return [];
+  }
+
   async getCurrentEvent() {
     const now = new Date();
     const event = await this.prisma.event.findFirst({
       where: {
         startAt: { lte: now },
-        endAt: { gte: now },
       },
-      include: {
-        artist: { orderBy: { sortOrder: 'asc' } },
-        agendaitem: { orderBy: { sortOrder: 'asc' } },
-      },
+      select: { slug: true }
     });
 
     if (event) {
-      return event;
+      return this.getEventConfig(event.slug);
     }
 
     const latest = await this.prisma.event.findFirst({
       orderBy: { startAt: 'desc' },
-      include: {
-        artist: { orderBy: { sortOrder: 'asc' } },
-        agendaitem: { orderBy: { sortOrder: 'asc' } },
-      },
+      select: { slug: true }
     });
 
     if (!latest) {
       throw new NotFoundException('No event data found');
     }
 
-    return latest;
+    return this.getEventConfig(latest.slug);
   }
 
   async getEventConfig(slug: string) {
     const event = await this.prisma.event.findUnique({
       where: { slug },
-      select: { id: true, pageConfig: true, registrationOpen: true },
+      select: { 
+        id: true, 
+        slug: true,
+        title: true, 
+        subtitle: true, 
+        description: true, 
+        heroImage: true, 
+        startAt: true, 
+        videoUrl: true,
+        pageConfig: true, 
+        registrationOpen: true 
+      },
     });
     if (!event) throw new NotFoundException('Event not found');
 
-    const timelineItems = await (this.prisma as any).timelineitem.findMany({
+    const sponsorItems = await this.prisma.sponsor.findMany({
       where: { eventId: event.id },
       orderBy: [
         { sortOrder: 'asc' },
@@ -169,30 +206,7 @@ export class EventService {
       ]
     });
 
-    const journeyItems = await (this.prisma as any).journeyitem.findMany({
-      where: { eventId: event.id },
-      orderBy: [
-        { sortOrder: 'asc' },
-        { id: 'asc' }
-      ]
-    });
-
-    const sponsorItems = await (this.prisma as any).sponsor.findMany({
-      where: { eventId: event.id },
-      orderBy: [
-        { sortOrder: 'asc' },
-        { id: 'asc' }
-      ]
-    });
-
-    const ruleItems = await (this.prisma as any).ruleitem.findMany({
-      where: { eventId: event.id },
-      orderBy: [
-        { sortOrder: 'asc' },
-        { id: 'asc' }
-      ]
-    });
-
+    // 2. Artist items
     const artistItems = await this.prisma.artist.findMany({
       where: { eventId: event.id },
       orderBy: [
@@ -201,88 +215,73 @@ export class EventService {
       ]
     });
 
-    let artistExtraItems: any[] = [];
-    const prismaAny = this.prisma as any;
-    if (prismaAny.artistextraitem && typeof prismaAny.artistextraitem.findMany === 'function') {
-      artistExtraItems = await prismaAny.artistextraitem.findMany({
-        where: { eventId: event.id },
-        orderBy: [
-          { sortOrder: 'asc' },
-          { id: 'asc' }
-        ]
-      });
-    } else {
-      // Fallback when Prisma Client has not been regenerated yet.
-      artistExtraItems = await this.prisma.$queryRawUnsafe(
-        'SELECT id, eventId, name, imageUrl, description, status, sortOrder FROM `artistextraitem` WHERE eventId = ? ORDER BY sortOrder ASC, id ASC',
-        event.id,
-      ) as any[];
+    // 3. Talent items (formerly artistextraitem)
+    const artistExtraItems = await this.prisma.talent.findMany({
+      where: { eventId: event.id },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    // 4. Timeline items (formerly agendaitem)
+    const timelineItems = await this.prisma.timelineitem.findMany({
+      where: { eventId: event.id },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    // 5. Instruction items
+    const instructionItems = await this.prisma.instruction.findMany({
+      where: { eventId: event.id },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    // 6. Rule items
+    const ruleItems = await this.prisma.rule.findMany({
+      where: { eventId: event.id },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    // 7. Journey items
+    const journeyItems = await this.prisma.journeyitem.findMany({
+      where: { eventId: event.id },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    let pageConfig: Record<string, any> = {};
+    if (event.pageConfig) {
+      if (typeof event.pageConfig === 'string') {
+        try {
+          pageConfig = JSON.parse(event.pageConfig);
+        } catch (e) {
+          console.error('Error parsing pageConfig:', e);
+          pageConfig = {};
+        }
+      } else if (typeof event.pageConfig === 'object') {
+        pageConfig = event.pageConfig as any;
+      }
     }
 
-    const pageConfig = event.pageConfig && typeof event.pageConfig === 'object'
-      ? (event.pageConfig as Record<string, any>)
-      : {};
-
-    const pageArtists = Array.isArray(pageConfig?.artists?.artists)
-      ? pageConfig.artists.artists
-      : [];
-
-    const finalArtists = {
-      ...(pageConfig.artists || {}),
-      artists: artistItems.length > 0
-        ? artistItems.map((item: any, idx: number) => {
-            const fallback = pageArtists[idx] || {};
-            return {
-              id: String(fallback.id ?? `a-${item.id}`),
-              name: item.name,
-              image: item.imageUrl || String(fallback.image ?? fallback.imageUrl ?? ''),
-              status: String(fallback.status ?? 'revealed'),
-              description: String(fallback.description ?? ''),
-              hints: Array.isArray(fallback.hints) ? fallback.hints : [],
-            };
-          })
-        : pageArtists,
-    };
-
-    const pageArtistsExtra = Array.isArray(pageConfig?.artistsExtra?.artists)
-      ? pageConfig.artistsExtra.artists
-      : [];
-
-    const finalArtistsExtra = {
-      ...(pageConfig.artistsExtra || {}),
-      artists: artistExtraItems.length > 0
-        ? artistExtraItems.map((item: any, idx: number) => {
-            const fallback = pageArtistsExtra[idx] || {};
-            return {
-              id: String(fallback.id ?? `ax2-${item.id}`),
-              name: item.name,
-              image: item.imageUrl || String(fallback.image ?? fallback.imageUrl ?? ''),
-              status: String(item.status ?? fallback.status ?? 'revealed'),
-              description: String(item.description ?? fallback.description ?? ''),
-              hints: Array.isArray(fallback.hints) ? fallback.hints : [],
-            };
-          })
-        : pageArtistsExtra,
-    };
-
-    // DB Items are the Source of Truth
+    // Sync with timelineitem for timeline
     const finalTimeline = {
       ...(pageConfig.timeline || {}),
       items: timelineItems.map((item: any) => ({
         id: item.id,
-        time: item.timeLabel,
+        time: item.time,
         title: item.title,
         description: item.description,
-      })),
-    };
-
-    const finalJourney = {
-      ...(pageConfig.journey || {}),
-      items: journeyItems.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        image: item.imageUrl,
       })),
     };
 
@@ -291,43 +290,84 @@ export class EventService {
       logos: sponsorItems.map((item: any) => ({
         id: item.id,
         name: item.name,
-        image: item.imageUrl,
-      })),
-      // Aliases
-      items: sponsorItems.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        image: item.imageUrl,
-      })),
-      cards: sponsorItems.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        image: item.imageUrl,
+        imageUrl: item.imageUrl,
+        category: item.category,
       })),
     };
 
     const finalRules = {
       ...(pageConfig.rules || {}),
-      // Section 9 in Admin UI is a single block, NOT a list.
-      // So we only provide sectionTitle and content as strings.
-      sectionTitle: (ruleItems.length > 0 && ruleItems[0].title) ? ruleItems[0].title : (pageConfig.rules?.sectionTitle || 'QUY ĐỊNH CHUNG'),
-      // Admin UI expects 'content' as a single text block
-      content: ruleItems.length > 0 ? ruleItems.map((r: any) => r.content || '').join('\n\n') : (pageConfig.rules?.content || '')
+      sectionTitle: pageConfig.rules?.sectionTitle || (ruleItems.length > 0 ? ruleItems[0].title : 'QUY ĐỊNH CHUNG'),
+      content: pageConfig.rules?.content || '',
+      items: ruleItems.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        content: item.content
+      }))
     };
 
-    // Ensure 'cards' alias for admin compatibility if needed
-    if (finalJourney.items) {
-      (finalJourney as any).cards = finalJourney.items;
-    }
+    const finalInstructions = {
+      ...(pageConfig.instructions || {}),
+      items: instructionItems.map((item: any) => {
+        const jsonItem = (pageConfig.instructions?.items || []).find((ji: any) => ji.title === item.title);
+        return {
+          id: item.id,
+          title: item.title,
+          content: item.content,
+          imageUrl: jsonItem?.imageUrl || jsonItem?.image || ''
+        };
+      })
+    };
+
+    const finalJourney = {
+      ...(pageConfig.journey || {}),
+      items: journeyItems.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        content: item.content,
+        image: item.imageUrl
+      }))
+    };
 
     return {
       ...pageConfig,
-      artists: finalArtists,
-      artistsExtra: finalArtistsExtra,
+      id: event.id,
+      title: event.title,
+      subtitle: event.subtitle,
+      description: event.description,
+      heroImage: event.heroImage,
+      startAt: event.startAt,
+      videoUrl: event.videoUrl,
+      artists: {
+        ...(pageConfig.artists || {}),
+        artists: artistItems.map((item: any, idx: number) => ({
+          id: item.id,
+          name: item.name,
+          image: item.imageUrl,
+          description: item.description,
+        })),
+      },
+      artistsExtra: {
+        ...(pageConfig.artistsExtra || {}),
+        artists: artistExtraItems.map((item: any, idx: number) => ({
+          id: item.id,
+          name: item.name,
+          image: item.imageUrl,
+          description: item.description,
+          status: item.status,
+        })),
+      },
       timeline: finalTimeline,
-      journey: finalJourney,
       footer: finalFooter,
       rules: finalRules,
+      instructions: finalInstructions,
+      journey: finalJourney,
+      sponsors: sponsorItems.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        imageUrl: item.imageUrl,
+        category: item.category,
+      })),
       registrationOpen: event.registrationOpen,
     };
   }
@@ -335,50 +375,72 @@ export class EventService {
   async updateEventConfig(slug: string, config: any) {
     const target = await this.prisma.event.findUnique({
       where: { slug },
-      select: { id: true, slug: true },
+      select: { id: true, slug: true, pageConfig: true },
     });
 
     if (!target) {
       throw new NotFoundException(`Event with slug ${slug} not found`);
     }
 
-    console.log('HUIT FEST: Received update config for slug:', slug);
-    console.log('HUIT FEST: journey items from config:', JSON.stringify(config?.journey?.items || [], null, 2));
-    console.log('HUIT FEST: journey cards from config:', JSON.stringify(config?.journey?.cards || [], null, 2));
-    console.log('HUIT FEST: rules from config:', JSON.stringify(config?.rules || {}, null, 2));
-    console.log('HUIT FEST: footer from config:', JSON.stringify(config?.footer || {}, null, 2));
-
-    const timelineItems = this.normalizeTimelineItems(config);
-    const journeyItems = this.normalizeJourneyItems(config);
+    const agendaItems = this.normalizeTimelineItems(config);
     const sponsorItems = this.normalizeSponsorItems(config);
     const ruleItems = this.normalizeRuleItems(config);
+    const instructionItems = this.normalizeInstructionItems(config);
     const artistItems = this.normalizeArtistItems(config);
     const artistExtraItems = this.normalizeArtistsExtraItems(config);
-
-    console.log(`HUIT FEST: Normalized ${artistItems.length} artists, ${artistExtraItems.length} artistsExtra, ${timelineItems.length} timeline, ${journeyItems.length} journey, ${sponsorItems.length} sponsors, ${ruleItems.length} rules`);
+    const journeyItems = (config.journey?.items || []).map((item: any) => ({
+      title: item.title,
+      content: item.content,
+      imageUrl: item.image
+    }));
 
     return this.prisma.$transaction(async (tx) => {
       const now = new Date();
 
-      // 1. Update the JSON config
+      // 1. Update the event record (including core fields if provided in config)
+      // We merge the incoming config with existing pageConfig
+      let currentConfig: any = {};
+      if (typeof target.pageConfig === 'string' && target.pageConfig.trim()) {
+        try {
+          currentConfig = JSON.parse(target.pageConfig);
+        } catch (e) {
+          currentConfig = {};
+        }
+      } else if (target.pageConfig && typeof target.pageConfig === 'object') {
+        currentConfig = target.pageConfig;
+      }
+      
+      const mergedConfig = { ...currentConfig, ...config };
+
+      // Ensure pageConfig is stored as a string since it's @db.LongText in schema
+      const stringifiedConfig = typeof mergedConfig === 'string' 
+        ? mergedConfig 
+        : JSON.stringify(mergedConfig);
+
       const updatedEvent = await tx.event.update({
         where: { id: target.id },
         data: { 
-          pageConfig: config,
+          title: config.title ?? undefined,
+          subtitle: config.subtitle ?? undefined,
+          description: config.description ?? undefined,
+          heroImage: config.heroImage ?? undefined,
+          startAt: config.startAt ? new Date(config.startAt) : undefined,
+          videoUrl: config.videoUrl === undefined ? undefined : (config.videoUrl || null),
+          pageConfig: stringifiedConfig,
           registrationOpen: config.registrationOpen !== undefined ? !!config.registrationOpen : undefined
         },
       });
 
-      // 2. Sync with TimelineItem table
-      await (tx as any).timelineitem.deleteMany({
+      // 2. Sync with TimelineItem table (formerly AgendaItem)
+      await tx.timelineitem.deleteMany({
         where: { eventId: target.id }
       });
 
-      if (timelineItems.length > 0) {
-        await (tx as any).timelineitem.createMany({
-          data: timelineItems.map((item, idx) => ({
+      if (agendaItems.length > 0) {
+        await tx.timelineitem.createMany({
+          data: agendaItems.map((item, idx) => ({
             eventId: target.id,
-            timeLabel: item.time,
+            time: item.time,
             title: item.title,
             description: item.description,
             sortOrder: idx + 1,
@@ -387,48 +449,31 @@ export class EventService {
         });
       }
 
-      // 3. Sync with JourneyItem table
-      await (tx as any).journeyitem.deleteMany({
-        where: { eventId: target.id }
-      });
-
-      if (journeyItems.length > 0) {
-        await (tx as any).journeyitem.createMany({
-          data: journeyItems.map((item, idx) => ({
-            eventId: target.id,
-            title: item.title,
-            description: item.description,
-            imageUrl: item.imageUrl,
-            sortOrder: idx + 1,
-            updatedAt: now,
-          })),
-        });
-      }
-
-      // 4. Sync with Sponsor table
-      await (tx as any).sponsor.deleteMany({
+      // 3. Sync with Sponsor table
+      await tx.sponsor.deleteMany({
         where: { eventId: target.id }
       });
 
       if (sponsorItems.length > 0) {
-        await (tx as any).sponsor.createMany({
+        await tx.sponsor.createMany({
           data: sponsorItems.map((item, idx) => ({
             eventId: target.id,
             name: item.name,
             imageUrl: item.imageUrl,
+            category: item.category,
             sortOrder: idx + 1,
             updatedAt: now,
           })),
         });
       }
 
-      // 5. Sync with RuleItem table
-      await (tx as any).ruleitem.deleteMany({
+      // 4. Sync with Rule table
+      await tx.rule.deleteMany({
         where: { eventId: target.id }
       });
 
       if (ruleItems.length > 0) {
-        await (tx as any).ruleitem.createMany({
+        await tx.rule.createMany({
           data: ruleItems.map((item, idx) => ({
             eventId: target.id,
             title: item.title,
@@ -439,7 +484,42 @@ export class EventService {
         });
       }
 
-      // 6. Sync with Artist table (section artists)
+      // 5. Sync with Instruction table
+      await tx.instruction.deleteMany({
+        where: { eventId: target.id }
+      });
+
+      if (instructionItems.length > 0) {
+        await tx.instruction.createMany({
+          data: instructionItems.map((item, idx) => ({
+            eventId: target.id,
+            title: item.title,
+            content: item.content,
+            sortOrder: idx + 1,
+            updatedAt: now,
+          })),
+        });
+      }
+
+      // 6. Sync with JourneyItem table
+      await tx.journeyitem.deleteMany({
+        where: { eventId: target.id }
+      });
+
+      if (journeyItems.length > 0) {
+        await tx.journeyitem.createMany({
+          data: journeyItems.map((item: any, idx: number) => ({
+            eventId: target.id,
+            title: item.title,
+            content: item.content,
+            imageUrl: item.imageUrl,
+            sortOrder: idx + 1,
+            updatedAt: now,
+          })),
+        });
+      }
+
+      // 7. Sync with Artist table
       await tx.artist.deleteMany({
         where: { eventId: target.id }
       });
@@ -450,50 +530,29 @@ export class EventService {
             eventId: target.id,
             name: item.name,
             imageUrl: item.imageUrl,
+            description: item.description,
             sortOrder: idx + 1,
           })),
         });
       }
 
-      // 7. Sync with ArtistExtraItem table (section artistsExtra)
-      const txAny = tx as any;
-      if (txAny.artistextraitem && typeof txAny.artistextraitem.deleteMany === 'function') {
-        await txAny.artistextraitem.deleteMany({
-          where: { eventId: target.id }
-        });
+      // 8. Sync with Talent table (formerly ArtistExtraItem)
+      await tx.talent.deleteMany({
+        where: { eventId: target.id }
+      });
 
-        if (artistExtraItems.length > 0) {
-          await txAny.artistextraitem.createMany({
-            data: artistExtraItems.map((item, idx) => ({
-              eventId: target.id,
-              name: item.name,
-              imageUrl: item.imageUrl,
-              description: item.description,
-              status: item.status,
-              sortOrder: idx + 1,
-              updatedAt: now,
-            })),
-          });
-        }
-      } else {
-        // Fallback when Prisma Client has not been regenerated yet.
-        await tx.$executeRawUnsafe('DELETE FROM `artistextraitem` WHERE eventId = ?', target.id);
-        if (artistExtraItems.length > 0) {
-          for (let idx = 0; idx < artistExtraItems.length; idx += 1) {
-            const item = artistExtraItems[idx];
-            await tx.$executeRawUnsafe(
-              'INSERT INTO `artistextraitem` (`eventId`, `name`, `imageUrl`, `description`, `status`, `sortOrder`, `createdAt`, `updatedAt`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-              target.id,
-              item.name,
-              item.imageUrl,
-              item.description,
-              item.status,
-              idx + 1,
-              now,
-              now,
-            );
-          }
-        }
+      if (artistExtraItems.length > 0) {
+        await tx.talent.createMany({
+          data: artistExtraItems.map((item, idx) => ({
+            eventId: target.id,
+            name: item.name,
+            imageUrl: item.imageUrl,
+            description: item.description,
+            status: item.status,
+            sortOrder: idx + 1,
+            updatedAt: now,
+          })),
+        });
       }
 
       return updatedEvent;

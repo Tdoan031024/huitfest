@@ -1,0 +1,114 @@
+.section {
+  padding: 80px 0;
+  background: transparent;
+  position: relative;
+  overflow: visible;
+}
+
+.container {
+  max-width: 1200px;
+  width: calc(100% - 40px);
+  margin: 0 auto;
+}
+
+.heading {
+  font-size: 42px;
+  text-align: center;
+  margin-bottom: 80px;
+  background: linear-gradient(90deg, #fff, #afd2ff 48%, #cab6ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(138, 144, 255, 0.4);
+  letter-spacing: 0.1em;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+}
+
+.reverse {
+  flex-direction: row-reverse;
+}
+
+.imageWrap {
+  flex: 1.2;
+  position: relative;
+  border-radius: 16px;
+  overflow: visible;
+}
+
+.imageWrap::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(138, 144, 255, 0.8), rgba(202, 143, 255, 0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  /* Softer shadow */
+  transition: transform 0.5s ease;
+}
+
+.item:hover .image {
+  transform: scale(1.03);
+}
+
+.text {
+  flex: 0.8;
+}
+
+.itemTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 20px;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.itemDesc {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(220, 230, 255, 0.8);
+}
+
+@media (max-width: 991px) {
+
+  .item,
+  .reverse {
+    flex-direction: column;
+    text-align: center;
+    gap: 40px;
+  }
+
+  .imageWrap {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .heading {
+    font-size: 32px;
+    margin-bottom: 50px;
+  }
+}

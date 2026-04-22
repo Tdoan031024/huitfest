@@ -1,0 +1,99 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: 60px;
+  background-color: rgba(12, 8, 30, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(141, 74, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.menuButton {
+  background: transparent;
+  border: none;
+  color: rgba(216, 180, 254, 0.6);
+  cursor: pointer;
+  display: none; /* Hiện tại ẩn trên desktop */
+}
+
+.menuButton:hover {
+  color: #ffffff;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.025em;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.previewBtn, .resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 0.625rem;
+  height: 1.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.previewBtn {
+  border-color: rgba(147, 51, 234, 0.4);
+  background-color: rgba(147, 51, 234, 0.1);
+  color: #e9d5ff;
+}
+
+.previewBtn:hover {
+  background-color: rgba(147, 51, 234, 0.25);
+}
+
+.resetBtn {
+  border-color: rgba(220, 38, 38, 0.4);
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #fca5a5;
+}
+
+.resetBtn:hover {
+  background-color: rgba(220, 38, 38, 0.25);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem;
+  }
+  .menuButton {
+    display: block;
+  }
+  .title {
+    font-size: 0.8rem;
+  }
+  .previewBtn span, .previewBtn svg + * {
+    display: none;
+  }
+  .previewBtn {
+    padding: 0 0.5rem;
+    min-width: 32px;
+    justify-content: center;
+  }
+}

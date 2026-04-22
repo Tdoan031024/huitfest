@@ -1,0 +1,190 @@
+.section {
+  padding: 20px 0 60px; /* Reduced top padding from 80px */
+  background: transparent;
+  position: relative;
+  overflow: visible;
+}
+
+.container {
+  max-width: 1200px;
+  width: calc(100% - 40px);
+  margin: 0 auto;
+  position: relative;
+}
+
+.decorGuitar {
+  position: absolute;
+  left: -150px;
+  top: 50px;
+  width: 260px;
+  height: 260px;
+  background-image: url("/assets/images/animation/dan_guitar.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.65;
+  filter: drop-shadow(0 0 20px rgba(138, 144, 255, 0.4));
+  transform: rotate(-15deg);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.heading {
+  font-size: 36px;
+  margin-bottom: 60px;
+  background: linear-gradient(90deg, #fff, #afd2ff 48%, #cab6ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center; /* Centered */
+  padding-left: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-bottom: 50px;
+}
+
+.stepCard {
+  position: relative;
+  padding-top: 40px; /* Space for the floating icon */
+}
+
+.stepIcon {
+  position: absolute;
+  top: 0;
+  left: -20px;
+  width: 90px;
+  height: 90px;
+  z-index: 10;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+  animation: iconFloat 4s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+.stepBox {
+  background: linear-gradient(160deg, rgba(20, 15, 45, 0.9), rgba(10, 8, 20, 0.9));
+  border: 1px solid rgba(132, 145, 255, 0.35);
+  border-radius: 16px;
+  padding: 30px 25px 30px 65px; /* Increased left padding to 65px */
+  height: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.stepCard:hover .stepBox {
+  border-color: rgba(132, 145, 255, 0.8);
+  transform: translateY(-5px);
+}
+
+.stepTitle {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+}
+
+.stepText {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(220, 230, 255, 0.85);
+}
+
+.stepText strong {
+  color: #ca8fff;
+}
+
+.note {
+  padding-left: 50px;
+}
+
+.noteTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 15px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.noteList {
+  list-style: none;
+  padding: 0;
+}
+
+.noteList li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14px;
+  color: rgba(220, 230, 255, 0.7);
+  margin-bottom: 8px;
+  text-align: justify;
+}
+
+.noteList li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #ca8fff;
+  font-weight: bold;
+}
+
+@media (max-width: 991px) {
+  .grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto 50px;
+  }
+  .decorGuitar {
+    display: none;
+  }
+  .heading, .note {
+    padding-left: 0;
+    text-align: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .heading {
+    font-size: 22px !important;
+    margin-bottom: 30px !important;
+  }
+}
+
+.action {
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 18px 50px;
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  background-image: linear-gradient(rgba(20, 15, 45, 0.9), rgba(10, 8, 20, 0.9)), 
+                    linear-gradient(100deg, #66d7ff, #ca8fff);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(138, 144, 255, 0.3);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 45px rgba(102, 215, 255, 0.5);
+  letter-spacing: 3px;
+}
