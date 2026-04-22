@@ -214,7 +214,34 @@ async function main() {
     ],
   });
 
-  console.log('Seed completed successfully for event HUITU Fest 2026');
+  // 7. Site Settings
+  await prisma.sitesettings.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      siteName: 'HUIT Fest 2026',
+      siteDescription: 'Lễ hội âm nhạc công nghệ lớn nhất dành cho sinh viên HUIT',
+      siteLogo: '/assets/images/logo/logohuit.png',
+      ticketEventName: 'HUIT FEST 2026',
+      ticketEventDateTime: '2026-03-22 19:00',
+      ticketEventLocation: 'Trường Đại học Công Thương TP.HCM',
+      ticketSupportEmail: 'support@huit.edu.vn',
+    },
+  });
+
+  // 8. About Section
+  await prisma.aboutsection.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      title: 'VỀ HUIT FEST',
+      content: 'HUIT Fest là sự kiện âm nhạc - công nghệ thường niên dành cho sinh viên...',
+    },
+  });
+
+  console.log('Seed completed successfully for event HUITU Fest 2026 and global settings');
 }
 
 main()

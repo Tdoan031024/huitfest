@@ -27,9 +27,18 @@ export default function ArtistSection({ artists, title = "DANH SÁCH NGHỆ SĨ"
     }
   };
 
-  // Đảm bảo có đủ slide để Swiper chạy loop mượt mà trên mobile
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Chỉ lặp lại nghệ sĩ trên mobile để Swiper loop mượt mà
   let displayArtists = [...artists];
-  if (artists.length > 0 && artists.length < 5) {
+  if (isMobile && artists.length > 0 && artists.length < 5) {
     displayArtists = [...displayArtists, ...artists.map(a => ({ ...a, id: a.id + '-copy1' }))];
     if (displayArtists.length < 5) {
       displayArtists = [...displayArtists, ...artists.map(a => ({ ...a, id: a.id + '-copy2' }))];

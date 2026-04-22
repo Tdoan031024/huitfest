@@ -1,13 +1,16 @@
 -- CreateTable
-CREATE TABLE `agendaitem` (
+CREATE TABLE `timelineitem` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `eventId` INTEGER NOT NULL,
+    `time` VARCHAR(191) NOT NULL,
     `title` VARCHAR(191) NOT NULL,
-    `startTime` DATETIME(3) NOT NULL,
-    `endTime` DATETIME(3) NOT NULL,
+    `description` TEXT NULL,
     `sortOrder` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
-    INDEX `AgendaItem_eventId_idx`(`eventId`),
+    INDEX `timelineitem_eventId_idx`(`eventId`),
+    INDEX `timelineitem_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -26,10 +29,26 @@ CREATE TABLE `adminuser` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `rule` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `eventId` INTEGER NOT NULL,
+    `title` VARCHAR(191) NULL,
+    `content` TEXT NULL,
+    `sortOrder` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `rule_eventId_idx`(`eventId`),
+    INDEX `rule_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `artist` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `eventId` INTEGER NOT NULL,
     `name` VARCHAR(191) NOT NULL,
+    `description` TEXT NULL,
     `imageUrl` VARCHAR(191) NULL,
     `sortOrder` INTEGER NOT NULL DEFAULT 0,
 
@@ -38,7 +57,7 @@ CREATE TABLE `artist` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `artistextraitem` (
+CREATE TABLE `talent` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `eventId` INTEGER NOT NULL,
     `name` VARCHAR(191) NOT NULL,
@@ -49,8 +68,8 @@ CREATE TABLE `artistextraitem` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    INDEX `ArtistExtraItem_eventId_idx`(`eventId`),
-    INDEX `ArtistExtraItem_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
+    INDEX `talent_eventId_idx`(`eventId`),
+    INDEX `talent_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -63,29 +82,13 @@ CREATE TABLE `event` (
     `description` TEXT NOT NULL,
     `heroImage` VARCHAR(191) NULL,
     `startAt` DATETIME(3) NOT NULL,
-    `endAt` DATETIME(3) NOT NULL,
     `registrationOpen` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
-    `pageConfig` JSON NULL,
+    `pageConfig` LONGTEXT NULL,
+    `videoUrl` TEXT NULL,
 
     UNIQUE INDEX `Event_slug_key`(`slug`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `journeyitem` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `eventId` INTEGER NOT NULL,
-    `title` VARCHAR(191) NULL,
-    `description` TEXT NULL,
-    `imageUrl` TEXT NULL,
-    `sortOrder` INTEGER NOT NULL DEFAULT 0,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
-
-    INDEX `JourneyItem_eventId_idx`(`eventId`),
-    INDEX `JourneyItem_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -96,6 +99,9 @@ CREATE TABLE `registration` (
     `fullName` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `phone` VARCHAR(191) NOT NULL,
+    `birthDate` VARCHAR(191) NULL,
+    `referralCode` VARCHAR(191) NULL,
+    `userType` VARCHAR(191) NULL,
     `school` VARCHAR(191) NULL,
     `province` VARCHAR(191) NULL,
     `role` VARCHAR(191) NULL,
@@ -113,7 +119,7 @@ CREATE TABLE `registration` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `ruleitem` (
+CREATE TABLE `instruction` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `eventId` INTEGER NOT NULL,
     `title` VARCHAR(191) NULL,
@@ -122,8 +128,24 @@ CREATE TABLE `ruleitem` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    INDEX `RuleItem_eventId_idx`(`eventId`),
-    INDEX `RuleItem_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
+    INDEX `instruction_eventId_idx`(`eventId`),
+    INDEX `instruction_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `journeyitem` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `eventId` INTEGER NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `content` TEXT NULL,
+    `imageUrl` TEXT NULL,
+    `sortOrder` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `journeyitem_eventId_idx`(`eventId`),
+    INDEX `journeyitem_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -137,6 +159,7 @@ CREATE TABLE `sponsor` (
     `sortOrder` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `category` VARCHAR(191) NULL,
 
     INDEX `Sponsor_eventId_idx`(`eventId`),
     INDEX `Sponsor_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
@@ -144,42 +167,84 @@ CREATE TABLE `sponsor` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `timelineitem` (
+CREATE TABLE `banner` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `eventId` INTEGER NOT NULL,
-    `timeLabel` VARCHAR(191) NULL,
+    `imageUrl` TEXT NOT NULL,
     `title` VARCHAR(191) NULL,
-    `description` TEXT NULL,
+    `subtitle` VARCHAR(191) NULL,
+    `linkUrl` VARCHAR(191) NULL,
     `sortOrder` INTEGER NOT NULL DEFAULT 0,
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `showLink` BOOLEAN NOT NULL DEFAULT true,
+    `showSubtitle` BOOLEAN NOT NULL DEFAULT true,
+    `showTitle` BOOLEAN NOT NULL DEFAULT true,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `aboutsection` (
+    `id` INTEGER NOT NULL DEFAULT 1,
+    `title` VARCHAR(191) NULL,
+    `content` TEXT NULL,
+    `imageUrl` TEXT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    INDEX `TimelineItem_eventId_idx`(`eventId`),
-    INDEX `TimelineItem_eventId_sortOrder_idx`(`eventId`, `sortOrder`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `sitesettings` (
+    `id` INTEGER NOT NULL DEFAULT 1,
+    `siteName` VARCHAR(191) NOT NULL DEFAULT 'HUIT Fest 2026',
+    `siteLogo` TEXT NULL,
+    `siteBanner` TEXT NULL,
+    `siteDescription` TEXT NULL,
+    `ticketEventName` TEXT NULL,
+    `ticketEventDateTime` TEXT NULL,
+    `ticketEventLocation` TEXT NULL,
+    `ticketInfo` TEXT NULL,
+    `ticketLogoUrl` TEXT NULL,
+    `ticketBannerUrl` TEXT NULL,
+    `ticketSupportEmail` TEXT NULL,
+    `ticketSupportPhone` TEXT NULL,
+    `ticketInfoUrl` TEXT NULL,
+    `ticketPortalUrl` TEXT NULL,
+    `ticketEmailNote` TEXT NULL,
+    `smtpHost` TEXT NULL,
+    `smtpPort` INTEGER NULL DEFAULT 587,
+    `smtpUser` TEXT NULL,
+    `smtpPass` TEXT NULL,
+    `smtpFrom` TEXT NULL,
+    `updatedAt` DATETIME(3) NOT NULL,
+
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `agendaitem` ADD CONSTRAINT `AgendaItem_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `timelineitem` ADD CONSTRAINT `timelineitem_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `rule` ADD CONSTRAINT `rule_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `artist` ADD CONSTRAINT `Artist_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `artistextraitem` ADD CONSTRAINT `ArtistExtraItem_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `journeyitem` ADD CONSTRAINT `JourneyItem_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `talent` ADD CONSTRAINT `talent_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `registration` ADD CONSTRAINT `Registration_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ruleitem` ADD CONSTRAINT `RuleItem_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `instruction` ADD CONSTRAINT `instruction_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `journeyitem` ADD CONSTRAINT `journeyitem_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `sponsor` ADD CONSTRAINT `Sponsor_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `timelineitem` ADD CONSTRAINT `TimelineItem_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 

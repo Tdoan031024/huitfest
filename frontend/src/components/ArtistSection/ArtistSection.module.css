@@ -49,6 +49,12 @@
   overflow: visible !important;
 }
 
+@media (min-width: 768px) {
+  .swiper :global(.swiper-wrapper) {
+    justify-content: center;
+  }
+}
+
 .swiperSlide {
   width: auto !important;
   display: flex;

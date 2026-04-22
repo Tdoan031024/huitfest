@@ -34,9 +34,18 @@ export default function TalentSection({ talents, title = "DẤU ẤN TÀI NĂNG"
     }
   };
 
-  // Đảm bảo có đủ slide để Swiper chạy loop mượt mà trên mobile
+  const [isMobile, setIsMobile] = useState(false);
+  
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Chỉ lặp lại tài năng trên mobile để Swiper loop mượt mà
   let displayTalents = [...talents];
-  if (talents.length > 0 && talents.length < 5) {
+  if (isMobile && talents.length > 0 && talents.length < 5) {
     displayTalents = [...displayTalents, ...talents.map(t => ({ ...t, id: t.id + '-copy1' }))];
     if (displayTalents.length < 5) {
       displayTalents = [...displayTalents, ...talents.map(t => ({ ...t, id: t.id + '-copy2' }))];
