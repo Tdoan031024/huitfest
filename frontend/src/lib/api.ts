@@ -235,7 +235,12 @@ export async function updateBanners(banners: any[]): Promise<any> {
   });
 
   if (!res.ok) {
-    throw new Error('Failed to update banners');
+    let errorMsg = 'Failed to update banners';
+    try {
+      const errorData = await res.json();
+      errorMsg = `Server error: ${errorData.message || JSON.stringify(errorData)}`;
+    } catch (e) {}
+    throw new Error(errorMsg);
   }
 
   return await res.json();
