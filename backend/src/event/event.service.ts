@@ -427,7 +427,8 @@ export class EventService {
           startAt: config.startAt ? new Date(config.startAt) : undefined,
           videoUrl: config.videoUrl === undefined ? undefined : (config.videoUrl || null),
           pageConfig: stringifiedConfig,
-          registrationOpen: config.registrationOpen !== undefined ? !!config.registrationOpen : undefined
+          registrationOpen: config.registrationOpen !== undefined ? !!config.registrationOpen : undefined,
+          updatedAt: now,
         },
       });
 
@@ -568,7 +569,10 @@ export class EventService {
     
     return this.prisma.event.update({
       where: { id: target.id },
-      data: { registrationOpen: !!open },
+      data: { 
+        registrationOpen: !!open,
+        updatedAt: new Date(),
+      },
     });
   }
 }

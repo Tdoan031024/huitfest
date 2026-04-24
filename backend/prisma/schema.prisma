@@ -84,7 +84,7 @@ model event {
   startAt          DateTime
   registrationOpen Boolean        @default(true)
   createdAt        DateTime       @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime       @updatedAt
   pageConfig       String?        @db.LongText
   videoUrl         String?        @db.Text
   artist           artist[]
@@ -159,7 +159,7 @@ model sponsor {
   linkUrl   String?  @db.Text
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt        DateTime       @updatedAt
   category  String?
   event     event    @relation(fields: [eventId], references: [id], onDelete: Cascade, map: "Sponsor_eventId_fkey")
 
