@@ -12,6 +12,14 @@ export class BannerController {
 
   @Post()
   async updateAll(@Body() banners: any[]) {
-    return this.bannerService.updateAll(banners);
+    try {
+      return await this.bannerService.updateAll(banners);
+    } catch (error) {
+      return {
+        statusCode: 500,
+        message: error.message,
+        stack: error.stack,
+      };
+    }
   }
 }
