@@ -135,109 +135,107 @@
 }
 
 /* Customizing React Datepicker Calendar UI */
-:global {
-  .react-datepicker {
-    background-color: #1a1635 !important;
-    border: 1px solid rgba(138, 144, 255, 0.4) !important;
-    border-radius: 16px !important;
-    color: #fff !important;
-    font-family: inherit !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
-    padding: 10px !important;
-  }
+:global(.react-datepicker) {
+  background-color: #1a1635 !important;
+  border: 1px solid rgba(138, 144, 255, 0.4) !important;
+  border-radius: 16px !important;
+  color: #fff !important;
+  font-family: inherit !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  padding: 10px !important;
+}
 
-  .react-datepicker__header {
-    background-color: #1a1635 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 16px 16px 0 0 !important;
-  }
+:global(.react-datepicker__header) {
+  background-color: #1a1635 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
 
-  .react-datepicker__current-month,
-  .react-datepicker__day-name {
-    color: #fff !important;
-  }
+:global(.react-datepicker__current-month),
+:global(.react-datepicker__day-name) {
+  color: #fff !important;
+}
 
-  .react-datepicker__day {
-    color: rgba(255, 255, 255, 0.8) !important;
-    border-radius: 8px !important;
-  }
+:global(.react-datepicker__day) {
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 8px !important;
+}
 
-  .react-datepicker__day:hover {
-    background-color: rgba(138, 144, 255, 0.3) !important;
-    color: #fff !important;
-  }
+:global(.react-datepicker__day:hover) {
+  background-color: rgba(138, 144, 255, 0.3) !important;
+  color: #fff !important;
+}
 
-  .react-datepicker__day--selected {
-    background: linear-gradient(100deg, #66d7ff, #ca8fff) !important;
-    color: #0d0a25 !important;
-    font-weight: bold !important;
-  }
+:global(.react-datepicker__day--selected) {
+  background: linear-gradient(100deg, #66d7ff, #ca8fff) !important;
+  color: #0d0a25 !important;
+  font-weight: bold !important;
+}
 
-  .react-datepicker__day--keyboard-selected {
-    background-color: rgba(102, 215, 255, 0.2) !important;
-  }
+:global(.react-datepicker__day--keyboard-selected) {
+  background-color: rgba(102, 215, 255, 0.2) !important;
+}
 
-  .react-datepicker__year-read-view--down-arrow,
-  .react-datepicker__month-read-view--down-arrow {
-    border-color: #fff !important;
-  }
+:global(.react-datepicker__year-read-view--down-arrow),
+:global(.react-datepicker__month-read-view--down-arrow) {
+  border-color: #fff !important;
+}
 
-  .react-datepicker__navigation-icon::before {
-    border-color: #fff !important;
-  }
+:global(.react-datepicker__navigation-icon::before) {
+  border-color: #fff !important;
+}
 
-  .react-datepicker__triangle {
-    display: none !important;
-  }
+:global(.react-datepicker__triangle) {
+  display: none !important;
+}
 
-  .react-datepicker__year-dropdown,
-  .react-datepicker__month-dropdown {
-    background-color: #1a1635 !important;
-    border: 1px solid rgba(138, 144, 255, 0.4) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
-    padding: 5px 0 !important;
-    z-index: 100 !important;
-  }
+:global(.react-datepicker__year-dropdown),
+:global(.react-datepicker__month-dropdown) {
+  background-color: #1a1635 !important;
+  border: 1px solid rgba(138, 144, 255, 0.4) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+  padding: 5px 0 !important;
+  z-index: 100 !important;
+}
 
-  .react-datepicker__year-option,
-  .react-datepicker__month-option {
-    color: rgba(255, 255, 255, 0.8) !important;
-    padding: 8px 15px !important;
-    transition: all 0.2s !important;
-  }
+:global(.react-datepicker__year-option),
+:global(.react-datepicker__month-option) {
+  color: rgba(255, 255, 255, 0.8) !important;
+  padding: 8px 15px !important;
+  transition: all 0.2s !important;
+}
 
-  .react-datepicker__year-option:hover,
-  .react-datepicker__month-option:hover {
-    background-color: rgba(138, 144, 255, 0.3) !important;
-    color: #fff !important;
-  }
+:global(.react-datepicker__year-option:hover),
+:global(.react-datepicker__month-option:hover) {
+  background-color: rgba(138, 144, 255, 0.3) !important;
+  color: #fff !important;
+}
 
-  .react-datepicker__year-option--selected_year,
-  .react-datepicker__month-option--selected_month {
-    color: #66d7ff !important;
-    font-weight: bold !important;
-    background-color: rgba(102, 215, 255, 0.1) !important;
-  }
+:global(.react-datepicker__year-option--selected_year),
+:global(.react-datepicker__month-option--selected_month) {
+  color: #66d7ff !important;
+  font-weight: bold !important;
+  background-color: rgba(102, 215, 255, 0.1) !important;
+}
 
-  .react-datepicker__year-dropdown-container--select,
-  .react-datepicker__month-dropdown-container--select {
-    margin: 0 5px !important;
-  }
+:global(.react-datepicker__year-dropdown-container--select),
+:global(.react-datepicker__month-dropdown-container--select) {
+  margin: 0 5px !important;
+}
 
-  .react-datepicker__year-read-view,
-  .react-datepicker__month-read-view {
-    visibility: visible !important;
-    padding: 5px 10px !important;
-    border-radius: 6px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  }
+:global(.react-datepicker__year-read-view),
+:global(.react-datepicker__month-read-view) {
+  visibility: visible !important;
+  padding: 5px 10px !important;
+  border-radius: 6px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
 
-  .react-datepicker__year-read-view:hover,
-  .react-datepicker__month-read-view:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-  }
+:global(.react-datepicker__year-read-view:hover),
+:global(.react-datepicker__month-read-view:hover) {
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .btn {

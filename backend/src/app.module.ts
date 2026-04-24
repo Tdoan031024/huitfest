@@ -22,10 +22,18 @@ const frontendPath = (() => {
     join(cwd, 'public'),
   ];
   
+  console.log('--- BACKEND PATH DEBUG ---');
+  console.log('Current CWD:', cwd);
+  
   for (const c of candidates) {
-    if (require('fs').existsSync(c)) return c;
+    const exists = require('fs').existsSync(c);
+    console.log(`Checking path: ${c} -> ${exists ? 'EXISTS' : 'NOT FOUND'}`);
+    if (exists) return c;
   }
-  return join(cwd, '..', 'frontend', 'public');
+  
+  const fallback = join(cwd, '..', 'frontend', 'public');
+  console.log('Using fallback path:', fallback);
+  return fallback;
 })();
 
 @Module({

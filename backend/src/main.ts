@@ -19,19 +19,23 @@ function parseAllowedOrigins(): string[] {
  * Checks both ./frontend/public (run from root) and ../frontend/public (run from backend/).
  */
 function getFrontendPublicPath(): string {
+  const cwd = process.cwd();
   const candidates = [
-    join(process.cwd(), 'frontend', 'public'),
-    join(process.cwd(), '..', 'frontend', 'public'),
+    join(cwd, 'frontend', 'public'),
+    join(cwd, '..', 'frontend', 'public'),
+    join(cwd, 'public'),
   ];
 
+  console.log('--- MAIN PATH DEBUG ---');
   for (const candidate of candidates) {
-    if (require('fs').existsSync(candidate)) {
+    const exists = require('fs').existsSync(candidate);
+    console.log(`Checking path: ${candidate} -> ${exists ? 'EXISTS' : 'NOT FOUND'}`);
+    if (exists) {
       return candidate;
     }
   }
 
-  // Fallback to previous behavior if all else fails
-  return join(process.cwd(), '..', 'frontend', 'public');
+  return join(cwd, '..', 'frontend', 'public');
 }
 
 async function bootstrap() {
