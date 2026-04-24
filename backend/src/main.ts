@@ -8,7 +8,16 @@ import { AppModule } from './app.module';
 import { AdminAuthService } from './auth/admin-auth.service';
 
 function parseAllowedOrigins(): string[] {
-  return String(process.env.CORS_ALLOWED_ORIGINS || '')
+  const envVal = String(process.env.CORS_ALLOWED_ORIGINS || '').trim();
+  if (!envVal) {
+    return [
+      'https://huitfest.huitmedia.edu.vn',
+      'http://huitfest.huitmedia.edu.vn',
+      'http://localhost:3000',
+      'http://localhost:3001',
+    ];
+  }
+  return envVal
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
