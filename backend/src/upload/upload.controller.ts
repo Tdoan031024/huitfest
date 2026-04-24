@@ -26,6 +26,16 @@ export class UploadController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    return this.uploadService.processImage(file, folder);
+    
+    try {
+      return await this.uploadService.processImage(file, folder);
+    } catch (error: any) {
+      return {
+        statusCode: 500,
+        message: error.message,
+        stack: error.stack,
+        details: 'Kiểm tra xem thư mục frontend/public có quyền ghi (write permission) không.'
+      };
+    }
   }
 }

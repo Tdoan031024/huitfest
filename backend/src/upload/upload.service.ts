@@ -6,14 +6,24 @@ import * as sharp from 'sharp';
 @Injectable()
 export class UploadService {
   private readonly publicPath = (() => {
+    const cwd = process.cwd();
     const candidates = [
-      join(process.cwd(), 'fe', 'public'),
-      join(process.cwd(), '..', 'fe', 'public'),
+      join(cwd, 'frontend', 'public'),
+      join(cwd, '..', 'frontend', 'public'),
+      join(cwd, 'public'), // Local Laragon root if applicable
     ];
+    
+    console.log('UploadService: Searching for public directory...');
     for (const c of candidates) {
-      if (require('fs').existsSync(c)) return c;
+      if (fs.existsSync(c)) {
+        console.log('UploadService: Found public directory at:', c);
+        return c;
+      }
     }
-    return join(process.cwd(), '..', 'fe', 'public');
+    
+    const fallback = join(cwd, '..', 'frontend', 'public');
+    console.warn('UploadService: No public directory found. Falling back to:', fallback);
+    return fallback;
   })();
   private readonly allowedFolders = new Set([
     'uploads',

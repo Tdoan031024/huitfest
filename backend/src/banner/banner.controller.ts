@@ -3,7 +3,7 @@ import { BannerService } from './banner.service';
 
 @Controller('banners')
 export class BannerController {
-  constructor(private readonly bannerService: BannerService) {}
+  constructor(private readonly bannerService: BannerService) { }
 
   @Get()
   async findAll() {
@@ -12,14 +12,6 @@ export class BannerController {
 
   @Post()
   async updateAll(@Body() banners: any[]) {
-    try {
-      return await this.bannerService.updateAll(banners);
-    } catch (error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        stack: error.stack,
-      };
-    }
+    return this.bannerService.updateAll(banners);
   }
 }
