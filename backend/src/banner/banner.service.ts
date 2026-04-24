@@ -29,6 +29,7 @@ export class BannerService {
             showLink: b.showLink ?? true,
             sortOrder: b.sortOrder ?? (idx + 1),
             isActive: b.isActive ?? true,
+            updatedAt: new Date(),
           })),
         });
       }
