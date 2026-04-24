@@ -429,16 +429,33 @@ export class RegistrationService {
 
     const regularFontPathCandidates = [
       join(process.cwd(), 'assets', 'fonts', 'NotoSans-Regular.ttf'),
+      join(process.cwd(), 'dist', 'assets', 'fonts', 'NotoSans-Regular.ttf'),
+      join(process.cwd(), '..', 'assets', 'fonts', 'NotoSans-Regular.ttf'),
       'C:/Windows/Fonts/arial.ttf',
       '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+      '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+      '/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf',
+      '/usr/share/fonts/TTF/DejaVuSans.ttf',
     ];
     const boldFontPathCandidates = [
       join(process.cwd(), 'assets', 'fonts', 'NotoSans-Bold.ttf'),
+      join(process.cwd(), 'dist', 'assets', 'fonts', 'NotoSans-Bold.ttf'),
+      join(process.cwd(), '..', 'assets', 'fonts', 'NotoSans-Bold.ttf'),
       'C:/Windows/Fonts/arialbd.ttf',
       '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+      '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+      '/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf',
+      '/usr/share/fonts/TTF/DejaVuSans-Bold.ttf',
     ];
     const regularFontPath = regularFontPathCandidates.find((path) => existsSync(path));
     const boldFontPath = boldFontPathCandidates.find((path) => existsSync(path));
+    
+    if (!regularFontPath) {
+      console.warn('[PDF] WARNING: No suitable regular font found for Vietnamese support. Falling back to Helvetica.');
+    } else {
+      console.log(`[PDF] Using regular font: ${regularFontPath}`);
+    }
+
     const setRegular = () => doc.font(regularFontPath || 'Helvetica');
     const setBold = () => doc.font(boldFontPath || 'Helvetica-Bold');
 

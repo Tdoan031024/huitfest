@@ -73,8 +73,7 @@
 
 .input {
   width: 100%;
-  padding: 12px 16px;
-  padding-left: 44px;
+  padding: 12px 44px 12px 44px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(167, 139, 250, 0.2);
   border-radius: 12px;
@@ -150,4 +149,24 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.togglePasswordBtn {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #a78bfa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.togglePasswordBtn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
 }

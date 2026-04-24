@@ -42,6 +42,10 @@ export default function RegistrationManager() {
   
   const [sendEmailBulk, setSendEmailBulk] = useState(true);
   
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
   const { saveTrigger, resetTrigger, setUnsavedChanges } = useAdmin();
   const { addToast } = useToast();
   const lastSaveTrigger = useRef(saveTrigger);
@@ -184,6 +188,10 @@ export default function RegistrationManager() {
     // ... logic would go here
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter]);
+
   const filteredData = registrations.filter(item => {
     // 1. Search filter
     const matchesSearch = 
@@ -209,11 +217,17 @@ export default function RegistrationManager() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   const toggleSelectAll = () => {
-    if (selectedIds.length === filteredData.length) {
-      setSelectedIds([]);
+    const allOnPageSelected = paginatedData.every(r => selectedIds.includes(r.id));
+    if (allOnPageSelected) {
+      const currentIds = paginatedData.map(r => r.id);
+      setSelectedIds(selectedIds.filter(id => !currentIds.includes(id)));
     } else {
-      setSelectedIds(filteredData.map(r => r.id));
+      const newIds = paginatedData.map(r => r.id).filter(id => !selectedIds.includes(id));
+      setSelectedIds([...selectedIds, ...newIds]);
     }
   };
 
@@ -351,7 +365,7 @@ export default function RegistrationManager() {
               <th style={{ width: '40px' }}>
                 <input 
                   type="checkbox" 
-                  checked={filteredData.length > 0 && selectedIds.length === filteredData.length}
+                  checked={paginatedData.length > 0 && paginatedData.every(r => selectedIds.includes(r.id))}
                   onChange={toggleSelectAll}
                 />
               </th>
@@ -373,7 +387,7 @@ export default function RegistrationManager() {
             ) : filteredData.length === 0 ? (
               <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>Không có dữ liệu</td></tr>
             ) : (
-              filteredData.map((reg) => {
+              paginatedData.map((reg) => {
                 const change = localChanges[reg.id];
                 const currentStatus = change?.status ?? reg.status;
                 const currentPriority = change?.priority ?? reg.priority;
@@ -428,6 +442,45 @@ export default function RegistrationManager() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <div className={styles.pageInfo}>
+            Hiển thị {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredData.length)} trong tổng số {filteredData.length} kết quả
+          </div>
+          
+          <div className={styles.pageControls}>
+            <select 
+              value={itemsPerPage} 
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className={styles.perPageSelect}
+            >
+              <option value="10">10 / trang</option>
+              <option value="20">20 / trang</option>
+              <option value="50">50 / trang</option>
+              <option value="100">100 / trang</option>
+            </select>
+
+            <button 
+              className={styles.pageBtn} 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            
+            <span className={styles.pageText}>Trang {currentPage} / {totalPages}</span>
+            
+            <button 
+              className={styles.pageBtn} 
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
