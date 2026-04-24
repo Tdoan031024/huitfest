@@ -43,7 +43,7 @@ const frontendPath = (() => {
     ServeStaticModule.forRoot({
       rootPath: frontendPath,
       serveRoot: '/',
-      exclude: ['/admin', '/admin/:path(.*)', '/api', '/api/:path(.*)'],
+      exclude: ['/admin', '/admin/:path*', '/api', '/api/:path*'],
     }),
     AdminAuthModule,
     PrismaModule,
