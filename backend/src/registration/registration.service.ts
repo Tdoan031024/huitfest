@@ -515,7 +515,8 @@ export class RegistrationService {
       try {
         doc.image(logoBuffer, leftX, contentY, { height: 40 });
       } catch (err) {
-        console.error('[PDF IMAGE ERROR] Failed to render logo:', err.message);
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[PDF IMAGE ERROR] Failed to render logo:', msg);
         setBold().fontSize(16).fillColor('#111827').text('HUIT FEST', leftX, contentY + 6);
       }
     } else {
@@ -566,7 +567,8 @@ export class RegistrationService {
       try {
         doc.image(bannerBuffer, leftX, bannerY, { width: leftWidth, height: bannerH });
       } catch (err) {
-        console.error('[PDF IMAGE ERROR] Failed to render banner:', err.message);
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[PDF IMAGE ERROR] Failed to render banner:', msg);
         doc.rect(leftX, bannerY, leftWidth, bannerH).fill('#e5e7eb');
       }
     } else {
