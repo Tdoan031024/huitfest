@@ -15,14 +15,17 @@ import { AboutModule } from './about/about.module';
 import { SettingsModule } from './settings/settings.module';
 
 const frontendPath = (() => {
+  const cwd = process.cwd();
   const candidates = [
-    join(process.cwd(), 'fe', 'public'),
-    join(process.cwd(), '..', 'fe', 'public'),
+    join(cwd, 'frontend', 'public'),
+    join(cwd, '..', 'frontend', 'public'),
+    join(cwd, 'public'),
   ];
+  
   for (const c of candidates) {
     if (require('fs').existsSync(c)) return c;
   }
-  return join(process.cwd(), '..', 'fe', 'public');
+  return join(cwd, '..', 'frontend', 'public');
 })();
 
 @Module({
