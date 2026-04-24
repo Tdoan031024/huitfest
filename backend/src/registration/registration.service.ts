@@ -395,6 +395,8 @@ export class RegistrationService {
     qrCodeDataUrl: string;
     supportEmail: string;
     supportPhone: string;
+    logoBuffer?: Buffer | null;
+    bannerBuffer?: Buffer | null;
   }): Promise<Buffer> {
     const doc = new PDFDocument({ size: 'A4', margin: 24 });
 
@@ -461,20 +463,20 @@ export class RegistrationService {
 
     doc.rect(cardX, cardY, cardWidth, cardHeight).lineWidth(1).stroke('#d1d5db');
 
-    const runtimeRoots = this.getRuntimeRoots();
-    const logoPathCandidates = runtimeRoots.flatMap((rootPath) => [
-      join(rootPath, 'frontend', 'public', 'assets', 'images', 'logo', 'logohuit.png'),
-      join(rootPath, 'frontend', 'public', 'assets', 'images', 'logo', 'logohuit.jpg'),
-      join(rootPath, 'frontend', 'public', 'assets', 'images', 'logo', 'logohuit.webp'),
-    ]);
-    const bannerPathCandidates = runtimeRoots.flatMap((rootPath) => [
-      join(rootPath, 'frontend', 'public', 'assets', 'images', 'banner', 'banner.png'),
-      join(rootPath, 'frontend', 'public', 'assets', 'images', 'banner', 'banner.webp'),
-    ]);
+    // Use pre-loaded buffers if passed (e.g., from buildApprovalTicketEmailContent).
+    // Fall back to filesystem search only when not provided.
+    let logoBuffer: Buffer | null = payload.logoBuffer ?? null;
+    let bannerBuffer: Buffer | null = payload.bannerBuffer ?? null;
 
-    let logoBuffer: Buffer | null = null;
-    let bannerBuffer: Buffer | null = null;
-    logoBuffer = await this.readFirstAvailableBuffer(logoPathCandidates);
+    if (!logoBuffer) {
+      const runtimeRoots = this.getRuntimeRoots();
+      const logoPathCandidates = runtimeRoots.flatMap((rootPath) => [
+        join(rootPath, 'frontend', 'public', 'assets', 'images', 'logo', 'logohuit.png'),
+        join(rootPath, 'frontend', 'public', 'assets', 'images', 'logo', 'logohuit.jpg'),
+        join(rootPath, 'frontend', 'public', 'assets', 'images', 'logo', 'logohuit.webp'),
+      ]);
+      logoBuffer = await this.readFirstAvailableBuffer(logoPathCandidates);
+    }
 
     if (!logoBuffer) {
       const emailLogoUrl = process.env.EMAIL_LOGO_URL;
@@ -482,7 +484,18 @@ export class RegistrationService {
         logoBuffer = await this.downloadBufferFromUrl(emailLogoUrl);
       }
     }
-    bannerBuffer = await this.readFirstAvailableBuffer(bannerPathCandidates);
+
+    if (!bannerBuffer) {
+      const runtimeRoots = this.getRuntimeRoots();
+      const bannerPathCandidates = runtimeRoots.flatMap((rootPath) => [
+        join(rootPath, 'frontend', 'public', 'assets', 'images', 'banner', 'banner.png'),
+        join(rootPath, 'frontend', 'public', 'assets', 'images', 'banner', 'banner.webp'),
+      ]);
+      bannerBuffer = await this.readFirstAvailableBuffer(bannerPathCandidates);
+    }
+
+    console.log(`[PDF] logoBuffer: ${logoBuffer ? logoBuffer.length + ' bytes' : 'EMPTY'}`);
+    console.log(`[PDF] bannerBuffer: ${bannerBuffer ? bannerBuffer.length + ' bytes' : 'EMPTY'}`);
 
     const qrBuffer = await this.normalizePdfImageBuffer(this.dataUrlToBuffer(payload.qrCodeDataUrl));
     logoBuffer = await this.normalizePdfImageBuffer(logoBuffer);
@@ -1101,6 +1114,8 @@ export class RegistrationService {
       qrCodeDataUrl,
       supportEmail,
       supportPhone,
+      logoBuffer,   // Truyền trực tiếp buffer đã tải thành công ở trên
+      bannerBuffer, // Truyền trực tiếp buffer đã tải thành công ở trên
     });
 
     const subject = `[HUIT Media] Vé điện tử tham dự - ${eventName}`;
