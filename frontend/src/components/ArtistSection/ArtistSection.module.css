@@ -168,6 +168,8 @@
   line-height: 1.7;
   color: rgba(220, 230, 255, 0.9);
   max-width: 900px;
+  text-align: justify;
+  white-space: pre-wrap;
 }
 
 @keyframes guestPanelFadeUp {
