@@ -260,16 +260,25 @@ export class RegistrationService {
   private async normalizePdfImageBuffer(buffer: Buffer | null): Promise<Buffer | null> {
     if (!buffer) return null;
     try {
-      const sharpFactory =
-        ((sharpModule as unknown as { default?: (...args: unknown[]) => { png: () => { toBuffer: () => Promise<Buffer> } } })
-          .default || (sharpModule as unknown as (...args: unknown[]) => { png: () => { toBuffer: () => Promise<Buffer> } }));
+      // PDFKit does not support WebP. We use sharp to convert to PNG.
+      const isWebP = buffer.slice(0, 4).toString() === 'RIFF' && buffer.slice(8, 12).toString() === 'WEBP';
+      
+      // If it's not WebP, we still convert it to PNG to ensure compatibility and standard resolution
+      // but we especially care about WebP.
+      if (isWebP) {
+        console.log('[PDF IMAGE] Detected WebP format. Converting to PNG for PDF compatibility...');
+      }
 
-      if (typeof sharpFactory !== 'function') {
+      const sharp = sharpModule as any;
+      const converter = (sharp.default || sharp);
+      
+      if (typeof converter !== 'function') {
         return buffer;
       }
 
-      return await sharpFactory(buffer).png().toBuffer();
-    } catch {
+      return await converter(buffer).png().toBuffer();
+    } catch (err) {
+      console.error('[PDF IMAGE NORMALIZE ERROR]:', err instanceof Error ? err.message : String(err));
       return buffer;
     }
   }
@@ -505,7 +514,8 @@ export class RegistrationService {
     if (logoBuffer) {
       try {
         doc.image(logoBuffer, leftX, contentY, { height: 40 });
-      } catch {
+      } catch (err) {
+        console.error('[PDF IMAGE ERROR] Failed to render logo:', err.message);
         setBold().fontSize(16).fillColor('#111827').text('HUIT FEST', leftX, contentY + 6);
       }
     } else {
@@ -555,7 +565,8 @@ export class RegistrationService {
     if (bannerBuffer) {
       try {
         doc.image(bannerBuffer, leftX, bannerY, { width: leftWidth, height: bannerH });
-      } catch {
+      } catch (err) {
+        console.error('[PDF IMAGE ERROR] Failed to render banner:', err.message);
         doc.rect(leftX, bannerY, leftWidth, bannerH).fill('#e5e7eb');
       }
     } else {
