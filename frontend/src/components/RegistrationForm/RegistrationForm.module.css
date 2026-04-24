@@ -85,7 +85,7 @@
   color: #fff;
   font-size: 15px;
   transition: all 0.2s;
-  appearance: none; /* Reset default select arrow */
+  appearance: none;
 }
 
 .select {
@@ -118,13 +118,6 @@
   transition: all 0.2s !important;
 }
 
-.dateInput:focus {
-  outline: none !important;
-  border-color: #66d7ff !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 0 15px rgba(102, 215, 255, 0.2) !important;
-}
-
 .calendarIconWrapper {
   position: absolute;
   right: 15px;
@@ -134,7 +127,7 @@
   align-items: center;
 }
 
-/* Customizing React Datepicker Calendar UI */
+/* Customizing React Datepicker Calendar UI - Using individual :global selectors */
 :global(.react-datepicker) {
   background-color: #1a1635 !important;
   border: 1px solid rgba(138, 144, 255, 0.4) !important;
@@ -172,70 +165,8 @@
   font-weight: bold !important;
 }
 
-:global(.react-datepicker__day--keyboard-selected) {
-  background-color: rgba(102, 215, 255, 0.2) !important;
-}
-
-:global(.react-datepicker__year-read-view--down-arrow),
-:global(.react-datepicker__month-read-view--down-arrow) {
-  border-color: #fff !important;
-}
-
-:global(.react-datepicker__navigation-icon::before) {
-  border-color: #fff !important;
-}
-
 :global(.react-datepicker__triangle) {
   display: none !important;
-}
-
-:global(.react-datepicker__year-dropdown),
-:global(.react-datepicker__month-dropdown) {
-  background-color: #1a1635 !important;
-  border: 1px solid rgba(138, 144, 255, 0.4) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
-  padding: 5px 0 !important;
-  z-index: 100 !important;
-}
-
-:global(.react-datepicker__year-option),
-:global(.react-datepicker__month-option) {
-  color: rgba(255, 255, 255, 0.8) !important;
-  padding: 8px 15px !important;
-  transition: all 0.2s !important;
-}
-
-:global(.react-datepicker__year-option:hover),
-:global(.react-datepicker__month-option:hover) {
-  background-color: rgba(138, 144, 255, 0.3) !important;
-  color: #fff !important;
-}
-
-:global(.react-datepicker__year-option--selected_year),
-:global(.react-datepicker__month-option--selected_month) {
-  color: #66d7ff !important;
-  font-weight: bold !important;
-  background-color: rgba(102, 215, 255, 0.1) !important;
-}
-
-:global(.react-datepicker__year-dropdown-container--select),
-:global(.react-datepicker__month-dropdown-container--select) {
-  margin: 0 5px !important;
-}
-
-:global(.react-datepicker__year-read-view),
-:global(.react-datepicker__month-read-view) {
-  visibility: visible !important;
-  padding: 5px 10px !important;
-  border-radius: 6px !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-:global(.react-datepicker__year-read-view:hover),
-:global(.react-datepicker__month-read-view:hover) {
-  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .btn {
@@ -258,22 +189,10 @@
   gap: 12px;
 }
 
-.btnIcon {
-  transition: transform 0.3s ease;
-}
-
-.btn:hover:not(:disabled) .btnIcon {
-  transform: translateX(5px);
-}
-
 .btn:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.01);
   box-shadow: 0 12px 35px rgba(79, 172, 254, 0.5);
   background: linear-gradient(135deg, #00ff88 0%, #4facfe 100%);
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(-1px);
 }
 
 .btn:disabled {
@@ -286,16 +205,6 @@
   padding: 20px 0;
 }
 
-.successIconWrapper {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .successIcon {
   width: 80px;
   height: 80px;
@@ -306,23 +215,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  position: relative;
-  z-index: 2;
+  margin: 0 auto 30px;
   box-shadow: 0 10px 40px rgba(0, 255, 136, 0.5);
-  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.successRing {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
-  border: 2px solid #00ff88;
-  border-radius: 50%;
-  opacity: 0;
-  animation: ripple 2s infinite;
 }
 
 .successTitle {
@@ -333,8 +227,6 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .successText {
@@ -342,38 +234,6 @@
   font-size: 16px;
   line-height: 1.6;
   margin: 0 0 35px;
-}
-
-.successBtn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(138, 144, 255, 0.3);
-  color: #fff;
-  padding: 12px 40px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.3s;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.successBtn:hover {
-  background: #ca8fff;
-  color: #0d0a25;
-  border-color: #ca8fff;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(202, 143, 255, 0.3);
-}
-
-@keyframes ripple {
-  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
-  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-}
-
-@keyframes scaleIn {
-  from { transform: scale(0); }
-  to { transform: scale(1); }
 }
 
 @keyframes fadeIn {
@@ -388,7 +248,7 @@
 
 @media (max-width: 767px) {
   .formGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 20px;
   }
   .modal {
@@ -396,10 +256,6 @@
   }
 }
 
-/* ADDED RESPONSIVE FIXES */
-@media (max-width: 767px) {
-  .formGrid { grid-template-columns: 1fr !important; gap: 15px !important; }
-}
 @media (max-width: 480px) {
   .title { font-size: 24px !important; }
   .modal { padding: 30px 20px !important; border-radius: 16px !important; }
