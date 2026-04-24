@@ -1038,34 +1038,44 @@ export class RegistrationService {
     // Helper: resolve image buffer (disk first, then HTTP download)
     const resolveImageBuffer = async (rawUrl: string | null | undefined): Promise<Buffer | null> => {
       if (!rawUrl) return null;
-      if (rawUrl.startsWith('data:')) return null; // data URIs can't be downloaded
+      if (rawUrl.startsWith('data:')) return null;
 
-      // Relative path → read from disk
+      // 1. Relative path → read from disk first
       if (!rawUrl.startsWith('http')) {
         const buf = await readImageBuffer(rawUrl);
         if (buf) return buf;
-        console.warn('[EMAIL IMAGE] Cannot read from disk:', rawUrl);
+        
+        // Fallback: try download from site's own public URL
+        const siteUrl = (process.env.PUBLIC_SITE_URL || '').replace(/\/+$/, '');
+        if (siteUrl) {
+          const fullUrl = `${siteUrl}/${rawUrl.replace(/^[\/]+/, '')}`;
+          console.log('[EMAIL IMAGE] Fallback downloading from site URL:', fullUrl);
+          const dlBuf = await this.downloadBufferFromUrl(fullUrl);
+          if (dlBuf) return dlBuf;
+        }
+
+        console.warn('[EMAIL IMAGE] Cannot read from disk or download from site:', rawUrl);
         return null;
       }
 
-      // Absolute URL → try pathname on disk first
+      // 2. Absolute URL → try pathname on disk first (optimization)
       try {
         const parsed = new URL(rawUrl);
         if (parsed.pathname && parsed.pathname !== '/') {
           const diskBuf = await readImageBuffer(parsed.pathname);
           if (diskBuf) {
-            console.log('[EMAIL IMAGE] Loaded from disk:', parsed.pathname);
+            console.log('[EMAIL IMAGE] Loaded from disk (from absolute URL):', parsed.pathname);
             return diskBuf;
           }
         }
       } catch { /* ignore */ }
 
-      // Fallback: download
-      console.log('[EMAIL IMAGE] Downloading:', rawUrl);
+      // 3. Fallback: Download absolute URL
+      console.log('[EMAIL IMAGE] Downloading absolute URL:', rawUrl);
       const buf = await this.downloadBufferFromUrl(rawUrl);
       if (buf) return buf;
 
-      console.warn('[EMAIL IMAGE] Failed to load:', rawUrl);
+      console.warn('[EMAIL IMAGE] Failed to load absolute URL:', rawUrl);
       return null;
     };
 
